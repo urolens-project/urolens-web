@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { ShieldCheck, CheckCircle2, User, Calendar, Phone, MapPin, Users2, ArrowRight } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, User, Users2, ArrowRight } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { intakeApi } from '../api/intakeApi';
+import type { PatientRegistrationPayload } from '../types/types';
 
 interface PatientFormData {
   first_name: string;
@@ -32,8 +35,20 @@ export default function PatientRegistration() {
 
   const [hasConsent, setHasConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedId, setGeneratedId] = useState<string | null>(null);
+
+  const registrationMutation = useMutation({
+    mutationFn: (payload: PatientRegistrationPayload) => intakeApi.registerPatient(payload),
+    onSuccess: (data) => {
+      setGeneratedId(data.patient_id);
+    },
+    onError: (error: any) => {
+      setErrors((prev) => ({
+        ...prev,
+        submit: error.response?.data?.detail || 'An unexpected backend connection fault occurred during registration.',
+      }));
+    },
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,12 +75,21 @@ export default function PatientRegistration() {
       return;
     }
 
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const randomSequence = Math.floor(10000 + Math.random() * 90000);
-      setGeneratedId(`URLNS-2026-${randomSequence}`);
-    }, 1000);
+    const payload: PatientRegistrationPayload = {
+      first_name: formData.first_name,
+      middle_name: formData.middle_name || undefined,
+      last_name: formData.last_name,
+      date_of_birth: formData.date_of_birth,
+      gender: formData.gender,
+      contact_number: formData.contact_number,
+      complete_address: formData.complete_address,
+      is_walkin: formData.is_walkin,
+      emergency_name: formData.is_walkin ? formData.emergency_name : undefined,
+      emergency_relationship: formData.is_walkin ? formData.emergency_relationship : undefined,
+      emergency_phone: formData.is_walkin ? formData.emergency_phone : undefined,
+    };
+
+    registrationMutation.mutate(payload);
   };
 
   return (
@@ -268,10 +292,10 @@ export default function PatientRegistration() {
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={registrationMutation.isPending}
             className="h-11 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            {isSubmitting ? 'Processing Audit Entry...' : 'Commit & Provision Patient Record'}
+            {registrationMutation.isPending ? 'Processing Audit Entry...' : 'Commit & Provision Patient Record'}
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
