@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -13,7 +12,6 @@ import {
   Search,
   Settings,
   ShieldCheck,
-  User,
   UserPlus
 } from 'lucide-react';
 
