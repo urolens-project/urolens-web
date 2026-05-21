@@ -1,0 +1,24 @@
+Create a production-ready React component named PatientRegistration using TypeScript and Tailwind CSS v4.
+This component handles Module 1 (Patient & Receptionist Intake) for the UroLens LIS web application.
+
+Strict Aesthetic & Design Requirements:
+- Follow a strict minimalist, clean, professional laboratory UI/UX style.
+- Prioritize generous white space ("visual breathing room"), thin borders, and sharp, small, readable text.
+- Avoid bulky colored background sections, heavy blocks of text, or cluttered design patterns.
+
+Form States and Fields:
+1. Patient Metadata Form:
+   - fields: first_name, last_name, middle_name (optional), date_of_birth (date), gender (select: Male, Female, Other), contact_number (text), complete_address (text).
+2. Walk-In Configuration Switch:
+   - Include a custom minimalist toggle switch or interactive card for "Walk-In / Emergency Registration".
+   - Toggling this sets `is_walkin: true` and dynamically slides open an Emergency Contact subset panel capturing: emergency_contact_name, emergency_relationship, and emergency_contact_phone.
+
+Data Privacy Compliance (RA 10173 - Philippine Data Privacy Act):
+- Render a dedicated, structurally highlighted "Consent Recording" interactive panel card.
+- Include a required checkbox validating that the patient has read and accepted the clinical processing terms for urine sediment image compilation.
+- If the checkbox is empty, intercept form submission and show a clean, non-intrusive red inline validation message.
+
+State and Interaction Engineering:
+- Define a type-safe TypeScript interface `PatientRegistrationPayload` matching all fields.
+- Implement mock submission handling using a loading spinner state. On a successful fake submit, display a clean, temporary success modal displaying an automatically generated temporary internal registration sequence tracking key (e.g., URLNS-2026-XXXXX).
+- Integrate Lucide React icons for input field iconography (User, Calendar, Phone, Home, ShieldCheck) to maximize the clean LIS layout look.
