@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { ShieldCheck, CheckCircle2, User, Users2, ArrowRight } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { intakeApi } from '../api/intakeApi';
-import type { PatientRegistrationPayload } from '../types/types';
+import type { PatientRegistrationPayload, PatientRegistrationResponse } from '../types/types';
+import type { AxiosError } from 'axios';
 
 interface PatientFormData {
   first_name: string;
@@ -37,12 +38,16 @@ export default function PatientRegistration() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generatedId, setGeneratedId] = useState<string | null>(null);
 
-  const registrationMutation = useMutation({
-    mutationFn: (payload: PatientRegistrationPayload) => intakeApi.registerPatient(payload),
+  const registrationMutation = useMutation<
+    PatientRegistrationResponse,
+    AxiosError<{ detail?: string }>,
+    PatientRegistrationPayload
+  >({
+    mutationFn: (payload) => intakeApi.registerPatient(payload),
     onSuccess: (data) => {
       setGeneratedId(data.patient_id);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       setErrors((prev) => ({
         ...prev,
         submit: error.response?.data?.detail || 'An unexpected backend connection fault occurred during registration.',
