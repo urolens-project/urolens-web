@@ -1,14 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DashboardShell from './components/layout/DashboardShell';
-import PatientRegistration from './features/intake/components/PatientRegistration';
-
-// Temporary minimalist placeholders for upcoming sprints
-const Request = () => (
-  <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
-    Lab Request Encoding Form (Sprint 3)
-  </div>
-);
+import PatientRegistration from './features/intake/PatientRegistration';
+import LabRequestForm from './features/lab-request/LabRequestForm';
 
 const Receive = () => (
   <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
@@ -29,16 +23,18 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
-          {/* Base path redirect forces the app straight into your primary workspace core */}
           <Route path="/" element={<Navigate to="/intake/register" replace />} />
           
           {/* Main Layout Container Wrapper */}
           <Route path="/intake" element={<DashboardShell />}>
             {/* By keeping these relative, React Router accurately pieces together 
-               '/intake/register', '/intake/request', etc. seamlessly.
+                '/intake/register', '/intake/request', etc. seamlessly.
             */}
             <Route path="register" element={<PatientRegistration />} />
-            <Route path="request" element={<Request />} />
+            
+            {/* 2. SWAP OUT THE PLACEHOLDER ELEMENT WITH YOUR LIVE FORM */}
+            <Route path="request" element={<LabRequestForm />} />
+            
             <Route path="receive" element={<Receive />} />
             <Route path="queue" element={<Queue />} />
           </Route>
