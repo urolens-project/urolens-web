@@ -10,6 +10,7 @@ import DashboardShell from './components/layout/DashboardShell';
 
 import PatientRegistration from './features/intake/PatientRegistration';
 import LabRequestForm from './features/lab-request/LabRequestForm';
+import PatientRegistrationPage from './features/patient-registration';
 import SpecimenReceivingForm from './features/lab-request/SpecimenReceivingForm';
 import SampleLabelingScreen from './features/lab-request/SampleLabelingScreen';
 
