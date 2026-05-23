@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, CheckCircle2, User, Users2, ArrowRight } from 'lucide-react';
+import { ShieldCheck, User, Users2, ArrowRight } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { intakeApi } from '../../api/intakeApi';
 import type { PatientRegistrationPayload } from '../../types/types';
@@ -35,7 +35,7 @@ export default function PatientRegistration() {
 
   const [hasConsent, setHasConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [generatedId, setGeneratedId] = useState<string | null>(null);
+  const [, setGeneratedId] = useState<string | null>(null);
 
   const registrationMutation = useMutation({
     mutationFn: (payload: PatientRegistrationPayload) => intakeApi.registerPatient(payload),
