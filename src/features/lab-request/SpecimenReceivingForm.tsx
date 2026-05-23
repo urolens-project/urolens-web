@@ -8,6 +8,12 @@ import {
   XCircle, Beaker, FilePlus
 } from 'lucide-react';
 
+import { Helmet } from 'react-helmet-async';
+
+<Helmet>
+  <title>Specimen Receiving — UroLens</title>
+</Helmet>
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 const getTimestamp = () => new Date().toTimeString().split(' ')[0];
 
@@ -157,21 +163,34 @@ function ReceiveSampleForm({
   onReset,
   isPending
 }: ReceiveFormProps) {
-  const [volCheck, setVolCheck] = useState(false);
-  const [containerCheck, setContainerCheck] = useState(false);
-  const [labelCheck, setLabelCheck] = useState(false);
+  const [volCheck, setVolCheck] = useState(true);
+  const [containerCheck, setContainerCheck] = useState(true);
+  const [labelCheck, setLabelCheck] = useState(true);
 
+  // 🟢 EFFECT 1: If master switch changes, update checkboxes out to match
   useEffect(() => {
-    if (visualCheckPassed) {
-      setVolCheck(true);
-      setContainerCheck(true);
-      setLabelCheck(true);
-    } else {
-      setVolCheck(false);
-      setContainerCheck(false);
-      setLabelCheck(false);
-    }
+    setVolCheck(visualCheckPassed);
+    setContainerCheck(visualCheckPassed);
+    setLabelCheck(visualCheckPassed);
   }, [visualCheckPassed]);
+
+  // 🟢 EFFECT 2: Check box updates dynamically refresh the master switch layout
+  const handleCheckboxChange = (field: 'vol' | 'container' | 'label', value: boolean) => {
+    let currentVol = field === 'vol' ? value : volCheck;
+    let currentContainer = field === 'container' ? value : containerCheck;
+    let currentLabel = field === 'label' ? value : labelCheck;
+
+    if (field === 'vol') setVolCheck(value);
+    if (field === 'container') setContainerCheck(value);
+    if (field === 'label') setLabelCheck(value);
+
+    // If all three individual baselines check out true, advance master flag to passed
+    if (currentVol && currentContainer && currentLabel) {
+      setVisualCheckPassed(true);
+    } else {
+      setVisualCheckPassed(false);
+    }
+  };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
@@ -193,7 +212,7 @@ function ReceiveSampleForm({
               <input 
                 type="checkbox" 
                 checked={volCheck} 
-                onChange={(e) => { setVolCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
+                onChange={(e) => handleCheckboxChange('vol', e.target.checked)}
                 className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
               />
               <span className="text-[11px] font-semibold">Adequate Volume (≥30mL)</span>
@@ -203,7 +222,7 @@ function ReceiveSampleForm({
               <input 
                 type="checkbox" 
                 checked={containerCheck} 
-                onChange={(e) => { setContainerCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
+                onChange={(e) => handleCheckboxChange('container', e.target.checked)}
                 className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
               />
               <span className="text-[11px] font-semibold">Sterile Container Lid Lock</span>
@@ -213,7 +232,7 @@ function ReceiveSampleForm({
               <input 
                 type="checkbox" 
                 checked={labelCheck} 
-                onChange={(e) => { setLabelCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
+                onChange={(e) => handleCheckboxChange('label', e.target.checked)}
                 className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
               />
               <span className="text-[11px] font-semibold">Legible Match Profiling</span>
@@ -253,8 +272,6 @@ function ReceiveSampleForm({
                 className={`w-full h-11 rounded-xl border bg-white px-3 text-xs outline-none focus:border-red-500 transition-all ${formErrors.rejection ? 'border-red-300 bg-red-50/20' : 'border-slate-200'}`}
               >
                 <option value="">Select failure taxonomy group...</option>
-                
-                {}
                 <option value="INSUFFICIENT_VOLUME">INSUFFICIENT_VOLUME (Specimen volume measures below 30mL)</option>
                 <option value="WRONG_CONTAINER">WRONG_CONTAINER (Non-sterile or unapproved container type used)</option>
                 <option value="UNLABELED">UNLABELED (Container missing complete patient identification elements)</option>
@@ -412,30 +429,31 @@ export default function SpecimenReceivingForm() {
   const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/specimens/search-request?q=${searchQuery}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSearchResults(data);
-        }
-      } catch (err) {
-        console.error("Failed to query live lab request queues:", err);
-      } finally {
-        setIsSearching(false);
+  if (!searchQuery.trim()) {
+    setSearchResults([]);
+    return;
+  }
+  const delayDebounce = setTimeout(async () => {
+    setIsSearching(true);
+    setHasSearched(true);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/specimens/search-request?q=${searchQuery}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
       }
-    }, 300);
+    } catch (err) {
+      console.error("Failed to query live lab request queues:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, 300);
 
-    return () => clearTimeout(delayDebounce);
-  }, [searchQuery]);
+  return () => clearTimeout(delayDebounce);
+}, [searchQuery]);
 
-  // FIX: Added the missing handler required by sub-components
   const handleSelectRequest = (req: LabRequestSearchResult) => {
     setSelectedRequest(req);
     setSearchQuery('');
@@ -446,7 +464,7 @@ export default function SpecimenReceivingForm() {
 
   const receiveMutation = useMutation({
     mutationFn: async (payload: SpecimenReceivePayload): Promise<SpecimenReceiveResponse> => {
-      const response = await fetch(`${API_BASE_URL}/api/v1/specimens/receive`, {
+      const response = await fetch(`${API_BASE_URL}/specimens/receive`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

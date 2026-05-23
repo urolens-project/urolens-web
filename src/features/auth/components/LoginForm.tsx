@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useLogin } from '../hooks/useAuth';
+import { useNavigate } from 'react-router-dom'; 
+import { UserRole } from '../../../types/enums';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
@@ -17,6 +19,7 @@ function getErrorMessage(code: string | undefined): string {
 }
 
 export default function LoginForm() {
+  const navigate = useNavigate(); // Initialize navigation handle
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -50,6 +53,28 @@ export default function LoginForm() {
     loginMutation.mutate(
       { username: username.trim(), password },
       {
+        onSuccess: (data: any) => {
+          // 2. DYNAMIC WORKSPACE REDIRECTION TIMELINES
+          // Check what role token just logged in and point them directly to their operational cockpit
+          console.log("MUTATION SUCCESS DATA RETURNED:", data);
+          const userRole = data?.role || data?.user?.role;
+          console.log("PARSED EVALUATED ROLE:", userRole);
+          
+          if (userRole === UserRole.RECEPTIONIST) {
+            navigate('/intake/register', { replace: true });
+          } else if (userRole === UserRole.SUPERVISOR) {
+            navigate('/dashboard/supervisor', { replace: true });
+          } else if (userRole === UserRole.PHYSICIAN) {
+            navigate('/dashboard/physician', { replace: true });
+          } else if (userRole === UserRole.PATIENT) {
+            navigate('/dashboard/patient', { replace: true });
+          } else if (userRole === UserRole.ADMINISTRATOR) {
+            navigate('/dashboard/administrator', { replace: true });
+          } else {
+            // Default fallback safe house
+            navigate('/intake/register', { replace: true });
+          }
+        },
         onError: (error: AxiosError<ApiError>) => {
           const code = error.response?.data?.error?.code;
           setServerError(getErrorMessage(code));
@@ -65,13 +90,13 @@ export default function LoginForm() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800">UroLens LIS</h1>
-            <p className="text-sm text-slate-500 mt-1">Sign in to your account</p>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">UroLens LIS</h1>
+            <p className="text-sm text-slate-500 mt-1">Sign in to your account to open intake tools</p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="username" className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                 Username
               </label>
               <input
@@ -82,19 +107,19 @@ export default function LoginForm() {
                   setUsername(e.target.value);
                   if (usernameError) setUsernameError('');
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
-                  usernameError ? 'border-red-400 bg-red-50' : 'border-slate-300'
+                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                  usernameError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
-                placeholder="Enter your username"
+                placeholder="Enter your registered username"
                 disabled={isSubmitting}
               />
               {usernameError && (
-                <p className="mt-1 text-xs text-red-500">{usernameError}</p>
+                <p className="mt-1.5 text-xs text-red-500 font-semibold">{usernameError}</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="password" className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                 Password
               </label>
               <input
@@ -105,19 +130,19 @@ export default function LoginForm() {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError('');
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
-                  passwordError ? 'border-red-400 bg-red-50' : 'border-slate-300'
+                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                  passwordError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
-                placeholder="Enter your password"
+                placeholder="Enter your security password"
                 disabled={isSubmitting}
               />
               {passwordError && (
-                <p className="mt-1 text-xs text-red-500">{passwordError}</p>
+                <p className="mt-1.5 text-xs text-red-500 font-semibold">{passwordError}</p>
               )}
             </div>
 
             {serverError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600">
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-xs text-red-600 font-medium">
                 {serverError}
               </div>
             )}
@@ -125,15 +150,15 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full h-11 bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               )}
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? 'Verifying Identity parameters...' : 'Sign in to Workspace'}
             </button>
           </form>
         </div>
