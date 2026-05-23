@@ -8,10 +8,36 @@ import {
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 
 const navItems = [
-  { to: '/intake/register', label: 'Patient Intake', icon: UserPlus },
-  { to: '/intake/request', label: 'Lab Requests', icon: FileText },
-  { to: '/intake/receive', label: 'Specimen Intake', icon: FlaskConical },
-  { to: '/intake/queue', label: 'Labeling & Queue', icon: Barcode },
+  {
+    to: '/intake/register',
+    label: 'Patient Intake',
+    description: 'Patient registration workflow',
+    icon: UserPlus,
+  },
+  {
+    to: '/intake/patients/new',
+    label: 'Register Patient',
+    description: 'New patient account registration',
+    icon: UserPlus,
+  },
+  {
+    to: '/intake/request',
+    label: 'Lab Requests',
+    description: 'Clinical laboratory requests',
+    icon: FileText,
+  },
+  {
+    to: '/intake/receive',
+    label: 'Specimen Intake',
+    description: 'Specimen receiving & validation',
+    icon: FlaskConical,
+  },
+  {
+    to: '/intake/queue',
+    label: 'Labeling & Queue',
+    description: 'Queue monitoring & barcode labels',
+    icon: Barcode,
+  },
 ];
 
 export default function DashboardShell() {
