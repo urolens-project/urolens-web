@@ -6,6 +6,7 @@ import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
 import DashboardShell from './components/layout/DashboardShell';
 import LabRequestForm from './features/lab-request/LabRequestForm';
+import PatientRegistrationPage from './features/patient-registration';
 import SpecimenReceivingForm from './features/lab-request/SpecimenReceivingForm';
 import AppShell from './components/layout/AppShell';
 import PatientRegistration from './features/intake/PatientRegistration';
@@ -130,6 +131,7 @@ export default function App() {
             <Route path="receive" element={<SpecimenReceivingForm />} />
             
             <Route path="queue" element={<Queue />} />
+            <Route path="patients/new" element={<PatientRegistrationPage />} />
           </Route>
           
           {/* Global Fallback Route catches broken URLs and points securely back to Patient Intake */}
