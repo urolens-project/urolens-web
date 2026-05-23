@@ -8,12 +8,6 @@ import {
   XCircle, Beaker, FilePlus
 } from 'lucide-react';
 
-import { Helmet } from 'react-helmet-async';
-
-<Helmet>
-  <title>Specimen Receiving — UroLens</title>
-</Helmet>
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 const getTimestamp = () => new Date().toTimeString().split(' ')[0];
 
