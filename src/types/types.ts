@@ -48,3 +48,18 @@ export interface LabRequestResponse {
   message: string;
   timestamp: string;
 }
+
+export interface SpecimenReceivePayload {
+  lab_request_id: string;
+  visual_check_passed: boolean;
+  rejection_reason?: string;
+  free_text_note?: string;
+}
+
+export interface SpecimenReceiveResponse {
+  success: boolean;
+  specimen_id: string;
+  sample_uid: string | null;
+  status: 'RECEIVED' | 'REJECTED';
+  message: string;
+}

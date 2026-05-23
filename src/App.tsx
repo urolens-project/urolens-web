@@ -3,12 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DashboardShell from './components/layout/DashboardShell';
 import PatientRegistration from './features/intake/PatientRegistration';
 import LabRequestForm from './features/lab-request/LabRequestForm';
-
-const Receive = () => (
-  <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
-    Specimen Receiving Module (Sprint 3)
-  </div>
-);
+import SpecimenReceivingForm from './features/lab-request/SpecimenReceivingForm';
 
 const Queue = () => (
   <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
@@ -31,11 +26,11 @@ export default function App() {
                 '/intake/register', '/intake/request', etc. seamlessly.
             */}
             <Route path="register" element={<PatientRegistration />} />
-            
-            {/* 2. SWAP OUT THE PLACEHOLDER ELEMENT WITH YOUR LIVE FORM */}
             <Route path="request" element={<LabRequestForm />} />
             
-            <Route path="receive" element={<Receive />} />
+            {/* MOUNT THE LIVE SPECIMEN RECEIVING FORM HERE */}
+            <Route path="receive" element={<SpecimenReceivingForm />} />
+            
             <Route path="queue" element={<Queue />} />
           </Route>
           
