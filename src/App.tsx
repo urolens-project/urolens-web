@@ -5,8 +5,9 @@ import { AuthProvider } from './lib/auth/authContext';
 import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
 import DashboardShell from './components/layout/DashboardShell';
+import LabRequestForm from './features/lab-request/LabRequestForm';
 import AppShell from './components/layout/AppShell';
-import PatientRegistration from './features/intake/components/PatientRegistration';
+import PatientRegistration from './features/intake/PatientRegistration';
 import LoginPage from './routes/auth.routes';
 import ReceptionistDashboard from './routes/receptionist.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
@@ -112,6 +113,28 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/intake/register" replace />} />
+          
+          {/* Main Layout Container Wrapper */}
+          <Route path="/intake" element={<DashboardShell />}>
+            {/* By keeping these relative, React Router accurately pieces together 
+                '/intake/register', '/intake/request', etc. seamlessly.
+            */}
+            <Route path="register" element={<PatientRegistration />} />
+            
+            {/* 2. SWAP OUT THE PLACEHOLDER ELEMENT WITH YOUR LIVE FORM */}
+            <Route path="request" element={<LabRequestForm />} />
+            
+            <Route path="receive" element={<Receive />} />
+            <Route path="queue" element={<Queue />} />
+          </Route>
+          
+          {/* Global Fallback Route catches broken URLs and points securely back to Patient Intake */}
+          <Route path="*" element={<Navigate to="/intake/register" replace />} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
