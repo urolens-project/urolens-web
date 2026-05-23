@@ -1,20 +1,37 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+let tokenGetter: (() => string | null) | null = null;
+let onUnauthorized: (() => void) | null = null;
+
+export function setTokenGetter(getter: () => string | null) {
+  tokenGetter = getter;
+}
+
+export function setOnUnauthorized(handler: () => void) {
+  onUnauthorized = handler;
+}
 
 const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
+  const token = tokenGetter?.();
+  if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      onUnauthorized?.();
+    }
+    return Promise.reject(error);
+  },
+);
 
 export default apiClient;
