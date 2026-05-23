@@ -6,6 +6,7 @@ import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
 import DashboardShell from './components/layout/DashboardShell';
 import LabRequestForm from './features/lab-request/LabRequestForm';
+import SpecimenReceivingForm from './features/lab-request/SpecimenReceivingForm';
 import AppShell from './components/layout/AppShell';
 import PatientRegistration from './features/intake/PatientRegistration';
 import LoginPage from './routes/auth.routes';
@@ -123,11 +124,11 @@ export default function App() {
                 '/intake/register', '/intake/request', etc. seamlessly.
             */}
             <Route path="register" element={<PatientRegistration />} />
-            
-            {/* 2. SWAP OUT THE PLACEHOLDER ELEMENT WITH YOUR LIVE FORM */}
             <Route path="request" element={<LabRequestForm />} />
             
-            <Route path="receive" element={<Receive />} />
+            {/* MOUNT THE LIVE SPECIMEN RECEIVING FORM HERE */}
+            <Route path="receive" element={<SpecimenReceivingForm />} />
+            
             <Route path="queue" element={<Queue />} />
           </Route>
           
