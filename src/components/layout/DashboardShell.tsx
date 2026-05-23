@@ -23,6 +23,12 @@ const navItems = [
     icon: UserPlus,
   },
   {
+    to: '/intake/patients/new',
+    label: 'Register Patient',
+    description: 'New patient account registration',
+    icon: UserPlus,
+  },
+  {
     to: '/intake/request',
     label: 'Lab Requests',
     description: 'Clinical laboratory requests',
