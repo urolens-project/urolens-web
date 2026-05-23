@@ -9,12 +9,6 @@ import { useAuthContext } from '../../lib/auth/useAuthContext';
 
 const navItems = [
   {
-    to: '/intake/register',
-    label: 'Patient Intake',
-    description: 'Patient registration workflow',
-    icon: UserPlus,
-  },
-  {
     to: '/intake/patients/new',
     label: 'Register Patient',
     description: 'New patient account registration',
