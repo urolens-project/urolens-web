@@ -16,6 +16,7 @@ import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
 import AdminDashboard from './routes/admin.routes';
+import QueueAssignmentPage from './features/queue-assignment';
 
 const Request = () => (
   <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
@@ -26,12 +27,6 @@ const Request = () => (
 const Receive = () => (
   <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
     Specimen Receiving Module (Sprint 3)
-  </div>
-);
-
-const Queue = () => (
-  <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
-    Labeling & Workload Queue Setup (Sprint 4)
   </div>
 );
 
@@ -61,6 +56,7 @@ export default function App() {
               }
             >
               <Route path="/dashboard/receptionist" element={<ReceptionistDashboard />} />
+              <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
             </Route>
 
             <Route
@@ -107,7 +103,7 @@ export default function App() {
               <Route path="register" element={<PatientRegistration />} />
               <Route path="request" element={<Request />} />
               <Route path="receive" element={<Receive />} />
-              <Route path="queue" element={<Queue />} />
+              <Route path="queue" element={<QueueAssignmentPage />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/login" replace />} />
@@ -130,7 +126,7 @@ export default function App() {
             {/* MOUNT THE LIVE SPECIMEN RECEIVING FORM HERE */}
             <Route path="receive" element={<SpecimenReceivingForm />} />
             
-            <Route path="queue" element={<Queue />} />
+            <Route path="queue" element={<QueueAssignmentPage />} />
             <Route path="patients/new" element={<PatientRegistrationPage />} />
           </Route>
           
