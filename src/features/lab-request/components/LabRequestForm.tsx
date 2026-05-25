@@ -151,7 +151,7 @@ export default function LabRequestForm() {
     return (
       <div className="max-w-xl mx-auto py-12 animate-fadeIn font-sans">
         <Helmet><title>Lab Request — UroLens</title></Helmet>
-        <div className="relative overflow-hidden rounded-[32px] bg-white p-8 lg:p-10 shadow-md border border-slate-200">
+        <div className="relative overflow-hidden rounded-4xl bg-white p-8 lg:p-10 shadow-md border border-slate-200">
           <div className="relative space-y-8">
             <div className="flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200">
@@ -202,7 +202,7 @@ export default function LabRequestForm() {
   return (
     <div className="w-full bg-[#F4F7F5] font-sans text-slate-800 tracking-tight">
       <Helmet><title>Lab Request — UroLens</title></Helmet>
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-[1400px] mx-auto">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-350 mx-auto">
 
         {/* LEFT COLUMN MAIN FORMS WORKSPACE */}
         <div className="space-y-6 lg:col-span-2">
@@ -375,7 +375,7 @@ export default function LabRequestForm() {
                     value={clinicalNotes}
                     onChange={(e) => setClinicalNotes(e.target.value)}
                     placeholder="Input descriptive case findings or patient history strings..."
-                    className="w-full min-h-[100px] max-h-[140px] rounded-xl border border-slate-200 p-3 text-xs outline-none transition-all focus:border-emerald-500 bg-white resize-none"
+                    className="w-full min-h-25 max-h-35 rounded-xl border border-slate-200 p-3 text-xs outline-none transition-all focus:border-emerald-500 bg-white resize-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -384,7 +384,7 @@ export default function LabRequestForm() {
                     value={specialInstructions}
                     onChange={(e) => setSpecialInstructions(e.target.value)}
                     placeholder="Specify storage conditions or urgent STAT flags if needed..."
-                    className="w-full min-h-[100px] max-h-[140px] rounded-xl border border-slate-200 p-3 text-xs outline-none transition-all focus:border-emerald-500 bg-white resize-none"
+                    className="w-full min-h-25 max-h-35 rounded-xl border border-slate-200 p-3 text-xs outline-none transition-all focus:border-emerald-500 bg-white resize-none"
                   />
                 </div>
               </div>
@@ -445,11 +445,11 @@ export default function LabRequestForm() {
               <div className="space-y-2.5 rounded-xl bg-slate-50 border border-slate-100/70 p-3.5">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[9px] uppercase tracking-wide">Physician:</span>
-                  <span className="text-slate-700 font-bold truncate max-w-[150px]">{currentPreviewPhysician || 'Not selected'}</span>
+                  <span className="text-slate-700 font-bold truncate max-w-37.5">{currentPreviewPhysician || 'Not selected'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[9px] uppercase tracking-wide">Test Panel:</span>
-                  <span className="text-slate-600 font-semibold truncate max-w-[140px]">
+                  <span className="text-slate-600 font-semibold truncate max-w-35">
                     {testType === 'OTHER' ? otherTestDescription || 'Custom Protocol' : testType}
                   </span>
                 </div>

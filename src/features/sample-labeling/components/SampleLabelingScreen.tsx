@@ -117,7 +117,7 @@ export default function SampleLabelingScreen() {
   return (
     <div className="w-full bg-[#F4F7F5] font-sans text-slate-800 tracking-tight">
       <Helmet><title>Sample Labeling — UroLens</title></Helmet>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-[1400px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-350 mx-auto">
 
         {/* LEFT COLUMN: ACTIVE INTERFACE STACKS */}
         <div className="lg:col-span-2 space-y-6">
@@ -394,13 +394,13 @@ export default function SampleLabelingScreen() {
               <div className="space-y-3 border-b border-slate-100 pb-4 text-xs font-medium">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Patient Profile:</span>
-                  <span className="text-slate-700 font-bold truncate max-w-[160px]">
+                  <span className="text-slate-700 font-bold truncate max-w-40">
                     {selectedSpecimen ? selectedSpecimen.patient_name : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Diagnostic Panel:</span>
-                  <span className="text-slate-600 font-semibold truncate max-w-[140px]">
+                  <span className="text-slate-600 font-semibold truncate max-w-35">
                     {selectedSpecimen ? selectedSpecimen.test_type.replace(/_/g, ' ') : 'N/A'}
                   </span>
                 </div>

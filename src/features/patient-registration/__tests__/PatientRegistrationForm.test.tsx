@@ -55,6 +55,9 @@ function fillRequiredFields() {
   fireEvent.change(screen.getByLabelText(/Date of Birth/), {
     target: { value: '1990-01-01' },
   });
+  fireEvent.change(screen.getByLabelText(/Sex/), {
+    target: { value: 'MALE' },
+  });
 }
 
 function checkAllConsents() {
