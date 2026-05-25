@@ -29,12 +29,14 @@ const mockResponse: PatientResponse = {
   patient_id: '1',
   patient_uid: 'PAT-000001',
   first_name: 'Juan',
+  middle_name: '',       // add this
   last_name: 'Dela Cruz',
   date_of_birth: '1990-01-01',
-  contact_no: null,
-  address: null,
+  sex: 'MALE',           // add this
+  contact_no: '',
+  address: '',
   is_walkin: false,
-  record_flag: null,
+  record_flag: '',
   created_at: '2026-01-01T00:00:00Z',
 };
 
@@ -42,6 +44,7 @@ const mockPayload: PatientCreateRequest = {
   first_name: 'Juan',
   last_name: 'Dela Cruz',
   date_of_birth: '1990-01-01',
+  sex: 'MALE',           // add this
   contact_no: null,
   address: null,
   consent: {

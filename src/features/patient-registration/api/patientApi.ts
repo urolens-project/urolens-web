@@ -6,5 +6,5 @@ export const patientApi = {
     apiClient.post('/patients', data).then((res) => res.data),
 
   search: (q: string): Promise<PatientResponse[]> =>
-    apiClient.get('/patients', { params: { q } }).then((res) => res.data),
+    apiClient.get('/intake/patients/search', { params: { q } }).then((res) => res.data),
 };
