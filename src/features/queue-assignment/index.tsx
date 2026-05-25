@@ -1,7 +1,15 @@
+import { QueueAssignmentDashboard } from './components/QueueAssignmentDashboard';
+
 export default function QueueAssignmentPage() {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-400 text-xs font-medium max-w-xl">
-      Queue Assignment (coming soon)
+    <div>
+      <h1 className="text-3xl font-black text-slate-900 tracking-tight">Queue Assignment</h1>
+      <p className="text-sm text-slate-500 mt-2 max-w-2xl leading-relaxed">
+        Assign labeled specimens to available Medical Technologists for processing.
+      </p>
+      <div className="mt-8">
+        <QueueAssignmentDashboard />
+      </div>
     </div>
   );
 }
