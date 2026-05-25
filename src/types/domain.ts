@@ -3,7 +3,13 @@ export interface ApiError {
     data?: {
       error?: {
         code?: string;
-        message?: string;
+        message?: string | {
+          error?: {
+            code?: string;
+            message?: string;
+            details?: Record<string, unknown>;
+          };
+        };
       };
       detail?: string;
     };
