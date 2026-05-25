@@ -12,6 +12,7 @@ import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
 import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
+import QueueAssignmentPage from './features/queue-assignment';
 
 import LoginPage from './routes/auth.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
@@ -39,7 +40,6 @@ export default function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* 1. RECEPTIONIST ACTIVE SECURE WORKSPACE BOUNDARIES */}
-            {/* Swapped layout wrapper here to match your custom design system shell framework */}
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
@@ -47,8 +47,8 @@ export default function App() {
                 </RequireRole>
               }
             >
-              {/* Intercepts background hook redirections and points cleanly to your active workspace layout forms */}
               <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
+              <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
             </Route>
 
             {/* 2. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}
@@ -107,7 +107,8 @@ export default function App() {
               <Route path="register" element={<PatientRegistrationPage />} />
               <Route path="request" element={<LabRequestForm />} />
               <Route path="receive" element={<SpecimenReceivingForm />} />
-              <Route path="queue" element={<SampleLabelingScreen />} />
+              <Route path="label" element={<SampleLabelingScreen />} />
+              <Route path="queue" element={<QueueAssignmentPage />} />
             </Route>
 
             {/* Universal Root Fallback Redirection Sequence Safeguards */}
