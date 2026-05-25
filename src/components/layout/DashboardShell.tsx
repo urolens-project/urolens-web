@@ -30,8 +30,8 @@ const navItems = [
   },
   {
     to: '/intake/queue',
-    label: 'Labeling & Queue',
-    description: 'Queue monitoring & barcode labels',
+    label: 'Queue Assignment',
+    description: 'Specimen to MedTech queue assignment',
     icon: Barcode,
   },
 ];
