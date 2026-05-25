@@ -363,7 +363,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
           {!isRejected && (
             <button
               type="button"
-              onClick={() => navigate('/intake/queue')}
+              onClick={() => navigate('/intake/label')}
               className="h-11 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
               Proceed to Barcode Labeling <Beaker className="h-3.5 w-3.5" />

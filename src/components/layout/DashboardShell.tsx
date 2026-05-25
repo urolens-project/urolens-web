@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Activity, Barcode, FileText, FlaskConical,
+  Activity, Barcode, ClipboardList, FileText, FlaskConical,
   LogOut, Menu, Settings, UserPlus
 } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
@@ -29,10 +29,16 @@ const navItems = [
     icon: FlaskConical,
   },
   {
+    to: '/intake/label',
+    label: 'Sample Labeling',
+    description: 'Barcode label printing & affixing',
+    icon: Barcode,
+  },
+  {
     to: '/intake/queue',
     label: 'Queue Assignment',
     description: 'Specimen to MedTech queue assignment',
-    icon: Barcode,
+    icon: ClipboardList,
   },
 ];
 

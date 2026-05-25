@@ -19,7 +19,6 @@ import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
 import AdminDashboard from './routes/admin.routes';
-import QueueAssignmentPage from './features/queue-assignment';
 
 const Unauthorized = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">

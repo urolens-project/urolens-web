@@ -122,7 +122,11 @@ export function PatientRegistrationForm() {
         setDuplicateError(null);
       },
       onError: (err: ApiError) => {
-        const code = err.response?.data?.error?.code;
+        const errorObj = err.response?.data?.error;
+        const code =
+          errorObj?.code ||
+          (typeof errorObj?.message === 'object' ? errorObj.message?.error?.code : undefined);
+
         if (code === 'DUPLICATE_PATIENT') {
           setDuplicateError('A patient with this name and date of birth already exists.');
         } else {
