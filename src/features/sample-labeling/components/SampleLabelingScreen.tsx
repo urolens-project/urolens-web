@@ -1,84 +1,55 @@
 import { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import type { PrintLabelResponse, ConfirmAffixedResponse, LabelPreviewData } from '../../types/types';
-import { 
+import { Helmet } from 'react-helmet-async';
+import { QRCodeSVG } from 'qrcode.react';
+import type { PrintLabelResponse, ConfirmAffixedResponse, LabelPreviewData } from '../../../types/types';
+import type { ReceivedSpecimenResult } from '../types';
+import { sampleLabelingApi } from '../api/sampleLabelingApi';
+import { useSpecimenSearch } from '../hooks/useSampleLabeling';
+import { useMutation } from '@tanstack/react-query';
+import {
   Search, Printer, CheckCircle, Loader2, FlaskConical, AlertCircle,
-  ShieldCheck, ArrowRight, Barcode, CheckSquare, Layers,
+  ShieldCheck, ArrowRight, CheckSquare, Layers,
   RefreshCw, WifiOff
 } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 const getTimestamp = () => new Date().toTimeString().split(' ')[0];
-
-interface ReceivedSpecimenResult {
-  specimen_id: string;
-  sample_uid: string;
-  patient_name: string;
-  patient_uid: string;
-  test_type: string;
-  status: string;
-}
 
 export default function SampleLabelingScreen() {
   const navigate = useNavigate();
 
-  // ----------------------------------------------------------------
-  // CORE COMPONENT STATE HOOKS (CLEAN & EXACT EXECUTIONS)
-  // ----------------------------------------------------------------
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedSpecimen, setSelectedSpecimen] = useState<ReceivedSpecimenResult | null>(null);
-  
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<ReceivedSpecimenResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
 
   const [hasPrinted, setHasPrinted] = useState(false);
   const [previewData, setPreviewData] = useState<LabelPreviewData | null>(null);
   const [reprintCount, setReprintCount] = useState(0);
   const [printerOfflineOverride, setPrinterOfflineOverride] = useState(false);
-  
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [sessionLogs, setSessionLogs] = useState<Array<{ time: string; text: string }>>([
-    { time: getTimestamp(), text: 'Barcode hardware labeling dashboard online.' }
+    { time: getTimestamp(), text: 'Barcode hardware labeling dashboard online.' },
   ]);
   const [workflowCompleted, setWorkflowCompleted] = useState(false);
 
-  // ----------------------------------------------------------------
-  // LIVE QUEUE SEARCH LOOKUP DEBOUNCER
-  // ----------------------------------------------------------------
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/specimens/search-received?q=${searchQuery}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSearchResults(data);
-        }
-      } catch (err) {
-        console.error("Failed querying active specimen subledgers:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
+    const delay = searchQuery.trim() ? 300 : 0;
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), delay);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
+  const { data: searchData, isFetching: isSearching } = useSpecimenSearch(debouncedQuery);
+  const searchResults: ReceivedSpecimenResult[] = searchData ?? [];
+  const hasSearched = debouncedQuery.trim().length > 0;
+
   const addLog = (text: string) => {
-    setSessionLogs(prev => [{ time: getTimestamp(), text }, ...prev]);
+    setSessionLogs((prev) => [{ time: getTimestamp(), text }, ...prev]);
   };
 
   const handleSelectSpecimen = (spec: ReceivedSpecimenResult) => {
     setSelectedSpecimen(spec);
     setSearchQuery('');
-    setSearchResults([]);
     setFormErrors({});
     setHasPrinted(false);
     setPreviewData(null);
@@ -90,30 +61,19 @@ export default function SampleLabelingScreen() {
   const handleClearWorkspace = () => {
     setSelectedSpecimen(null);
     setSearchQuery('');
+    setDebouncedQuery('');
     setHasPrinted(false);
     setPreviewData(null);
     setReprintCount(0);
     setPrinterOfflineOverride(false);
     setFormErrors({});
-    setHasSearched(false);
     setWorkflowCompleted(false);
     addLog('Workspace cache lines systematically wiped clear.');
   };
 
-  // ----------------------------------------------------------------
-  // MUTATION 1: PRINT & REPRINT ACTION (SampleLabelPanel)
-  // ----------------------------------------------------------------
   const printMutation = useMutation({
-    mutationFn: async (specimenId: string): Promise<PrintLabelResponse> => {
-      const response = await fetch(`${API_BASE_URL}/specimens/${specimenId}/label`, {
-        method: 'POST'
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.detail || 'Printer engine communication failure loop.');
-      }
-      return response.json();
-    },
+    mutationFn: (specimenId: string): Promise<PrintLabelResponse> =>
+      sampleLabelingApi.printLabel(specimenId),
     onSuccess: (data) => {
       setPreviewData(data.preview);
       setHasPrinted(true);
@@ -122,59 +82,46 @@ export default function SampleLabelingScreen() {
       } else {
         addLog(`Hardware Dispatch: PrintJob [${data.print_job_id}] pushed state=SENT`);
       }
-      setFormErrors(prev => { const n = { ...prev }; delete n.print; return n; });
+      setFormErrors((prev) => { const n = { ...prev }; delete n.print; return n; });
     },
-    onError: (error: any) => {
-      setFormErrors(prev => ({ ...prev, print: error.message }));
+    onError: (error: Error) => {
+      setFormErrors((prev) => ({ ...prev, print: error.message }));
       addLog('Hardware Exception: Print spooling interrupted.');
-    }
+    },
   });
 
   const handleReprintTrigger = () => {
     if (!selectedSpecimen) return;
-    setReprintCount(prev => prev + 1);
+    setReprintCount((prev) => prev + 1);
     printMutation.mutate(selectedSpecimen.specimen_id);
   };
 
-  // ----------------------------------------------------------------
-  // MUTATION 2: CONFIRM AFFIXED RUNS (LabelConfirmationAction)
-  // ----------------------------------------------------------------
   const confirmMutation = useMutation({
-    mutationFn: async (specimenId: string): Promise<ConfirmAffixedResponse> => {
-      const response = await fetch(`${API_BASE_URL}/specimens/${specimenId}/label/confirm`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          offline_override: printerOfflineOverride  
-        })
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.detail || 'Affixed state verification exception.');
-      }
-      return response.json();
-    },
+    mutationFn: ({ specimenId, offlineOverride }: { specimenId: string; offlineOverride: boolean }): Promise<ConfirmAffixedResponse> =>
+      sampleLabelingApi.confirmAffixed(specimenId, offlineOverride),
     onSuccess: () => {
       setWorkflowCompleted(true);
-      addLog(`Workflow Complete: Specimen updated to [LABELED / Ready for Queue]`);
+      addLog('Workflow Complete: Specimen updated to [LABELED / Ready for Queue]');
     },
-    onError: (error: any) => {
-      setFormErrors(prev => ({ ...prev, confirm: error.message }));
+    onError: (error: Error) => {
+      setFormErrors((prev) => ({ ...prev, confirm: error.message }));
       addLog('Error: Status modification validation check faulted.');
-    }
+    },
   });
+
   const isConfirmationUnlocked =
-  !!selectedSpecimen &&
-  ((hasPrinted && !!previewData) || printerOfflineOverride) &&
-  !workflowCompleted;
+    !!selectedSpecimen &&
+    ((hasPrinted && !!previewData) || printerOfflineOverride) &&
+    !workflowCompleted;
 
   return (
     <div className="w-full bg-[#F4F7F5] font-sans text-slate-800 tracking-tight">
+      <Helmet><title>Sample Labeling — UroLens</title></Helmet>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-[1400px] mx-auto">
-        
+
         {/* LEFT COLUMN: ACTIVE INTERFACE STACKS */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* SEARCH SELECTION OVERLAY VIEWPORT */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -193,7 +140,7 @@ export default function SampleLabelingScreen() {
               ) : (
                 <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               )}
-              
+
               <input
                 type="text"
                 placeholder="Lookup active containers by patient demographic name..."
@@ -203,7 +150,7 @@ export default function SampleLabelingScreen() {
                 className="w-full h-11 rounded-xl border border-slate-200 pl-10 pr-4 text-xs outline-none transition-all focus:border-emerald-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
               />
               {selectedSpecimen && (
-                <button 
+                <button
                   type="button"
                   onClick={handleClearWorkspace}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
@@ -246,7 +193,7 @@ export default function SampleLabelingScreen() {
             )}
           </div>
 
-          {/* FRONTEND COMPONENT INTERFACE: SampleLabelPanel */}
+          {/* SAMPLE LABEL PANEL */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-6 py-4 bg-slate-50/50 flex items-center justify-between">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
@@ -288,8 +235,8 @@ export default function SampleLabelingScreen() {
               </div>
             ) : (
               <div className="p-6 space-y-6">
-                
-                {/* PRINTER OFFLINE FALLBACK LOOP OVERRIDE CONTROL */}
+
+                {/* PRINTER OFFLINE FALLBACK OVERRIDE CONTROL */}
                 {!hasPrinted && selectedSpecimen && (
                   <div className={`p-4 border rounded-xl flex items-start gap-3 transition-colors ${printerOfflineOverride ? 'bg-amber-50/50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}>
                     <WifiOff className={`h-4 w-4 shrink-0 mt-0.5 ${printerOfflineOverride ? 'text-amber-600' : 'text-slate-400'}`} />
@@ -299,10 +246,10 @@ export default function SampleLabelingScreen() {
                       </label>
                       <p className="text-[10px] text-slate-400 mt-0.5">Check this box to authorize immediate manual labeling verification if hardware link falls offline.</p>
                     </div>
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       id="offlineOverride"
-                      checked={printerOfflineOverride} 
+                      checked={printerOfflineOverride}
                       onChange={(e) => setPrinterOfflineOverride(e.target.checked)}
                       className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4 mt-1 cursor-pointer"
                     />
@@ -311,48 +258,74 @@ export default function SampleLabelingScreen() {
 
                 {/* LABEL CONTENT PREVIEW CANVAS */}
                 {previewData && (
-                  <div className="max-w-sm mx-auto bg-white border-2 border-dashed border-slate-300 rounded-2xl p-5 font-mono shadow-xs animate-slideDown relative overflow-hidden bg-radial from-white to-slate-50/40">
-                    <div className="absolute right-3 top-3 opacity-15"><Barcode className="h-10 w-10 text-slate-900" /></div>
-                    <div className="border-b border-slate-200 pb-2 text-[9px] text-slate-400 flex justify-between items-center">
-                      <span className="font-sans font-bold tracking-wider">THERMAL LABEL PREVIEW</span>
-                      <span>{previewData.date.split(' ')[0]}</span>
-                    </div>
-                    
-                    <div className="py-4 space-y-2.5 text-xs">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] uppercase font-sans text-slate-400 font-bold tracking-wide">Patient Name</span>
-                        <span className="font-sans font-black text-slate-900 text-sm mt-0.5">{previewData.patient_name}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] uppercase font-sans text-slate-400 font-bold tracking-wide">Sample ID</span>
-                        <span className="font-bold text-slate-700 tracking-wider mt-0.5">{previewData.sample_uid}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] uppercase font-sans text-slate-400 font-bold tracking-wide">Test Type</span>
-                        <span className="font-sans font-semibold text-slate-600 mt-0.5">{previewData.test_type.replace(/_/g,' ')}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[9px] uppercase font-sans text-slate-400 font-bold tracking-wide">Dispatched At</span>
-                        <span className="text-slate-500 mt-0.5">{previewData.date.split(' ')[1]}</span>
-                      </div>
-                    </div>
+                  <div className="max-w-sm mx-auto animate-slideDown">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-2">Label Preview</p>
 
-                    {/* SRS REPRINT INDICATOR ELEMENT */}
-                    {reprintCount > 0 && (
-                      <div className="absolute bottom-2 right-3 text-[8px] text-red-500 font-bold uppercase font-sans border border-red-200 bg-red-50 px-1.5 py-0.5 rounded">
-                        Reprint Count: {reprintCount}
+                    {/* Label card — mimics a physical thermal label */}
+                    <div className="bg-white border border-slate-300 rounded-xl shadow-md overflow-hidden">
+
+                      {/* Header stripe */}
+                      <div className="bg-[#005B4B] px-4 py-2 flex items-center justify-between">
+                        <span className="text-white font-black text-xs tracking-wider uppercase">UroLens LIS</span>
+                        <span className="text-emerald-200 text-[10px] font-mono">{previewData.date.split(' ')[0]}</span>
                       </div>
-                    )}
+
+                      {/* Body */}
+                      <div className="p-4 flex gap-4 items-start">
+
+                        {/* Left: patient + specimen info */}
+                        <div className="flex-1 space-y-3 min-w-0">
+                          <div>
+                            <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Patient</p>
+                            <p className="text-sm font-black text-slate-900 leading-tight truncate">{previewData.patient_name}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Sample ID</p>
+                            <p className="text-xs font-mono font-black text-[#005B4B] tracking-wider">{previewData.sample_uid}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Test</p>
+                            <p className="text-xs font-semibold text-slate-700">{previewData.test_type.replace(/_/g, ' ')}</p>
+                          </div>
+                          <div>
+                            <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Time</p>
+                            <p className="text-[10px] font-mono text-slate-500">{previewData.date.split(' ')[1]}</p>
+                          </div>
+                        </div>
+
+                        {/* Right: QR code */}
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <div className="p-1.5 border border-slate-200 rounded-lg bg-white">
+                            <QRCodeSVG
+                              value={previewData.sample_uid}
+                              size={80}
+                              fgColor="#1e293b"
+                              bgColor="#ffffff"
+                            />
+                          </div>
+                          <span className="text-[8px] text-slate-400 font-mono text-center">Scan to verify</span>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="border-t border-slate-100 px-4 py-1.5 bg-slate-50 flex items-center justify-between">
+                        <span className="text-[9px] text-slate-400 font-mono">UroLens Specimen Management System</span>
+                        {reprintCount > 0 && (
+                          <span className="text-[8px] text-red-500 font-bold uppercase border border-red-200 bg-red-50 px-1.5 py-0.5 rounded">
+                            Reprint ×{reprintCount}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {formErrors.print && <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-3 text-xs font-semibold">{formErrors.print}</div>}
                 {formErrors.confirm && <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-3 text-xs font-semibold">{formErrors.confirm}</div>}
 
-                {/* BOTTOM ACTION BUTTON EXECUTION DECK */}
+                {/* BOTTOM ACTION BUTTON DECK */}
                 <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                  
-                  {/* PRINT & SRS ALTERNATIVE REPRINT ACTION BAR CONTROLS */}
+
                   {hasPrinted ? (
                     <button
                       type="button"
@@ -375,11 +348,16 @@ export default function SampleLabelingScreen() {
                     </button>
                   )}
 
-                  {/* FRONTEND COMPONENT INTERFACE: LabelConfirmationAction */}
                   <button
                     type="button"
                     disabled={!isConfirmationUnlocked || confirmMutation.isPending}
-                    onClick={() => selectedSpecimen && confirmMutation.mutate(selectedSpecimen.specimen_id)}
+                    onClick={() =>
+                      selectedSpecimen &&
+                      confirmMutation.mutate({
+                        specimenId: selectedSpecimen.specimen_id,
+                        offlineOverride: printerOfflineOverride,
+                      })
+                    }
                     className="h-11 px-5 bg-[#005B4B] hover:bg-[#004D3F] text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer shadow-md"
                   >
                     {confirmMutation.isPending ? 'Committing State...' : 'Confirm Label Affixed'}
@@ -393,13 +371,13 @@ export default function SampleLabelingScreen() {
 
         </div>
 
-        {/* RIGHT COLUMN: REPLICATED VERIFICATION SNAPSHOTS */}
+        {/* RIGHT COLUMN: VERIFICATION SNAPSHOTS */}
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-3.5 bg-slate-50/50">
               <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Verification Snapshot</h4>
             </div>
-            
+
             <div className="p-5 space-y-5">
               <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-xl">
                 <div className="h-9 w-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-600">
@@ -423,7 +401,7 @@ export default function SampleLabelingScreen() {
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Diagnostic Panel:</span>
                   <span className="text-slate-600 font-semibold truncate max-w-[140px]">
-                    {selectedSpecimen ? selectedSpecimen.test_type.replace(/_/g,' ') : 'N/A'}
+                    {selectedSpecimen ? selectedSpecimen.test_type.replace(/_/g, ' ') : 'N/A'}
                   </span>
                 </div>
               </div>

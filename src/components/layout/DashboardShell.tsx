@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Activity, Barcode, Bell, ChevronRight, FileText, FlaskConical,
-  LogOut, Menu, Search, Settings, ShieldCheck, UserPlus
+  Activity, Barcode, FileText, FlaskConical,
+  LogOut, Menu, Settings, UserPlus
 } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
+import { useSessionTimeout } from '../../hooks/useSessionTimeout';
+import { Modal } from '../ui/Modal';
 
 const navItems = [
   {
-    to: '/intake/patients/new',
+    to: '/intake/register',
     label: 'Register Patient',
     description: 'New patient account registration',
     icon: UserPlus,
@@ -36,7 +38,12 @@ const navItems = [
 
 export default function DashboardShell() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout: performLogout } = useAuthContext();
+  const { logout: performLogout, role } = useAuthContext();
+  const { isWarningVisible, dismissWarning } = useSessionTimeout();
+
+  const roleLabel = role
+    ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+    : 'User';
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-[#F4F7F5] text-slate-800 font-sans antialiased">
@@ -65,10 +72,12 @@ export default function DashboardShell() {
             {/* WORKSPACE OPERATOR PROFILE */}
             <div className="px-6 py-5 border-b border-emerald-50/60 bg-emerald-50/20">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-semibold text-xs">AR</div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-semibold text-xs">
+                  {roleLabel.slice(0, 2).toUpperCase()}
+                </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900">Aliyah Regacho</p>
-                  <p className="text-[10px] text-slate-400 mt-1 truncate">Admin</p>
+                  <p className="text-xs font-bold text-slate-900">{roleLabel}</p>
+                  <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens LIS</p>
                 </div>
               </div>
             </div>
@@ -134,6 +143,20 @@ export default function DashboardShell() {
           </div>
         </main>
       </div>
+
+      <Modal open={isWarningVisible} onClose={dismissWarning} title="Session Expiring Soon" maxWidth="sm">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any key to stay signed in.
+          </p>
+          <button
+            onClick={dismissWarning}
+            className="w-full h-10 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition"
+          >
+            Stay Signed In
+          </button>
+        </div>
+      </Modal>
 
     </div>
   );

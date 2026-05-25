@@ -1,7 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { useLogin } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom'; 
-import { UserRole } from '../../../types/enums';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
@@ -19,7 +17,6 @@ function getErrorMessage(code: string | undefined): string {
 }
 
 export default function LoginForm() {
-  const navigate = useNavigate(); // Initialize navigation handle
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -53,28 +50,6 @@ export default function LoginForm() {
     loginMutation.mutate(
       { username: username.trim(), password },
       {
-        onSuccess: (data: any) => {
-          // 2. DYNAMIC WORKSPACE REDIRECTION TIMELINES
-          // Check what role token just logged in and point them directly to their operational cockpit
-          console.log("MUTATION SUCCESS DATA RETURNED:", data);
-          const userRole = data?.role || data?.user?.role;
-          console.log("PARSED EVALUATED ROLE:", userRole);
-          
-          if (userRole === UserRole.RECEPTIONIST) {
-            navigate('/intake/register', { replace: true });
-          } else if (userRole === UserRole.SUPERVISOR) {
-            navigate('/dashboard/supervisor', { replace: true });
-          } else if (userRole === UserRole.PHYSICIAN) {
-            navigate('/dashboard/physician', { replace: true });
-          } else if (userRole === UserRole.PATIENT) {
-            navigate('/dashboard/patient', { replace: true });
-          } else if (userRole === UserRole.ADMINISTRATOR) {
-            navigate('/dashboard/administrator', { replace: true });
-          } else {
-            // Default fallback safe house
-            navigate('/intake/register', { replace: true });
-          }
-        },
         onError: (error: AxiosError<ApiError>) => {
           const code = error.response?.data?.error?.code;
           setServerError(getErrorMessage(code));

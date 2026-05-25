@@ -8,14 +8,12 @@ import { UserRole } from './types/enums';
 import AppShell from './components/layout/AppShell';
 import DashboardShell from './components/layout/DashboardShell';
 
-import PatientRegistration from './features/intake/PatientRegistration';
-import LabRequestForm from './features/lab-request/LabRequestForm';
 import PatientRegistrationPage from './features/patient-registration';
-import SpecimenReceivingForm from './features/lab-request/SpecimenReceivingForm';
-import SampleLabelingScreen from './features/lab-request/SampleLabelingScreen';
+import LabRequestForm from './features/lab-request';
+import SpecimenReceivingForm from './features/specimen-receiving';
+import SampleLabelingScreen from './features/sample-labeling';
 
 import LoginPage from './routes/auth.routes';
-import ReceptionistDashboard from './routes/receptionist.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
@@ -106,7 +104,7 @@ export default function App() {
               }
               path="/intake"
             >
-              <Route path="register" element={<PatientRegistration />} />
+              <Route path="register" element={<PatientRegistrationPage />} />
               <Route path="request" element={<LabRequestForm />} />
               <Route path="receive" element={<SpecimenReceivingForm />} />
               <Route path="queue" element={<SampleLabelingScreen />} />
