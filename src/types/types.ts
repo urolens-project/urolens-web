@@ -1,8 +1,3 @@
-// src/types/types.ts
-
-/**
- * Payload contract for Patient Registration intake submission
- */
 export interface PatientRegistrationPayload {
   first_name: string;
   middle_name?: string;
@@ -62,4 +57,25 @@ export interface SpecimenReceiveResponse {
   sample_uid: string | null;
   status: 'RECEIVED' | 'REJECTED';
   message: string;
+}
+
+export interface LabelPreviewData {
+  patient_name: string;
+  patient_uid: string;
+  sample_uid: string;
+  test_type: string;
+  date: string;
+}
+
+export interface PrintLabelResponse {
+  success: boolean;
+  label_id: string;
+  print_job_id: string;
+  preview: LabelPreviewData;
+}
+
+export interface ConfirmAffixedResponse {
+  success: boolean;
+  message: string;
+  updated_status: string;
 }

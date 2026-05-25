@@ -1,27 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../types/types';
-import { 
-  Search, Clipboard, AlertTriangle, User, Loader2, FlaskConical,
-  ArrowRight, ShieldCheck, CheckCircle2, RotateCcw, 
+import { Helmet } from 'react-helmet-async';
+import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../../types/types';
+import type { LabRequestSearchResult } from '../types';
+import { specimenReceivingApi } from '../api/specimenReceivingApi';
+import { useLabRequestSearch } from '../hooks/useSpecimenReceiving';
+import { useMutation } from '@tanstack/react-query';
+import {
+  Search, Clipboard, AlertTriangle, Loader2, FlaskConical,
+  ArrowRight, ShieldCheck, CheckCircle2, RotateCcw,
   XCircle, Beaker, FilePlus
 } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 const getTimestamp = () => new Date().toTimeString().split(' ')[0];
 
-interface LabRequestSearchResult {
-  lab_request_id: string;
-  request_uid: string;
-  test_type: string;
-  physician_name: string;
-  patient_id: string;
-}
-
-// ----------------------------------------------------------------
-// 1. LAB REQUEST SEARCH PANEL (SUB-COMPONENT)
-// ----------------------------------------------------------------
 interface SearchPanelProps {
   searchQuery: string;
   setSearchQuery: (val: string) => void;
@@ -41,7 +33,7 @@ function LabRequestSearchPanel({
   selectedRequest,
   onSelectRequest,
   onClearSelection,
-  hasSearched
+  hasSearched,
 }: SearchPanelProps) {
   const navigate = useNavigate();
 
@@ -56,14 +48,14 @@ function LabRequestSearchPanel({
           Filter: PENDING_SAMPLE
         </span>
       </div>
-      
+
       <div className="relative">
         {isSearching ? (
           <Loader2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-600 animate-spin" />
         ) : (
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         )}
-        
+
         <input
           type="text"
           placeholder="Query by Request UID sequence or Physician name (e.g. REQ-2026...)"
@@ -73,7 +65,7 @@ function LabRequestSearchPanel({
           className="w-full h-11 rounded-xl border border-slate-200 pl-10 pr-4 text-xs outline-none transition-all focus:border-emerald-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
         />
         {selectedRequest && (
-          <button 
+          <button
             type="button"
             onClick={onClearSelection}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
@@ -127,9 +119,6 @@ function LabRequestSearchPanel({
   );
 }
 
-// ----------------------------------------------------------------
-// 2. RECEIVE SAMPLE FORM (SUB-COMPONENT)
-// ----------------------------------------------------------------
 interface ReceiveFormProps {
   selectedRequest: LabRequestSearchResult | null;
   visualCheckPassed: boolean;
@@ -139,7 +128,7 @@ interface ReceiveFormProps {
   freeTextNote: string;
   setFreeTextNote: (val: string) => void;
   formErrors: Record<string, string>;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: FormEvent) => void;
   onReset: () => void;
   isPending: boolean;
 }
@@ -155,23 +144,23 @@ function ReceiveSampleForm({
   formErrors,
   onSubmit,
   onReset,
-  isPending
+  isPending,
 }: ReceiveFormProps) {
-  const [volCheck, setVolCheck] = useState(false);
-  const [containerCheck, setContainerCheck] = useState(false);
-  const [labelCheck, setLabelCheck] = useState(false);
+  const [volCheck, setVolCheck] = useState(true);
+  const [containerCheck, setContainerCheck] = useState(true);
+  const [labelCheck, setLabelCheck] = useState(true);
 
-  useEffect(() => {
-    if (visualCheckPassed) {
-      setVolCheck(true);
-      setContainerCheck(true);
-      setLabelCheck(true);
-    } else {
-      setVolCheck(false);
-      setContainerCheck(false);
-      setLabelCheck(false);
-    }
-  }, [visualCheckPassed]);
+  const handleCheckboxChange = (field: 'vol' | 'container' | 'label', value: boolean) => {
+    const currentVol = field === 'vol' ? value : volCheck;
+    const currentContainer = field === 'container' ? value : containerCheck;
+    const currentLabel = field === 'label' ? value : labelCheck;
+
+    if (field === 'vol') setVolCheck(value);
+    if (field === 'container') setContainerCheck(value);
+    if (field === 'label') setLabelCheck(value);
+
+    setVisualCheckPassed(currentVol && currentContainer && currentLabel);
+  };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
@@ -187,34 +176,34 @@ function ReceiveSampleForm({
           <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wide">
             Mandatory Integrity Baseline Matrix
           </label>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <label className={`p-3 border rounded-xl flex items-center gap-2.5 cursor-pointer transition-all select-none ${volCheck ? 'border-emerald-200 bg-emerald-50/10 text-emerald-900' : 'border-slate-200 bg-white text-slate-500'}`}>
-              <input 
-                type="checkbox" 
-                checked={volCheck} 
-                onChange={(e) => { setVolCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
-                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
+              <input
+                type="checkbox"
+                checked={volCheck}
+                onChange={(e) => handleCheckboxChange('vol', e.target.checked)}
+                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5"
               />
               <span className="text-[11px] font-semibold">Adequate Volume (≥30mL)</span>
             </label>
 
             <label className={`p-3 border rounded-xl flex items-center gap-2.5 cursor-pointer transition-all select-none ${containerCheck ? 'border-emerald-200 bg-emerald-50/10 text-emerald-900' : 'border-slate-200 bg-white text-slate-500'}`}>
-              <input 
-                type="checkbox" 
-                checked={containerCheck} 
-                onChange={(e) => { setContainerCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
-                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
+              <input
+                type="checkbox"
+                checked={containerCheck}
+                onChange={(e) => handleCheckboxChange('container', e.target.checked)}
+                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5"
               />
               <span className="text-[11px] font-semibold">Sterile Container Lid Lock</span>
             </label>
 
             <label className={`p-3 border rounded-xl flex items-center gap-2.5 cursor-pointer transition-all select-none ${labelCheck ? 'border-emerald-200 bg-emerald-50/10 text-emerald-900' : 'border-slate-200 bg-white text-slate-500'}`}>
-              <input 
-                type="checkbox" 
-                checked={labelCheck} 
-                onChange={(e) => { setLabelCheck(e.target.checked); if(!e.target.checked) setVisualCheckPassed(false); }}
-                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5" 
+              <input
+                type="checkbox"
+                checked={labelCheck}
+                onChange={(e) => handleCheckboxChange('label', e.target.checked)}
+                className="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5"
               />
               <span className="text-[11px] font-semibold">Legible Match Profiling</span>
             </label>
@@ -228,7 +217,11 @@ function ReceiveSampleForm({
           </div>
           <button
             type="button"
-            onClick={() => setVisualCheckPassed(!visualCheckPassed)}
+            onClick={() => {
+              const next = !visualCheckPassed;
+              setVisualCheckPassed(next);
+              if (next) { setVolCheck(true); setContainerCheck(true); setLabelCheck(true); }
+            }}
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${visualCheckPassed ? 'bg-emerald-600' : 'bg-red-500'}`}
           >
             <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${visualCheckPassed ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -253,8 +246,6 @@ function ReceiveSampleForm({
                 className={`w-full h-11 rounded-xl border bg-white px-3 text-xs outline-none focus:border-red-500 transition-all ${formErrors.rejection ? 'border-red-300 bg-red-50/20' : 'border-slate-200'}`}
               >
                 <option value="">Select failure taxonomy group...</option>
-                
-                {}
                 <option value="INSUFFICIENT_VOLUME">INSUFFICIENT_VOLUME (Specimen volume measures below 30mL)</option>
                 <option value="WRONG_CONTAINER">WRONG_CONTAINER (Non-sterile or unapproved container type used)</option>
                 <option value="UNLABELED">UNLABELED (Container missing complete patient identification elements)</option>
@@ -269,7 +260,7 @@ function ReceiveSampleForm({
                 placeholder="Log granular visual check anomalies or notes for supervisor audit inspection pipelines..."
                 value={freeTextNote}
                 onChange={(e) => setFreeTextNote(e.target.value)}
-                className="w-full min-h-[80px] py-2.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs outline-none focus:border-red-500 transition-all font-sans resize-none"
+                className="w-full min-h-20 py-2.5 rounded-xl border border-slate-200 bg-white px-3.5 text-xs outline-none focus:border-red-500 transition-all font-sans resize-none"
               />
             </div>
           </div>
@@ -311,9 +302,6 @@ function ReceiveSampleForm({
   );
 }
 
-// ----------------------------------------------------------------
-// 3. SPECIMEN RECEIPT CONFIRMATION (SUB-COMPONENT CARD)
-// ----------------------------------------------------------------
 interface ConfirmationCardProps {
   data: SpecimenReceiveResponse & { requestUid: string; test: string };
   onReset: () => void;
@@ -327,7 +315,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
     <div className="max-w-2xl mx-auto space-y-6 font-sans tracking-tight pt-6">
       <div className={`bg-white border-2 rounded-3xl p-8 shadow-xl space-y-6 relative overflow-hidden ${isRejected ? 'border-red-500' : 'border-emerald-500'}`}>
         <div className={`absolute top-0 right-0 h-32 w-32 rounded-bl-full pointer-events-none ${isRejected ? 'bg-red-50/5' : 'bg-emerald-50/5'}`} />
-        
+
         <div className="flex items-center gap-4">
           <div className={`h-12 w-12 rounded-full border flex items-center justify-center ${isRejected ? 'bg-red-50 border-red-200 text-red-600' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
             {isRejected ? <XCircle className="h-6 w-6" /> : <CheckCircle2 className="h-6 w-6" />}
@@ -371,7 +359,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
           >
             <RotateCcw className="h-3.5 w-3.5" /> Open New Intake Stream
           </button>
-          
+
           {!isRejected && (
             <button
               type="button"
@@ -387,109 +375,76 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
   );
 }
 
-// ----------------------------------------------------------------
-// CORE MAIN PARENT WRAPPER ENGINE
-// ----------------------------------------------------------------
 export default function SpecimenReceivingForm() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<LabRequestSearchResult | null>(null);
   const [visualCheckPassed, setVisualCheckPassed] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   const [freeTextNote, setFreeTextNote] = useState('');
-  
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [sessionLogs, setSessionLogs] = useState<Array<{ time: string; text: string }>>([
-    { time: getTimestamp(), text: 'Specimen intake dashboard online.' }
+    { time: getTimestamp(), text: 'Specimen intake dashboard online.' },
   ]);
-  
-  const [confirmationData, setConfirmationData] = useState<SpecimenReceiveResponse & {
+
+  const [confirmationData, setConfirmationData] = useState<(SpecimenReceiveResponse & {
     requestUid: string;
     test: string;
-  } | null>(null);
-
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<LabRequestSearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
+  }) | null>(null);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/specimens/search-request?q=${searchQuery}`);
-        if (response.ok) {
-          const data = await response.json();
-          setSearchResults(data);
-        }
-      } catch (err) {
-        console.error("Failed to query live lab request queues:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
+    const delay = searchQuery.trim() ? 300 : 0;
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), delay);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // FIX: Added the missing handler required by sub-components
+  const { data: searchData, isFetching: isSearching } = useLabRequestSearch(debouncedQuery);
+  const searchResults: LabRequestSearchResult[] = searchData ?? [];
+  const hasSearched = debouncedQuery.trim().length > 0;
+
+  const addLog = (text: string) => {
+    setSessionLogs((prev) => [{ time: getTimestamp(), text }, ...prev]);
+  };
+
   const handleSelectRequest = (req: LabRequestSearchResult) => {
     setSelectedRequest(req);
     setSearchQuery('');
-    setSearchResults([]);
-    setFormErrors(prev => { const n = { ...prev }; delete n.request; return n; });
+    setFormErrors((prev) => { const n = { ...prev }; delete n.request; return n; });
     addLog(`Target Link Locked: ${req.request_uid} (${req.test_type})`);
   };
 
   const receiveMutation = useMutation({
-    mutationFn: async (payload: SpecimenReceivePayload): Promise<SpecimenReceiveResponse> => {
-      const response = await fetch(`${API_BASE_URL}/api/v1/specimens/receive`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.detail || 'Inbound specimen checkout anomaly.');
-      }
-      return response.json();
-    },
+    mutationFn: (payload: SpecimenReceivePayload) => specimenReceivingApi.receiveSpecimen(payload),
     onSuccess: (data) => {
       setConfirmationData({
         ...data,
         requestUid: selectedRequest ? selectedRequest.request_uid : 'N/A',
-        test: selectedRequest ? selectedRequest.test_type : 'Unknown'
+        test: selectedRequest ? selectedRequest.test_type : 'Unknown',
       });
       addLog(`Success: Sample tracking row state logged as [${data.status}]`);
     },
-    onError: (error: any) => {
-      setFormErrors(prev => ({ ...prev, submit: error.message }));
+    onError: (error: Error) => {
+      setFormErrors((prev) => ({ ...prev, submit: error.message }));
       addLog('Error: System aborted transactional entry commit.');
-    }
+    },
   });
-
-  const addLog = (text: string) => {
-    setSessionLogs(prev => [{ time: getTimestamp(), text }, ...prev]);
-  };
 
   const handleClearForm = () => {
     setSelectedRequest(null);
     setSearchQuery('');
+    setDebouncedQuery('');
     setVisualCheckPassed(true);
     setRejectionReason('');
     setFreeTextNote('');
     setFormErrors({});
-    setHasSearched(false);
     addLog('Workspace parameters systematically reset clear.');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     if (e && e.preventDefault) e.preventDefault();
     setFormErrors({});
-    
+
     const errors: Record<string, string> = {};
     if (!selectedRequest) errors.request = 'A target lab request authorization record is mandatory before receiving can execute.';
     if (!visualCheckPassed && !rejectionReason) errors.rejection = 'Please map a standard structured reason taxonomy code mapping option.';
@@ -504,7 +459,7 @@ export default function SpecimenReceivingForm() {
       lab_request_id: selectedRequest!.lab_request_id,
       visual_check_passed: visualCheckPassed,
       rejection_reason: !visualCheckPassed ? rejectionReason : undefined,
-      free_text_note: !visualCheckPassed && freeTextNote.trim() ? freeTextNote.trim() : undefined
+      free_text_note: !visualCheckPassed && freeTextNote.trim() ? freeTextNote.trim() : undefined,
     };
 
     receiveMutation.mutate(payload);
@@ -516,10 +471,11 @@ export default function SpecimenReceivingForm() {
 
   return (
     <div className="w-full bg-[#F4F7F5] font-sans text-slate-800 tracking-tight">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-[1400px] mx-auto">
-        
+      <Helmet><title>Specimen Intake — UroLens</title></Helmet>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-350 mx-auto">
+
         <div className="lg:col-span-2 space-y-6">
-          <LabRequestSearchPanel 
+          <LabRequestSearchPanel
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             isSearching={isSearching}
@@ -530,7 +486,7 @@ export default function SpecimenReceivingForm() {
             hasSearched={hasSearched}
           />
 
-          <ReceiveSampleForm 
+          <ReceiveSampleForm
             selectedRequest={selectedRequest}
             visualCheckPassed={visualCheckPassed}
             setVisualCheckPassed={setVisualCheckPassed}
@@ -550,7 +506,7 @@ export default function SpecimenReceivingForm() {
             <div className="border-b border-slate-100 px-5 py-3.5 bg-slate-50/50">
               <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Verification Snapshot</h4>
             </div>
-            
+
             <div className="p-5 space-y-5">
               <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 p-3 rounded-xl">
                 <div className="h-9 w-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-emerald-600">
@@ -567,13 +523,13 @@ export default function SpecimenReceivingForm() {
               <div className="space-y-3 border-b border-slate-100 pb-4 text-xs font-medium">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Panel Type:</span>
-                  <span className="text-slate-700 font-bold truncate max-w-[160px]">
+                  <span className="text-slate-700 font-bold truncate max-w-40">
                     {selectedRequest ? selectedRequest.test_type : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Attending Provider:</span>
-                  <span className="text-slate-600 font-semibold truncate max-w-[140px]">
+                  <span className="text-slate-600 font-semibold truncate max-w-35">
                     {selectedRequest ? `Dr. ${selectedRequest.physician_name}` : 'N/A'}
                   </span>
                 </div>

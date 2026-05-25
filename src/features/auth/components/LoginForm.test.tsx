@@ -92,7 +92,7 @@ describe('LoginForm', () => {
     setupUseLogin(true);
     render(<LoginForm />);
 
-    const button = screen.getByRole('button', { name: /signing in/i });
+    const button = screen.getByRole('button', { name: /verifying identity parameters/i });
     expect(button).toBeDisabled();
   });
 

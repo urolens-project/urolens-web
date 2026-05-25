@@ -32,7 +32,7 @@ export function ConsentCapture({ value, onChange, showErrors }: ConsentCapturePr
 
   return (
     <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-      <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-white">
+      <div className="px-8 py-6 border-b border-slate-100 bg-linear-to-r from-emerald-50 to-white">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
             <ShieldCheck className="h-5 w-5" />
