@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../lib/auth/useAuthContext';
 import { authApi } from '../features/auth/api/authApi';
@@ -10,7 +10,7 @@ export function useSessionTimeout() {
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const warningShownRef = useRef(false);
+  const [isWarningVisible, setIsWarningVisible] = useState(false);
 
   const timeoutMinutes = Number(
     import.meta.env.VITE_SESSION_TIMEOUT_MINUTES ?? 30,
@@ -27,7 +27,6 @@ export function useSessionTimeout() {
       clearTimeout(warningTimerRef.current);
       warningTimerRef.current = null;
     }
-    warningShownRef.current = false;
   }, []);
 
   const resetTimer = useCallback(() => {
@@ -35,7 +34,7 @@ export function useSessionTimeout() {
 
     if (timeoutMs > 0) {
       warningTimerRef.current = setTimeout(() => {
-        warningShownRef.current = true;
+        setIsWarningVisible(true);
       }, timeoutMs - warningMs);
 
       timerRef.current = setTimeout(() => {
@@ -58,6 +57,7 @@ export function useSessionTimeout() {
     const events = ['mousemove', 'keydown', 'click', 'scroll'] as const;
 
     function handleActivity() {
+      setIsWarningVisible(false);
       resetTimer();
     }
 
@@ -72,4 +72,9 @@ export function useSessionTimeout() {
       }
     };
   }, [isAuthenticated, resetTimer, clearTimers]);
+
+  return {
+    isWarningVisible: isAuthenticated && isWarningVisible,
+    dismissWarning: () => setIsWarningVisible(false),
+  };
 }

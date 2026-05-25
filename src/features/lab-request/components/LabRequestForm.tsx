@@ -1,42 +1,26 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import type { LabRequestPayload, LabRequestResponse } from '../../types/types';
+import { Helmet } from 'react-helmet-async';
+import type { LabRequestPayload, LabRequestResponse } from '../../../types/types';
+import type { PatientSearchResult } from '../types';
+import { labRequestApi } from '../api/labRequestApi';
+import { usePhysicians, usePatientSearch } from '../hooks/useLabRequest';
 
 import {
   Search, User, Loader2, ArrowRight, CheckCircle2, RotateCcw,
-  Clipboard, AlertTriangle, ShieldCheck, X, FlaskConical, Stethoscope
+  Clipboard, AlertTriangle, ShieldCheck, FlaskConical, Stethoscope
 } from 'lucide-react';
 
-import { Helmet } from 'react-helmet-async';
-
-<Helmet>
-  <title>Lab Request — UroLens</title>
-</Helmet>
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 const getTimestamp = () => new Date().toTimeString().split(' ')[0];
-
-interface PatientSearchResult {
-  patient_id: string;
-  patient_uid: string;
-  first_name: string;
-  last_name: string;
-}
 
 export default function LabRequestForm() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ----------------------------------------------------------------
-  // CORE STATE ENGINE LAYERS
-  // ----------------------------------------------------------------
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<PatientSearchResult | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<PatientSearchResult[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownDismissed, setDropdownDismissed] = useState(false);
 
-  const [dbPhysicians, setDbPhysicians] = useState<Array<{ user_id: string; name: string }>>([]);
   const [isManualPhysician, setIsManualPhysician] = useState(false);
   const [physicianId, setPhysicianId] = useState('');
   const [physicianName, setPhysicianName] = useState('');
@@ -57,89 +41,40 @@ export default function LabRequestForm() {
     test: string;
   }) | null>(null);
 
-  // ----------------------------------------------------------------
-  // DEBOUNCED PATIENT SEARCH CONTROLLER
-  // ----------------------------------------------------------------
+  // Debounce search query — always update via setTimeout to avoid synchronous setState in effect
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setHasSearched(false);
-      setShowDropdown(false);
-      return;
-    }
-
-    const delayDebounce = setTimeout(async () => {
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/intake/patients/search?q=${searchQuery}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setSearchResults(data);
-          setShowDropdown(true);
-        }
-      } catch (err) {
-        console.error("Patient query operational exception:", err);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
+    const delay = searchQuery.trim() ? 300 : 0;
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), delay);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
-  // Dismiss dropdown menu cleanly if user clicks outside of it
+  const { data: patientSearchData, isFetching: isSearching } = usePatientSearch(debouncedQuery);
+  const searchResults: PatientSearchResult[] = patientSearchData ?? [];
+  const hasSearched = debouncedQuery.trim().length > 0;
+
+  // Derive dropdown visibility — no effect needed
+  const showDropdown = !dropdownDismissed && !selectedPatient && searchResults.length > 0 && debouncedQuery.trim().length > 0;
+
+  // Dismiss dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
+        setDropdownDismissed(true);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // ----------------------------------------------------------------
-  // SEED INITIAL DATA: FETCH PHYSICIANS
-  // ----------------------------------------------------------------
-  useEffect(() => {
-    const fetchPhysicians = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/lab-requests/physicians`);
-        if (response.ok) {
-          const data = await response.json();
-          setDbPhysicians(data);
-        }
-      } catch (err) {
-        console.error("Physician catalog catalog trace failed:", err);
-      }
-    };
-    fetchPhysicians();
-  }, []);
+  const { data: physiciansData } = usePhysicians();
+  const dbPhysicians = physiciansData ?? [];
 
   const addLog = (text: string) => {
     setSessionLogs((prev) => [{ time: getTimestamp(), text }, ...prev]);
   };
 
-  // ----------------------------------------------------------------
-  // SUBMISSION MUTATION LAYER
-  // ----------------------------------------------------------------
   const requestMutation = useMutation({
-    mutationFn: async (payload: LabRequestPayload): Promise<LabRequestResponse> => {
-      const response = await fetch(`${API_BASE_URL}/lab-requests`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.detail || 'Unable to finalize ledger line write parameters.');
-      }
-      return response.json();
-    },
+    mutationFn: (payload: LabRequestPayload) => labRequestApi.createLabRequest(payload),
     onSuccess: (data) => {
       const matchedPhysician = dbPhysicians.find((p) => p.user_id === physicianId);
       const displayPhysician = isManualPhysician ? physicianName : matchedPhysician?.name || 'Not specified';
@@ -152,20 +87,16 @@ export default function LabRequestForm() {
       });
       addLog(`Success: Created Lab Request UID [${data.request_id || 'OK'}]`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setFormErrors((prev) => ({ ...prev, submit: error.message }));
       addLog('Error: Submission aborted due to pipeline rejection.');
     },
   });
 
-  // ----------------------------------------------------------------
-  // WORKSPACE ACTION HANDLERS
-  // ----------------------------------------------------------------
   const handleSelectPatient = (patient: PatientSearchResult) => {
     setSelectedPatient(patient);
     setSearchQuery('');
-    setSearchResults([]);
-    setShowDropdown(false);
+    setDropdownDismissed(true);
     setFormErrors((prev) => { const n = { ...prev }; delete n.patient; return n; });
     addLog(`Linked Patient Record Context: ${patient.first_name} ${patient.last_name}`);
   };
@@ -173,9 +104,8 @@ export default function LabRequestForm() {
   const handleClearForm = () => {
     setSelectedPatient(null);
     setSearchQuery('');
-    setSearchResults([]);
-    setHasSearched(false);
-    setShowDropdown(false);
+    setDebouncedQuery('');
+    setDropdownDismissed(false);
     setPhysicianId('');
     setPhysicianName('');
     setIsManualPhysician(false);
@@ -187,7 +117,7 @@ export default function LabRequestForm() {
     addLog('Workspace inputs reset completely.');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setFormErrors({});
     const errors: Record<string, string> = {};
@@ -217,12 +147,10 @@ export default function LabRequestForm() {
   const selectedPhysicianObject = dbPhysicians.find((p) => p.user_id === physicianId);
   const currentPreviewPhysician = isManualPhysician ? physicianName : selectedPhysicianObject?.name || '';
 
-  // ----------------------------------------------------------------
-  // SCREEN CANVAS 1: SUCCESS OVERLAY VIEWPORT
-  // ----------------------------------------------------------------
   if (confirmationData) {
     return (
       <div className="max-w-xl mx-auto py-12 animate-fadeIn font-sans">
+        <Helmet><title>Lab Request — UroLens</title></Helmet>
         <div className="relative overflow-hidden rounded-[32px] bg-white p-8 lg:p-10 shadow-md border border-slate-200">
           <div className="relative space-y-8">
             <div className="flex items-start gap-4">
@@ -271,13 +199,11 @@ export default function LabRequestForm() {
     );
   }
 
-  // ----------------------------------------------------------------
-  // SCREEN CANVAS 2: CORE WORKSPACE DESK
-  // ----------------------------------------------------------------
   return (
     <div className="w-full bg-[#F4F7F5] font-sans text-slate-800 tracking-tight">
+      <Helmet><title>Lab Request — UroLens</title></Helmet>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-[1400px] mx-auto">
-        
+
         {/* LEFT COLUMN MAIN FORMS WORKSPACE */}
         <div className="space-y-6 lg:col-span-2">
 
@@ -301,8 +227,8 @@ export default function LabRequestForm() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => searchQuery.trim() && setShowDropdown(true)}
+                onChange={(e) => { setSearchQuery(e.target.value); setDropdownDismissed(false); }}
+                onFocus={() => { if (searchQuery.trim()) setDropdownDismissed(false); }}
                 disabled={!!selectedPatient}
                 placeholder="Search active patient identity directory by name indexes..."
                 className="w-full h-11 rounded-xl border border-slate-200 pl-10 pr-4 text-xs outline-none transition-all focus:border-emerald-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
@@ -319,7 +245,6 @@ export default function LabRequestForm() {
               )}
             </div>
 
-            {/* FLOATING OVERLAY MATRIX PREVENTS SHIFTING BODY ELEMENTS */}
             {showDropdown && searchResults.length > 0 && (
               <div className="absolute left-6 right-6 mt-1 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200 z-50 divide-y divide-slate-100 max-h-56 overflow-y-auto animate-fadeIn">
                 {searchResults.map((patient) => (
@@ -343,7 +268,6 @@ export default function LabRequestForm() {
               </div>
             )}
 
-            {/* NEGATIVE SEARCH LOOKUP RESPONSE BOUNDARY NOTICE */}
             {hasSearched && searchResults.length === 0 && !isSearching && searchQuery.trim().length > 0 && (
               <div className="mt-3 bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5 text-amber-800 animate-fadeIn">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -372,7 +296,7 @@ export default function LabRequestForm() {
             </div>
 
             <div className="space-y-6 p-6">
-              
+
               {/* PHYSICIAN CATALOG INPUT TOGGLE */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -498,7 +422,7 @@ export default function LabRequestForm() {
 
         {/* RIGHT COLUMN SIDEBAR SUMMARY LOG PANELS */}
         <div className="space-y-6">
-          
+
           {/* COMPACT ROUTE SUMMARY VIEWPORT PANEL */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs text-xs">
             <div className="mb-4">
@@ -539,7 +463,7 @@ export default function LabRequestForm() {
             </div>
           </div>
 
-          {/* AUDIT SYSTEMACTIVITY LEDGER FEED CONSOLE */}
+          {/* AUDIT SESSION ACTIVITY LEDGER FEED CONSOLE */}
           <div className="overflow-hidden rounded-2xl bg-slate-950 border border-slate-900 shadow-sm">
             <div className="border-b border-slate-800/80 px-4 py-3 flex items-center gap-2">
               <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
