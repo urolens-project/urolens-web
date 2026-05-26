@@ -14,16 +14,6 @@ function LabelValue({ label, value }: { label: string; value: string | null | un
   );
 }
 
-function computeAge(dob?: string | null): string {
-  if (!dob) return '—';
-  const d = new Date(dob);
-  if (isNaN(d.getTime())) return '—';
-  const today = new Date();
-  let age = today.getFullYear() - d.getFullYear();
-  if ((today.getMonth() * 100 + today.getDate()) < (d.getMonth() * 100 + d.getDate())) age--;
-  return `${age} yrs`;
-}
-
 export function PatientInfoSection({ result }: Props) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
