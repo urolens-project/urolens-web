@@ -15,6 +15,7 @@ import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 
 import LoginPage from './routes/auth.routes';
+import MedTechDashboard from './routes/medtech.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
@@ -51,7 +52,18 @@ export default function App() {
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
             </Route>
 
-            {/* 2. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}
+            {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
+            <Route
+              element={
+                <RequireRole roles={[UserRole.MEDTECH]}>
+                  <AppShell />
+                </RequireRole>
+              }
+            >
+              <Route path="/dashboard/medtech" element={<MedTechDashboard />} />
+            </Route>
+
+            {/* 4. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.SUPERVISOR]}>
@@ -62,7 +74,7 @@ export default function App() {
               <Route path="/dashboard/supervisor" element={<SupervisorDashboard />} />
             </Route>
 
-            {/* 3. CLINICAL PRACTITIONER / PHYSICIAN SEGMENTED BOUNDARIES */}
+            {/* 5. CLINICAL PRACTITIONER / PHYSICIAN SEGMENTED BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
@@ -73,7 +85,7 @@ export default function App() {
               <Route path="/dashboard/physician" element={<PhysicianDashboard />} />
             </Route>
 
-            {/* 4. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
+            {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.PATIENT]}>
@@ -84,7 +96,7 @@ export default function App() {
               <Route path="/dashboard/patient" element={<PatientDashboard />} />
             </Route>
 
-            {/* 5. SYSTEM SECURITY ROOT / ADMINISTRATOR BOUNDARIES */}
+            {/* 7. SYSTEM SECURITY ROOT / ADMINISTRATOR BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.ADMINISTRATOR]}>
@@ -95,7 +107,7 @@ export default function App() {
               <Route path="/dashboard/administrator" element={<AdminDashboard />} />
             </Route>
 
-            {/* 6. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
+            {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}>
