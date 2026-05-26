@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import { queryClient } from './lib/queryClient';
 import { AuthProvider } from './lib/auth/authContext';
 import { RequireRole } from './lib/rbac';
@@ -14,6 +15,7 @@ import LabRequestForm from './features/lab-request';
 import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
+import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 
 import { PendingApprovalQueueView, FullResultDetailView } from './features/result-review';
 
@@ -36,7 +38,8 @@ const Unauthorized = () => (
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+        <AuthProvider>
+        <Toaster position="top-right" richColors />
         <BrowserRouter>
           <Routes>
             {/* Global Unauthenticated Public Core Routing Nodes */}
@@ -98,8 +101,10 @@ export default function App() {
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/patient" element={<PatientDashboard />} />
-            </Route>
+            <Route path="/dashboard/patient" element={<PatientDashboard />} />
+              <Route path="/dashboard/patient/results" element={<PatientPortalPage />} />
+              <Route path="/dashboard/patient/results/:resultId" element={<PatientResultDetailPage />} />
+          </Route>
 
             {/* 7. SYSTEM SECURITY ROOT / ADMINISTRATOR BOUNDARIES */}
             <Route
