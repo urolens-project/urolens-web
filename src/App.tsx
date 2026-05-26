@@ -15,6 +15,7 @@ import LabRequestForm from './features/lab-request';
 import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
+import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 
 import { PendingApprovalQueueView, FullResultDetailView } from './features/result-review';
@@ -56,6 +57,7 @@ export default function App() {
             >
               <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
+              <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
             </Route>
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
