@@ -14,16 +14,24 @@ export interface AuthState {
 export const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem('auth_token'),
+  );
+  const [role, setRole] = useState<UserRole | null>(
+    () => (localStorage.getItem('auth_role') as UserRole) ?? null,
+  );
 
   const login = useCallback((newToken: string, newRole: string) => {
     const normalized = newRole.toLowerCase() as UserRole;
+    localStorage.setItem('auth_token', newToken);
+    localStorage.setItem('auth_role', normalized);
     setToken(newToken);
     setRole(normalized);
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_role');
     setToken(null);
     setRole(null);
   }, []);
