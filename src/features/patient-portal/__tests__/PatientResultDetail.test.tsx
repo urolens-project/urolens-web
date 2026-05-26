@@ -2,40 +2,15 @@
 
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PatientResultDetail } from '../components/PatientResultDetail';
 import type { PatientResultDetail as DetailType } from '../types';
 
-vi.mock('../api/patientPortalApi', () => ({
-  patientPortalApi: {
-    downloadPdf: vi.fn(),
-  },
-}));
-
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
-
-function createQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
-  });
-}
-
-function renderDetail(result: DetailType) {
-  const queryClient = createQueryClient();
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>{children}</MemoryRouter>
-    </QueryClientProvider>
+function renderDetail(result: DetailType, onDownloadPdf?: () => void) {
+  return render(
+    <MemoryRouter>
+      <PatientResultDetail result={result} onDownloadPdf={onDownloadPdf} />
+    </MemoryRouter>
   );
-  return render(<PatientResultDetail result={result} />, { wrapper });
 }
 
 const mockResult: DetailType = {
@@ -75,10 +50,6 @@ const mockPendingResult: DetailType = {
 };
 
 describe('PatientResultDetail', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it('renders all four sections', () => {
     renderDetail(mockResult);
 
@@ -101,9 +72,7 @@ describe('PatientResultDetail', () => {
 
   it('shows pending message when interpretation is null', () => {
     renderDetail(mockPendingResult);
-    expect(
-      screen.getByText(/Interpretation pending/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Interpretation pending/)).toBeInTheDocument();
   });
 
   it('shows medtech and pathologist names', () => {
@@ -128,6 +97,13 @@ describe('PatientResultDetail', () => {
   it('hides Download PDF button for non-RELEASED results', () => {
     renderDetail(mockPendingResult);
     expect(screen.queryByText('Download PDF')).not.toBeInTheDocument();
+  });
+
+  it('calls onDownloadPdf when Download PDF is clicked', async () => {
+    const onDownloadPdf = vi.fn();
+    renderDetail(mockResult, onDownloadPdf);
+    screen.getByText('Download PDF').click();
+    expect(onDownloadPdf).toHaveBeenCalledTimes(1);
   });
 
   it('shows AI disclaimer', () => {
