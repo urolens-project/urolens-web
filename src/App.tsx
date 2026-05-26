@@ -14,6 +14,8 @@ import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 
+import { PendingApprovalQueueView, FullResultDetailView } from './features/result-review';
+
 import LoginPage from './routes/auth.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
@@ -60,6 +62,8 @@ export default function App() {
               }
             >
               <Route path="/dashboard/supervisor" element={<SupervisorDashboard />} />
+              <Route path="/supervisor/results" element={<PendingApprovalQueueView />} />
+              <Route path="/supervisor/results/:resultId" element={<FullResultDetailView />} />
             </Route>
 
             {/* 3. CLINICAL PRACTITIONER / PHYSICIAN SEGMENTED BOUNDARIES */}
