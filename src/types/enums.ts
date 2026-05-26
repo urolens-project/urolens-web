@@ -1,5 +1,6 @@
 export const UserRole = {
   RECEPTIONIST: 'receptionist',
+  MEDTECH: 'medtech',
   SUPERVISOR: 'supervisor',
   PHYSICIAN: 'physician',
   PATIENT: 'patient',
