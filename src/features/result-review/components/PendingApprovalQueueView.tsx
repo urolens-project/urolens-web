@@ -70,7 +70,7 @@ export function PendingApprovalQueueView() {
     {
       key: 'status',
       header: 'Status',
-      render: (_row: PendingResultItem) => (
+      render: () => (
         <Badge variant="warning">Pending Approval</Badge>
       ),
     },
