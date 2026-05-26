@@ -2,11 +2,11 @@ import { ArrowLeft, Download, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ResultStatusChip } from './ResultStatusChip';
 import { CellCountTable } from './CellCountTable';
-import { useDownloadResultPdf } from '../hooks/useResultDetail';
 import type { PatientResultDetail as DetailType } from '../types';
 
 interface PatientResultDetailProps {
   result: DetailType;
+  onDownloadPdf?: () => void;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -19,9 +19,8 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-export function PatientResultDetail({ result }: PatientResultDetailProps) {
+export function PatientResultDetail({ result, onDownloadPdf }: PatientResultDetailProps) {
   const navigate = useNavigate();
-  const { mutate: downloadPdf, isPending: isDownloading } = useDownloadResultPdf();
 
   const isReleased = result.status === 'RELEASED';
   const isApproved = result.status === 'APPROVED';
@@ -150,40 +149,11 @@ export function PatientResultDetail({ result }: PatientResultDetailProps) {
       {isReleased && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <button
-            onClick={() => downloadPdf(result.result_id)}
-            disabled={isDownloading}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            onClick={() => onDownloadPdf?.()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
           >
-            {isDownloading ? (
-              <>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Downloading...
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4" />
-                Download PDF
-              </>
-            )}
+            <Download className="h-4 w-4" />
+            Download PDF
           </button>
         </div>
       )}

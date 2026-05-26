@@ -1,39 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { FileText } from 'lucide-react';
-import { Spinner } from '../../components/ui/Spinner';
-import { usePatientResults } from './hooks/usePatientResults';
-import { useResultDetail } from './hooks/useResultDetail';
 import { PatientResultList } from './components/PatientResultList';
 import { PatientResultDetail } from './components/PatientResultDetail';
+import { MOCK_RESULTS, MOCK_RESULT_DETAILS } from './mock/mockResults';
 
 export default function PatientPortalPage() {
-  const { data: results, isLoading, isError } = usePatientResults();
-  const navigate = useNavigate();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-8 text-center">
-        <p className="text-sm text-red-700 font-medium">
-          Failed to load results. Please try again.
-        </p>
-        <button
-          onClick={() => navigate('/dashboard/patient')}
-          className="mt-3 text-sm font-medium text-red-600 hover:text-red-800 underline cursor-pointer"
-        >
-          Back to Dashboard
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="mb-6">
@@ -42,42 +14,22 @@ export default function PatientPortalPage() {
           View and download your laboratory test results.
         </p>
       </div>
-      <PatientResultList results={results ?? []} />
+      <PatientResultList results={MOCK_RESULTS} />
     </div>
   );
 }
 
 export function PatientResultDetailPage() {
   const { resultId } = useParams<{ resultId: string }>();
-  const {
-    data: result,
-    isLoading,
-    isError,
-    error,
-  } = useResultDetail(resultId ?? '');
   const navigate = useNavigate();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
+  const result = resultId ? MOCK_RESULT_DETAILS[resultId] : undefined;
 
-  if (isError) {
-    const notFound =
-      (error as { response?: { data?: { error?: { code?: string } } } })
-        ?.response?.data?.error?.code === 'RESULT_NOT_FOUND';
-
+  if (!result) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-8 text-center">
         <FileText className="mx-auto h-10 w-10 text-red-300 mb-3" />
-        <p className="text-sm text-red-700 font-medium">
-          {notFound
-            ? 'Result not found.'
-            : 'Result not found or access denied.'}
-        </p>
+        <p className="text-sm text-red-700 font-medium">Result not found.</p>
         <button
           onClick={() => navigate('/dashboard/patient/results')}
           className="mt-3 text-sm font-medium text-red-600 hover:text-red-800 underline cursor-pointer"
@@ -88,14 +40,17 @@ export function PatientResultDetailPage() {
     );
   }
 
-  if (!result) return null;
-
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">Result Details</h1>
       </div>
-      <PatientResultDetail result={result} />
+      <PatientResultDetail
+        result={result}
+        onDownloadPdf={() =>
+          toast.info('PDF download will be available once connected to the backend.')
+        }
+      />
     </div>
   );
 }
