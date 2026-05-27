@@ -7,5 +7,5 @@ export interface PatientSearchResult {
 
 export interface Physician {
   user_id: string;
-  name: string;
+  username: string;
 }

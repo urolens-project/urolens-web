@@ -9,6 +9,7 @@ import { UserRole } from './types/enums';
 import AppShell from './components/layout/AppShell';
 import DashboardShell from './components/layout/DashboardShell';
 import SupervisorShell from './components/layout/SupervisorShell';
+import PhysicianShell from './components/layout/PhysicianShell';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -89,7 +90,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
-                  <AppShell />
+                  <PhysicianShell />
                 </RequireRole>
               }
             >
