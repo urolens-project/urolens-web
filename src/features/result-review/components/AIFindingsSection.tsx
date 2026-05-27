@@ -5,7 +5,8 @@ interface Props {
   result: FullResultDetail;
 }
 
-function JsonViewer({ label, data }: { label: string; data: Record<string, unknown> }) {
+function JsonViewer({ label, data }: { label: string; data: Record<string, unknown> | null | undefined }) {
+  if (!data) return null;
   const entries = Object.entries(data);
   if (entries.length === 0) return null;
 
@@ -28,9 +29,9 @@ function JsonViewer({ label, data }: { label: string; data: Record<string, unkno
 
 export function AIFindingsSection({ result }: Props) {
   const hasFindings =
-    Object.keys(result.ai_findings).length > 0 ||
-    Object.keys(result.flagged_anomalies).length > 0 ||
-    Object.keys(result.particle_classes).length > 0;
+    Object.keys(result.ai_findings ?? {}).length > 0 ||
+    Object.keys(result.flagged_anomalies ?? {}).length > 0 ||
+    Object.keys(result.particle_classes ?? {}).length > 0;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
