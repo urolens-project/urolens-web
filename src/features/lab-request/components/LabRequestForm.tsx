@@ -36,7 +36,7 @@ export default function LabRequestForm() {
   ]);
 
   const [confirmationData, setConfirmationData] = useState<(LabRequestResponse & {
-    patientName: string;
+    patientUid: string;
     physician: string;
     test: string;
   }) | null>(null);
@@ -81,7 +81,7 @@ export default function LabRequestForm() {
 
       setConfirmationData({
         ...data,
-        patientName: selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : 'Unknown',
+        patientUid: selectedPatient?.patient_uid ?? 'Unknown',
         physician: displayPhysician,
         test: testType === 'OTHER' ? otherTestDescription : testType,
       });
@@ -98,7 +98,7 @@ export default function LabRequestForm() {
     setSearchQuery('');
     setDropdownDismissed(true);
     setFormErrors((prev) => { const n = { ...prev }; delete n.patient; return n; });
-    addLog(`Linked Patient Record Context: ${patient.first_name} ${patient.last_name}`);
+    addLog(`Linked Patient Record Context: ${patient.patient_uid}`);
   };
 
   const handleClearForm = () => {
@@ -170,7 +170,7 @@ export default function LabRequestForm() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Patient Profile</span>
-                <span className="font-black text-slate-800">{confirmationData.patientName}</span>
+                <span className="font-black text-slate-800">{confirmationData.patientUid}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Assigned Physician</span>
@@ -259,8 +259,7 @@ export default function LabRequestForm() {
                         <User className="h-4 w-4" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-900">{patient.first_name} {patient.last_name}</p>
-                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">{patient.patient_uid}</p>
+                        <p className="text-xs font-bold text-slate-900">{patient.patient_uid}</p>
                       </div>
                     </div>
                   </button>
@@ -437,7 +436,7 @@ export default function LabRequestForm() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide leading-none">Linked Account</p>
                   <p className="text-xs font-black text-slate-800 mt-1 truncate">
-                    {selectedPatient ? `${selectedPatient.first_name} ${selectedPatient.last_name}` : '[Awaiting Patient Link]'}
+                    {selectedPatient ? selectedPatient.patient_uid : '[Awaiting Patient Link]'}
                   </p>
                 </div>
               </div>

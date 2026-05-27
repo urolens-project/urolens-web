@@ -145,10 +145,10 @@ export function MyResultsList() {
                   >
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-800 group-hover:text-indigo-700 transition-colors">
-                        {row.patient_name || '—'}
+                        {row.patient_uid || '—'}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        {row.patient_uid} · {formatAge(row.patient_age, row.patient_sex)}
+                        {formatAge(row.patient_age, row.patient_sex)}
                       </p>
                     </td>
                     <td className="px-5 py-4">

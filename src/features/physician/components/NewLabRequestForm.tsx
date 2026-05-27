@@ -19,17 +19,16 @@ const TEST_TYPES = [
 ];
 
 function formatPatientLabel(p: PhysicianPatient): string {
-  const name = [p.first_name, p.middle_name, p.last_name].filter(Boolean).join(' ');
-  return `${name} · ${p.patient_uid} · DOB ${p.date_of_birth}`;
+  return `${p.patient_uid} · DOB ${p.date_of_birth}`;
 }
 
 function ConfirmationCard({
   result,
-  patientName,
+  patientUid,
   onNew,
 }: {
   result: LabRequestCreateResponse;
-  patientName: string;
+  patientUid: string;
   onNew: () => void;
 }) {
   return (
@@ -51,7 +50,7 @@ function ConfirmationCard({
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Patient</span>
-            <span className="font-medium text-slate-900">{patientName}</span>
+            <span className="font-medium text-slate-900">{patientUid}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Test</span>
@@ -91,7 +90,7 @@ export function NewLabRequestForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [confirmation, setConfirmation] = useState<LabRequestCreateResponse | null>(null);
-  const [submittedPatientName, setSubmittedPatientName] = useState('');
+  const [submittedPatientUid, setSubmittedPatientUid] = useState('');
 
   const mutation = useCreateLabRequest();
 
@@ -146,14 +145,6 @@ export function NewLabRequestForm() {
     setServerError('');
     if (!validate()) return;
 
-    const patientName = [
-      selectedPatient!.first_name,
-      selectedPatient!.middle_name,
-      selectedPatient!.last_name,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
     mutation.mutate(
       {
         patient_id: selectedPatient!.patient_id,
@@ -162,7 +153,7 @@ export function NewLabRequestForm() {
       },
       {
         onSuccess: (data) => {
-          setSubmittedPatientName(patientName);
+          setSubmittedPatientUid(selectedPatient!.patient_uid);
           setConfirmation(data);
         },
         onError: (err: AxiosError<{ error?: { message?: string } }>) => {
@@ -198,7 +189,7 @@ export function NewLabRequestForm() {
         </button>
         <ConfirmationCard
           result={confirmation}
-          patientName={submittedPatientName}
+          patientUid={submittedPatientUid}
           onNew={resetForm}
         />
       </div>
@@ -286,10 +277,10 @@ export function NewLabRequestForm() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-800">
-                      {[p.first_name, p.middle_name, p.last_name].filter(Boolean).join(' ')}
+                      {p.patient_uid}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {p.patient_uid} · DOB {p.date_of_birth} · {p.sex}
+                      DOB {p.date_of_birth} · {p.sex}
                     </p>
                   </div>
                   <ChevronRight className="ml-auto h-4 w-4 text-slate-300" />
