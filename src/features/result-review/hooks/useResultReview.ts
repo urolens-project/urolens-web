@@ -6,7 +6,9 @@ import {
   fetchPendingResults,
   returnResult,
   saveAnnotation,
+  saveOverride,
 } from '../api/resultReviewApi';
+import type { BoundingBox } from '../types';
 
 export const resultReviewKeys = {
   pending: (page: number, pageSize: number) => ['results', 'pending', page, pageSize] as const,
@@ -33,7 +35,19 @@ export function useFullResult(resultId: string) {
 export function useSaveAnnotation(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (annotationNotes: string) => saveAnnotation(resultId, annotationNotes),
+    mutationFn: ({ notes, boxes }: { notes: string; boxes?: BoundingBox[] }) =>
+      saveAnnotation(resultId, notes, boxes),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
+    },
+  });
+}
+
+export function useSaveOverride(resultId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ parameter, correctedValue, rationale }: { parameter: string; correctedValue: number; rationale: string }) =>
+      saveOverride(resultId, parameter, correctedValue, rationale),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },

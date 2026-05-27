@@ -2,8 +2,10 @@ import apiClient from '../../../lib/apiClient';
 import type {
   AnnotationResponse,
   ApproveResponse,
+  BoundingBox,
   EscalateResponse,
   FullResultDetail,
+  OverrideResponse,
   PendingResultListResponse,
   ReturnResponse,
 } from '../types';
@@ -16,13 +18,32 @@ export async function fetchPendingResults(page: number, pageSize: number): Promi
 }
 
 export async function fetchFullResult(resultId: string): Promise<FullResultDetail> {
-  const { data } = await apiClient.get<FullResultDetail>(`/results/${resultId}`);
+  const { data } = await apiClient.get<FullResultDetail>(`/results/${resultId}/full`);
   return data;
 }
 
-export async function saveAnnotation(resultId: string, annotationNotes: string): Promise<AnnotationResponse> {
+export async function saveAnnotation(
+  resultId: string,
+  annotationNotes: string,
+  spatialAnnotations?: BoundingBox[],
+): Promise<AnnotationResponse> {
   const { data } = await apiClient.patch<AnnotationResponse>(`/results/${resultId}/annotate`, {
     annotation_notes: annotationNotes,
+    spatial_annotations: spatialAnnotations ?? null,
+  });
+  return data;
+}
+
+export async function saveOverride(
+  resultId: string,
+  parameter: string,
+  correctedValue: number,
+  rationale: string,
+): Promise<OverrideResponse> {
+  const { data } = await apiClient.post<OverrideResponse>(`/results/${resultId}/override`, {
+    parameter,
+    corrected_value: correctedValue,
+    rationale,
   });
   return data;
 }

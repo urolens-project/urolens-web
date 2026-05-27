@@ -17,7 +17,7 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
 
   async function handleSave() {
     if (!notes.trim()) return;
-    await mutation.mutateAsync(notes.trim());
+    await mutation.mutateAsync({ notes: notes.trim() });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -61,7 +61,7 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
               loading={mutation.isPending}
               disabled={!notes.trim()}
             >
-              {saved ? 'Saved!' : 'Save Annotation'}
+              {saved ? 'Saved!' : 'Save Note'}
             </Button>
           </div>
           {mutation.isError && (
