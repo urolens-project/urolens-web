@@ -117,7 +117,7 @@ export function ApprovedResultsQueue() {
                 (data?.data ?? []).map((row) => (
                   <tr key={row.result_id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">{row.patient_name}</p>
+                      <p className="font-semibold text-slate-800">{row.patient_uid}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">

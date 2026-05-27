@@ -41,7 +41,7 @@ export function ReleaseConfirmationModal({
       <div className="space-y-4">
         {result && (
           <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
-            <p className="text-sm font-semibold text-slate-800">{result.patient_name}</p>
+            <p className="text-sm font-semibold text-slate-800">{result.patient_uid}</p>
             <p className="text-xs text-slate-500 mt-0.5">
               {result.sample_uid ?? '—'} · {result.test_type ?? '—'}
             </p>

@@ -3,6 +3,7 @@ import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { useSaveOverride } from '../hooks/useResultReview';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
+
 interface Props {
   result: FullResultDetail;
 }

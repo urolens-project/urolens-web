@@ -84,7 +84,7 @@ export function PendingSpecimenList({
                 <div className="mt-1 flex items-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1 text-xs text-slate-500">
                     <User className="h-3 w-3" />
-                    {specimen.patient_name}
+                    {specimen.patient_uid}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-slate-500">
                     <TestTube className="h-3 w-3" />

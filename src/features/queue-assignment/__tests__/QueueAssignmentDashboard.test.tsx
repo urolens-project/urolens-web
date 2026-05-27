@@ -48,7 +48,7 @@ const mockSpecimens: PendingSpecimenItem[] = [
   {
     specimen_id: 'spec-1',
     sample_uid: 'SAM-000001',
-    patient_name: 'Juan Dela Cruz',
+    patient_uid: 'PAT-00001',
     test_type: 'Urinalysis',
     received_at: '2026-05-20T10:00:00Z',
     status: 'LABELED',

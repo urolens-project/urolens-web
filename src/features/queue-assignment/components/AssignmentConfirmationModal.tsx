@@ -33,7 +33,7 @@ export function AssignmentConfirmationModal({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">{specimen.sample_uid}</p>
-              <p className="text-xs text-slate-500 truncate">{specimen.patient_name} · {specimen.test_type}</p>
+              <p className="text-xs text-slate-500 truncate">{specimen.patient_uid} · {specimen.test_type}</p>
             </div>
           </div>
         )}
