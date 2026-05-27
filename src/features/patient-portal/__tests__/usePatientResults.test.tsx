@@ -4,11 +4,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePatientResults } from '../hooks/usePatientResults';
 import { patientPortalApi } from '../api/patientPortalApi';
-import type { PatientResultSummary } from '../types';
+import type { PatientResultItem } from '../types';
 
 vi.mock('../api/patientPortalApi', () => ({
   patientPortalApi: {
-    getResults: vi.fn(),
+    getPatientResults: vi.fn(),
   },
 }));
 
@@ -29,20 +29,18 @@ function createWrapper() {
   return wrapper;
 }
 
-const mockResults: PatientResultSummary[] = [
+const mockResults: PatientResultItem[] = [
   {
     result_id: 'abc12345-6789',
-    specimen_id: 'spec-001',
+    test_type: 'Urinalysis',
     status: 'RELEASED',
     released_at: '2026-05-20T10:00:00Z',
-    created_at: '2026-05-15T08:00:00Z',
   },
   {
     result_id: 'def67890-1234',
-    specimen_id: 'spec-002',
+    test_type: 'Urinalysis',
     status: 'PENDING',
     released_at: null,
-    created_at: '2026-05-16T09:00:00Z',
   },
 ];
 
@@ -52,7 +50,7 @@ describe('usePatientResults', () => {
   });
 
   it('returns results on success', async () => {
-    vi.mocked(patientPortalApi.getResults).mockResolvedValueOnce(mockResults);
+    vi.mocked(patientPortalApi.getPatientResults).mockResolvedValueOnce(mockResults);
 
     const { result } = renderHook(() => usePatientResults(), {
       wrapper: createWrapper(),
@@ -66,7 +64,7 @@ describe('usePatientResults', () => {
   });
 
   it('handles error state', async () => {
-    vi.mocked(patientPortalApi.getResults).mockRejectedValueOnce(
+    vi.mocked(patientPortalApi.getPatientResults).mockRejectedValueOnce(
       new Error('Network error')
     );
 

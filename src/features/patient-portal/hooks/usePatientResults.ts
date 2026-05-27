@@ -4,6 +4,6 @@ import { patientPortalApi } from '../api/patientPortalApi';
 export function usePatientResults() {
   return useQuery({
     queryKey: ['patient', 'results'],
-    queryFn: patientPortalApi.getResults,
+    queryFn: patientPortalApi.getPatientResults,
   });
 }

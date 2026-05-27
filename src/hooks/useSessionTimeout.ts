@@ -2,11 +2,12 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../lib/auth/useAuthContext';
 import { authApi } from '../features/auth/api/authApi';
+import { patientAuthApi } from '../features/auth/api/patientAuthApi';
 
 const WARNING_MINUTES = 2;
 
 export function useSessionTimeout() {
-  const { isAuthenticated, logout } = useAuthContext();
+  const { isAuthenticated, role, logout } = useAuthContext();
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,13 +39,16 @@ export function useSessionTimeout() {
       }, timeoutMs - warningMs);
 
       timerRef.current = setTimeout(() => {
-        authApi.logout().finally(() => {
+        const isPatient = role === 'patient';
+        const logoutFn = isPatient ? patientAuthApi.logout : authApi.logout;
+        const loginPath = isPatient ? '/patient/login?reason=timeout' : '/login?reason=timeout';
+        logoutFn().finally(() => {
           logout();
-          navigate('/login?reason=timeout', { replace: true });
+          navigate(loginPath, { replace: true });
         });
       }, timeoutMs);
     }
-  }, [clearTimers, logout, navigate, timeoutMs, warningMs]);
+  }, [clearTimers, logout, navigate, role, timeoutMs, warningMs]);
 
   useEffect(() => {
     if (!isAuthenticated) {
