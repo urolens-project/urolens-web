@@ -91,6 +91,49 @@ export interface EscalateResponse {
   escalated_at: string;
 }
 
+export interface SupervisorStats {
+  pendingCount: number;
+  approvedToday: number;
+  escalatedCount: number;
+}
+
+export interface ApprovedResultItem {
+  result_id: string;
+  specimen_id: string;
+  patient_name: string;
+  patient_age: number | null;
+  patient_sex: string | null;
+  medtech_name: string;
+  approved_at: string;
+  status: string;
+}
+
+export interface ApprovedTodayListResponse {
+  items: ApprovedResultItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface EscalatedResultItem {
+  result_id: string;
+  specimen_id: string;
+  patient_name: string;
+  patient_age: number | null;
+  patient_sex: string | null;
+  medtech_name: string;
+  escalated_at: string;
+  escalation_path: string;
+  status: string;
+}
+
+export interface EscalatedListResponse {
+  items: EscalatedResultItem[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 export type EscalationPath = 'NOTIFY_PHYSICIAN' | 'FLAG_SENIOR_REVIEW' | 'MARK_CRITICAL';
 
 export const ESCALATION_PATH_LABELS: Record<EscalationPath, string> = {

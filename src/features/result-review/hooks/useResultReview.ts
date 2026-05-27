@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   approveResult,
   escalateResult,
+  fetchApprovedToday,
+  fetchEscalated,
   fetchFullResult,
   fetchPendingResults,
   returnResult,
@@ -15,10 +17,31 @@ export const resultReviewKeys = {
   detail: (resultId: string) => ['results', 'detail', resultId] as const,
 };
 
+export const resultReviewKeys2 = {
+  approvedToday: (page: number, pageSize: number) => ['results', 'approved-today', page, pageSize] as const,
+  escalated: (page: number, pageSize: number) => ['results', 'escalated', page, pageSize] as const,
+};
+
 export function usePendingResults(page: number, pageSize: number) {
   return useQuery({
     queryKey: resultReviewKeys.pending(page, pageSize),
     queryFn: () => fetchPendingResults(page, pageSize),
+    staleTime: 30_000,
+  });
+}
+
+export function useApprovedToday(page: number, pageSize: number) {
+  return useQuery({
+    queryKey: resultReviewKeys2.approvedToday(page, pageSize),
+    queryFn: () => fetchApprovedToday(page, pageSize),
+    staleTime: 30_000,
+  });
+}
+
+export function useEscalated(page: number, pageSize: number) {
+  return useQuery({
+    queryKey: resultReviewKeys2.escalated(page, pageSize),
+    queryFn: () => fetchEscalated(page, pageSize),
     staleTime: 30_000,
   });
 }
@@ -46,8 +69,8 @@ export function useSaveAnnotation(resultId: string) {
 export function useSaveOverride(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ parameter, correctedValue, rationale }: { parameter: string; correctedValue: number; rationale: string }) =>
-      saveOverride(resultId, parameter, correctedValue, rationale),
+    mutationFn: ({ parameter, corrected_value, rationale, original_ai_value }: { parameter: string; corrected_value: number; rationale: string; original_ai_value: number }) =>
+      saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },
