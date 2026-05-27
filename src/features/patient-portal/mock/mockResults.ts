@@ -1,5 +1,25 @@
 import type { PatientResultSummary, PatientResultDetail } from '../types';
 
+const PARTICLE_LABELS = [
+  'bacteria',
+  'crystals',
+  'epithelial-cells',
+  'erythrocytes',
+  'leukocytes',
+  'mucus-threads',
+  'sperm-cells',
+  'trichomonas-vaginalis',
+  'urinary-casts',
+  'yeast',
+] as const;
+
+function makeParticleCounts(overrides: Partial<Record<typeof PARTICLE_LABELS[number], number>> = {}) {
+  return PARTICLE_LABELS.map((label) => ({
+    label,
+    count: (overrides as Record<string, number>)[label] ?? 0,
+  }));
+}
+
 export const MOCK_RESULTS: PatientResultSummary[] = [
   {
     result_id: 'res-001',
@@ -32,20 +52,17 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: '2025-05-10T08:30:00Z',
     created_at: '2025-05-08T10:00:00Z',
     confirmed_at: '2025-05-09T15:45:00Z',
-    cell_counts: {
-      rbc: 3,
-      wbc: 8,
-      epithelial_cells: 2,
-      casts: 0,
+    particle_counts: makeParticleCounts({
       bacteria: 1,
-      crystals: 0,
-      mucus_threads: 1,
-    },
-    interpretation:
-      'Mild pyuria noted with elevated WBC count. Findings are suggestive of a urinary tract infection. Clinical correlation is recommended. No casts or crystals observed.',
-    medtech_name: 'Juan dela Cruz, RMT',
-    pathologist_name: 'Dr. Maria Santos',
-    pathologist_license: 'PRC-PATH-12345',
+      erythrocytes: 3,
+      leukocytes: 8,
+      'epithelial-cells': 2,
+      'mucus-threads': 1,
+    }),
+    analyzed_by: 'Juan dela Cruz, RMT',
+    confirmation_notes:
+      'Mild pyuria noted with elevated WBC count. Findings are suggestive of a urinary tract infection. Clinical correlation is recommended.',
+    smart_diagnosis_unavailable: false,
   },
   'res-002': {
     result_id: 'res-002',
@@ -54,19 +71,15 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: null,
     created_at: '2025-05-14T09:15:00Z',
     confirmed_at: '2025-05-14T11:00:00Z',
-    cell_counts: {
-      rbc: 1,
-      wbc: 2,
-      epithelial_cells: 4,
-      casts: 0,
-      bacteria: 0,
+    particle_counts: makeParticleCounts({
       crystals: 2,
-      mucus_threads: 0,
-    },
-    interpretation: null,
-    medtech_name: 'Ana Reyes, RMT',
-    pathologist_name: null,
-    pathologist_license: null,
+      erythrocytes: 1,
+      leukocytes: 2,
+      'epithelial-cells': 4,
+    }),
+    analyzed_by: 'Ana Reyes, RMT',
+    confirmation_notes: null,
+    smart_diagnosis_unavailable: true,
   },
   'res-003': {
     result_id: 'res-003',
@@ -75,10 +88,9 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: null,
     created_at: '2025-05-18T14:00:00Z',
     confirmed_at: null,
-    cell_counts: null,
-    interpretation: null,
-    medtech_name: null,
-    pathologist_name: null,
-    pathologist_license: null,
+    particle_counts: makeParticleCounts(),
+    analyzed_by: null,
+    confirmation_notes: null,
+    smart_diagnosis_unavailable: false,
   },
 };

@@ -1,21 +1,24 @@
-import type { CellCounts } from '../types';
+import type { ParticleCount } from '../types';
+
+const LABEL_DISPLAY: Record<string, string> = {
+  'bacteria': 'Bacteria',
+  'crystals': 'Crystals',
+  'epithelial-cells': 'Epithelial Cells',
+  'erythrocytes': 'Erythrocytes (RBC)',
+  'leukocytes': 'Leukocytes (WBC)',
+  'mucus-threads': 'Mucus Threads',
+  'sperm-cells': 'Sperm Cells',
+  'trichomonas-vaginalis': 'Trichomonas vaginalis',
+  'urinary-casts': 'Urinary Casts',
+  'yeast': 'Yeast',
+};
 
 interface CellCountTableProps {
-  cellCounts: CellCounts | null;
+  particleCounts: ParticleCount[];
 }
 
-const parameters: { key: keyof CellCounts; label: string }[] = [
-  { key: 'rbc', label: 'Red Blood Cells (RBC)' },
-  { key: 'wbc', label: 'White Blood Cells (WBC)' },
-  { key: 'epithelial_cells', label: 'Epithelial Cells' },
-  { key: 'casts', label: 'Casts' },
-  { key: 'bacteria', label: 'Bacteria' },
-  { key: 'crystals', label: 'Crystals' },
-  { key: 'mucus_threads', label: 'Mucus Threads' },
-];
-
-export function CellCountTable({ cellCounts }: CellCountTableProps) {
-  if (!cellCounts) {
+export function CellCountTable({ particleCounts }: CellCountTableProps) {
+  if (!particleCounts || particleCounts.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-8 text-center text-sm text-slate-400">
         Cell count data not yet available.
@@ -37,15 +40,15 @@ export function CellCountTable({ cellCounts }: CellCountTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
-          {parameters.map((param) => {
-            const value = cellCounts[param.key];
-            const isNonZero = value !== 0;
+          {particleCounts.map((pc) => {
+            const isNonZero = pc.count !== 0;
+            const display = LABEL_DISPLAY[pc.label] ?? pc.label;
 
             return (
-              <tr key={param.key}>
-                <td className="px-4 py-3 text-slate-700">{param.label}</td>
+              <tr key={pc.label}>
+                <td className="px-4 py-3 text-slate-700">{display}</td>
                 <td className={`px-4 py-3 font-mono ${isNonZero ? 'text-amber-700 font-semibold bg-amber-50/50' : 'text-slate-500'}`}>
-                  {value}
+                  {pc.count}
                 </td>
               </tr>
             );
