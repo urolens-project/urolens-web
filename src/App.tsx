@@ -9,6 +9,7 @@ import { UserRole } from './types/enums';
 import AppShell from './components/layout/AppShell';
 import DashboardShell from './components/layout/DashboardShell';
 import SupervisorShell from './components/layout/SupervisorShell';
+import PhysicianShell from './components/layout/PhysicianShell';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -17,8 +18,10 @@ import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
+import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
 
-import { PendingApprovalQueueView, FullResultDetailView } from './features/result-review';
+import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
+import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
 
 import LoginPage from './routes/auth.routes';
 import PatientLoginPage from './features/auth/components/PatientLoginPage';
@@ -60,7 +63,9 @@ export default function App() {
               <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
               <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
+              <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
             </Route>
+            
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
             <Route
@@ -83,6 +88,8 @@ export default function App() {
             >
               <Route path="/dashboard/supervisor" element={<SupervisorDashboard />} />
               <Route path="/supervisor/results" element={<PendingApprovalQueueView />} />
+              <Route path="/supervisor/results/approved" element={<ApprovedTodayQueueView />} />
+              <Route path="/supervisor/results/escalated" element={<EscalatedQueueView />} />
               <Route path="/supervisor/results/:resultId" element={<FullResultDetailView />} />
             </Route>
 
@@ -90,11 +97,14 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
-                  <AppShell />
+                  <PhysicianShell />
                 </RequireRole>
               }
             >
               <Route path="/dashboard/physician" element={<PhysicianDashboard />} />
+              <Route path="/physician/lab-request/new" element={<NewLabRequestForm />} />
+              <Route path="/physician/results" element={<MyResultsList />} />
+              <Route path="/physician/results/:resultId" element={<PhysicianResultDetailView />} />
             </Route>
 
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
