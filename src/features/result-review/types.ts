@@ -25,6 +25,15 @@ export interface PendingResultListResponse {
   page_size: number;
 }
 
+export interface BoundingBox {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface FullResultDetail {
   result_id: string;
   specimen_id: string;
@@ -43,11 +52,24 @@ export interface FullResultDetail {
   smart_diagnosis_unavailable: boolean;
   status: string;
   annotation_notes: string | null;
+  spatial_annotations: BoundingBox[] | null;
 }
 
 export interface AnnotationResponse {
   result_id: string;
   annotation_notes: string;
+  spatial_annotations: BoundingBox[] | null;
+}
+
+export interface OverrideResponse {
+  id: string;
+  result_id: string;
+  parameter: string;
+  original_ai_value: number;
+  corrected_value: number;
+  rationale: string;
+  overridden_by: string;
+  overridden_at: string;
 }
 
 export interface ApproveResponse {
