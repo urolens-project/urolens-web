@@ -41,6 +41,7 @@ interface Props {
   boxes: BoundingBox[];
   onChange: (boxes: BoundingBox[]) => void;
   readOnly?: boolean;
+  fullHeight?: boolean;
 }
 
 interface DrawState {
@@ -50,7 +51,7 @@ interface DrawState {
   currentY: number;
 }
 
-export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false }: Props) {
+export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, fullHeight = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<'view' | 'draw'>('view');
   const [selectedLabel, setSelectedLabel] = useState<string>('leukocytes');
@@ -120,9 +121,9 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false }
     : null;
 
   return (
-    <div className="space-y-2">
+    <div className={fullHeight ? 'flex flex-col h-full' : 'space-y-2'}>
       {!readOnly && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className={`flex items-center gap-2 flex-wrap ${fullHeight ? 'px-4 py-3 border-b border-slate-700 shrink-0' : ''}`}>
           <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
             <button
               onClick={() => setMode('view')}
@@ -164,7 +165,7 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false }
 
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-900 select-none"
+        className={`relative overflow-hidden select-none bg-slate-900 ${fullHeight ? 'flex-1 min-h-0' : 'rounded-xl border border-slate-200'}`}
         style={{ cursor: mode === 'draw' ? 'crosshair' : 'default' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -179,7 +180,7 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false }
           <img
             src={imageUrl}
             alt="Microscopy specimen"
-            className="w-full object-contain max-h-80 pointer-events-none"
+            className={`w-full pointer-events-none ${fullHeight ? 'h-full object-contain' : 'object-contain max-h-80'}`}
             onError={() => setImgError(true)}
             draggable={false}
           />
