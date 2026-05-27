@@ -6,7 +6,7 @@ interface Props {
 }
 
 export function ManualOverridesSection({ result }: Props) {
-  const { manual_overrides } = result;
+  const manual_overrides = result.manual_overrides ?? [];
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
