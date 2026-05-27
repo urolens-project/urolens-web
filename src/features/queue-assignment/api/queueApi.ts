@@ -1,13 +1,18 @@
 import apiClient from '../../../lib/apiClient';
-import type { MedTechWorkload, QueueAssignRequest, QueueAssignResponse, SpecimenResponse } from '../types';
+import type {
+  AssignSpecimenRequest,
+  MedTechWorkloadItem,
+  PendingSpecimenItem,
+  QueueAssignmentResponse,
+} from '../types';
 
 export const queueApi = {
-  getWorkloads: (): Promise<MedTechWorkload[]> =>
+  getPendingSpecimens: (): Promise<PendingSpecimenItem[]> =>
     apiClient.get('/queue/pending').then((res) => res.data),
 
-  getLabeledSpecimens: (): Promise<SpecimenResponse[]> =>
-    apiClient.get('/specimens', { params: { status: 'LABELED' } }).then((res) => res.data),
+  getMedTechWorkloads: (): Promise<MedTechWorkloadItem[]> =>
+    apiClient.get('/queue/workloads').then((res) => res.data),
 
-  assign: (data: QueueAssignRequest): Promise<QueueAssignResponse> =>
+  assignSpecimen: (data: AssignSpecimenRequest): Promise<QueueAssignmentResponse> =>
     apiClient.post('/queue/assign', data).then((res) => res.data),
 };
