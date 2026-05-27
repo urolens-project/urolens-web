@@ -77,7 +77,7 @@ export default function LabRequestForm() {
     mutationFn: (payload: LabRequestPayload) => labRequestApi.createLabRequest(payload),
     onSuccess: (data) => {
       const matchedPhysician = dbPhysicians.find((p) => p.user_id === physicianId);
-      const displayPhysician = isManualPhysician ? physicianName : matchedPhysician?.name || 'Not specified';
+      const displayPhysician = isManualPhysician ? physicianName : matchedPhysician?.username || 'Not specified';
 
       setConfirmationData({
         ...data,
@@ -145,7 +145,7 @@ export default function LabRequestForm() {
   };
 
   const selectedPhysicianObject = dbPhysicians.find((p) => p.user_id === physicianId);
-  const currentPreviewPhysician = isManualPhysician ? physicianName : selectedPhysicianObject?.name || '';
+  const currentPreviewPhysician = isManualPhysician ? physicianName : selectedPhysicianObject?.username || '';
 
   if (confirmationData) {
     return (
@@ -332,7 +332,7 @@ export default function LabRequestForm() {
                   >
                     <option value="">Select an active medical staff practitioner...</option>
                     {dbPhysicians.map((doc) => (
-                      <option key={doc.user_id} value={doc.user_id}>{doc.name}</option>
+                      <option key={doc.user_id} value={doc.user_id}>{doc.username}</option>
                     ))}
                   </select>
                 )}
