@@ -14,24 +14,27 @@ export function MedTechConfirmationSection({ result }: Props) {
     : '—';
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <FlaskConical className="h-4 w-4 text-slate-400" />
-        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">MedTech Confirmation</h3>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Confirmed By</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-800">{result.medtech_name || '—'}</p>
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-emerald-50 border-b border-emerald-100">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+          <FlaskConical className="h-3.5 w-3.5 text-emerald-600" />
         </div>
-        <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Confirmed At</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-800">{confirmedAt}</p>
+        <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">MedTech Confirmation</h3>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100">
+        <div className="px-5 py-4">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confirmed By</p>
+          <p className="text-sm font-semibold text-slate-800">{result.medtech_name || '—'}</p>
+        </div>
+        <div className="px-5 py-4">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confirmed At</p>
+          <p className="text-sm font-semibold text-slate-800">{confirmedAt}</p>
         </div>
         {result.confirmation_notes && (
-          <div className="col-span-2 sm:col-span-3">
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Notes</p>
-            <p className="mt-0.5 text-sm text-slate-700">{result.confirmation_notes}</p>
+          <div className="col-span-2 sm:col-span-3 px-5 py-4 border-t border-slate-100">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Notes</p>
+            <p className="text-sm text-slate-700">{result.confirmation_notes}</p>
           </div>
         )}
       </div>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import type { EvidenceEntry } from '../types';
 
 const COLLAPSED_LIMIT = 3;
 
 interface Props {
-  evidence: string[];
+  evidence: EvidenceEntry[];
 }
 
 export function EvidenceAttributionList({ evidence }: Props) {
@@ -27,10 +28,10 @@ export function EvidenceAttributionList({ evidence }: Props) {
       <div className="flex flex-wrap gap-1.5">
         {visible.map((item) => (
           <span
-            key={item}
+            key={item.particle_name}
             className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600"
           >
-            {item}
+            {item.particle_display_name}
           </span>
         ))}
       </div>

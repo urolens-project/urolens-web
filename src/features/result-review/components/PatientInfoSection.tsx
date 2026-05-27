@@ -5,35 +5,33 @@ interface Props {
   result: FullResultDetail;
 }
 
-function LabelValue({ label, value }: { label: string; value: string | null | undefined }) {
+function Cell({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div>
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold text-slate-800">{value || '—'}</p>
+    <div className="px-5 py-4">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-sm font-semibold text-slate-800">{value || '—'}</p>
     </div>
   );
 }
 
 export function PatientInfoSection({ result }: Props) {
+  const sex = result.patient_sex
+    ? result.patient_sex.charAt(0) + result.patient_sex.slice(1).toLowerCase()
+    : null;
+
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <User className="h-4 w-4 text-slate-400" />
-        <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Patient Information</h3>
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-indigo-50 border-b border-indigo-100">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100">
+          <User className="h-3.5 w-3.5 text-indigo-600" />
+        </div>
+        <h3 className="text-xs font-bold text-indigo-800 uppercase tracking-widest">Patient Information</h3>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <LabelValue label="Full Name" value={result.patient_name} />
-        <LabelValue
-          label="Age"
-          value={result.patient_age !== null ? `${result.patient_age} yrs` : '—'}
-        />
-        <LabelValue
-          label="Sex"
-          value={result.patient_sex
-            ? result.patient_sex.charAt(0) + result.patient_sex.slice(1).toLowerCase()
-            : null}
-        />
-        <LabelValue label="Specimen ID" value={result.specimen_id.slice(0, 8).toUpperCase()} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
+        <Cell label="Patient ID" value={result.patient_uid} />
+        <Cell label="Age" value={result.patient_age != null ? `${result.patient_age} yrs` : '—'} />
+        <Cell label="Sex" value={sex} />
+        <Cell label="Specimen ID" value={result.specimen_id.slice(0, 8).toUpperCase()} />
       </div>
     </div>
   );

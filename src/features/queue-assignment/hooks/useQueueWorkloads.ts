@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { queueApi } from '../api/queueApi';
 
-export function useQueueWorkloads() {
+export function usePendingSpecimens() {
   return useQuery({
-    queryKey: ['queue', 'workloads'],
-    queryFn: queueApi.getWorkloads,
+    queryKey: ['queue', 'pending'],
+    queryFn: queueApi.getPendingSpecimens,
     refetchInterval: 30_000,
   });
 }
 
-export function useLabeledSpecimens() {
+export function useMedTechWorkloads() {
   return useQuery({
-    queryKey: ['specimens', 'labeled'],
-    queryFn: queueApi.getLabeledSpecimens,
+    queryKey: ['queue', 'workloads'],
+    queryFn: queueApi.getMedTechWorkloads,
     refetchInterval: 30_000,
   });
 }

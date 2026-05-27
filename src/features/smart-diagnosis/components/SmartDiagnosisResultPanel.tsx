@@ -7,9 +7,9 @@ import { AIDisclaimer } from './AIDisclaimer';
 
 function buildConditions(output: SmartDiagnosisOutput): ConditionResult[] {
   return [
-    { label: 'Gout',             score: output.gout_score,  evidence: output.evidence_map.gout  ?? [] },
-    { label: 'Urinary Tract Infection', score: output.uti_score,   evidence: output.evidence_map.uti   ?? [] },
-    { label: 'Trichomoniasis',   score: output.tricho_score, evidence: output.evidence_map.tricho ?? [] },
+    { label: 'Gout',                  score: output.gout_score,   evidence: (output.evidence_map.gout as { evidence?: [] })?.evidence ?? [] },
+    { label: 'Glomerulonephritis',    score: output.gn_score,     evidence: (output.evidence_map.glomerulonephritis as { evidence?: [] })?.evidence ?? [] },
+    { label: 'Nephrolithiasis',       score: output.nephro_score, evidence: (output.evidence_map.nephrolithiasis as { evidence?: [] })?.evidence ?? [] },
   ];
 }
 
