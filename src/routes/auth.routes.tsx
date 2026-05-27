@@ -25,18 +25,16 @@ export default function LoginPage() {
   return (
     <div>
       {reason === 'timeout' && !bannerDismissed && (
-        <div className="fixed top-0 left-0 right-0 z-20 bg-amber-50 border-b border-amber-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <p className="text-sm text-amber-800">
-              You were logged out due to inactivity.
-            </p>
-            <button
-              onClick={() => setBannerDismissed(true)}
-              className="text-amber-600 hover:text-amber-800 text-sm font-medium cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
+        <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between gap-4 border-b border-amber-200 bg-amber-50/95 backdrop-blur-sm px-6 py-2.5">
+          <p className="text-xs font-medium text-amber-800">
+            You were signed out due to inactivity. Please sign in again to continue.
+          </p>
+          <button
+            onClick={() => setBannerDismissed(true)}
+            className="shrink-0 text-xs font-semibold text-amber-600 hover:text-amber-800 transition-colors cursor-pointer"
+          >
+            Dismiss
+          </button>
         </div>
       )}
       <LoginForm />

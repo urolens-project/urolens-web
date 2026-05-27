@@ -19,6 +19,7 @@ import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 
 import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
+import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
 
 import LoginPage from './routes/auth.routes';
 import MedTechDashboard from './routes/medtech.routes';
@@ -95,6 +96,9 @@ export default function App() {
               }
             >
               <Route path="/dashboard/physician" element={<PhysicianDashboard />} />
+              <Route path="/physician/lab-request/new" element={<NewLabRequestForm />} />
+              <Route path="/physician/results" element={<MyResultsList />} />
+              <Route path="/physician/results/:resultId" element={<PhysicianResultDetailView />} />
             </Route>
 
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
