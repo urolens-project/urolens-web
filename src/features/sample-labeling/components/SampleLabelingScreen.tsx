@@ -198,7 +198,7 @@ export default function SampleLabelingScreen() {
             <div className="border-b border-slate-100 px-6 py-4 bg-slate-50/50 flex items-center justify-between">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-900 text-[10px] text-white font-mono">2</span>
-                SampleLabelPanel
+                Sample Label Panel
               </h3>
               {selectedSpecimen && (
                 <div className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded border border-slate-200/70">
@@ -375,7 +375,7 @@ export default function SampleLabelingScreen() {
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-3.5 bg-slate-50/50">
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Verification Snapshot</h4>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Current Sample</h4>
             </div>
 
             <div className="p-5 space-y-5">
@@ -384,9 +384,9 @@ export default function SampleLabelingScreen() {
                   <Layers className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-none">Sample Tracking UID</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-none">ID Number</p>
                   <p className="text-xs font-black text-slate-800 mt-1 truncate">
-                    {selectedSpecimen ? selectedSpecimen.sample_uid : '[Awaiting Search Hook]'}
+                    {selectedSpecimen ? selectedSpecimen.sample_uid : '[Waiting for Data...]'}
                   </p>
                 </div>
               </div>
@@ -399,7 +399,7 @@ export default function SampleLabelingScreen() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Diagnostic Panel:</span>
+                  <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Test:</span>
                   <span className="text-slate-600 font-semibold truncate max-w-35">
                     {selectedSpecimen ? selectedSpecimen.test_type.replace(/_/g, ' ') : 'N/A'}
                   </span>
@@ -408,7 +408,7 @@ export default function SampleLabelingScreen() {
 
               <div className="flex justify-center pt-1">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 border rounded-full font-bold text-[10px] uppercase tracking-wider shadow-2xs ${hasPrinted ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50' : 'bg-slate-50 text-slate-400 border-slate-200/60'}`}>
-                  <Printer className="h-3 w-3" /> {hasPrinted ? 'Label Spooled' : 'Awaiting Hardware Print'}
+                  <Printer className="h-3 w-3" /> {hasPrinted ? 'Label Spooled' : 'Print'}
                 </span>
               </div>
             </div>
@@ -418,7 +418,7 @@ export default function SampleLabelingScreen() {
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-3 flex items-center gap-2 bg-slate-50/50">
               <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
-              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Live System Feed</h4>
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Activity Log</h4>
             </div>
             <div className="p-4 max-h-36 overflow-y-auto divide-y divide-slate-50 font-mono text-[10px] leading-relaxed">
               {sessionLogs.map((log, index) => (

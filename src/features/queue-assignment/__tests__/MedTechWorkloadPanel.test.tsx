@@ -2,12 +2,12 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MedTechWorkloadPanel } from '../components/MedTechWorkloadPanel';
-import type { MedTechWorkload } from '../types';
+import type { MedTechWorkloadItem } from '../types';
 
-const workloads: MedTechWorkload[] = [
-  { medtech_id: 'mt-1', username: 'Alice Med', queue_count: 2 },
-  { medtech_id: 'mt-2', username: 'Bob Tech', queue_count: 5 },
-  { medtech_id: 'mt-3', username: 'Carol Lab', queue_count: 0 },
+const workloads: MedTechWorkloadItem[] = [
+  { user_id: 'mt-1', full_name: 'Alice Med', active_count: 2 },
+  { user_id: 'mt-2', full_name: 'Bob Tech', active_count: 5 },
+  { user_id: 'mt-3', full_name: 'Carol Lab', active_count: 0 },
 ];
 
 describe('MedTechWorkloadPanel', () => {
@@ -26,7 +26,7 @@ describe('MedTechWorkloadPanel', () => {
     expect(screen.getByText('Carol Lab')).toBeInTheDocument();
   });
 
-  it('shows queue count for each MedTech', () => {
+  it('shows active count badge for each MedTech', () => {
     render(
       <MedTechWorkloadPanel
         workloads={workloads}
@@ -36,9 +36,54 @@ describe('MedTechWorkloadPanel', () => {
       />,
     );
 
-    expect(screen.getByText('2 in queue')).toBeInTheDocument();
-    expect(screen.getByText('5 in queue')).toBeInTheDocument();
-    expect(screen.getByText('0 in queue')).toBeInTheDocument();
+    expect(screen.getByText('2 active')).toBeInTheDocument();
+    expect(screen.getByText('5 active')).toBeInTheDocument();
+    expect(screen.getByText('0 active')).toBeInTheDocument();
+  });
+
+  it('applies success badge color for count 0-3', () => {
+    render(
+      <MedTechWorkloadPanel
+        workloads={[{ user_id: 'mt-1', full_name: 'Alice Med', active_count: 2 }]}
+        selectedMedTechId={null}
+        onSelect={() => {}}
+        isLoading={false}
+      />,
+    );
+
+    const badge = screen.getByText('2 active');
+    expect(badge.className).toContain('bg-emerald-100');
+    expect(badge.className).toContain('text-emerald-700');
+  });
+
+  it('applies warning badge color for count 4-6', () => {
+    render(
+      <MedTechWorkloadPanel
+        workloads={[{ user_id: 'mt-2', full_name: 'Bob Tech', active_count: 5 }]}
+        selectedMedTechId={null}
+        onSelect={() => {}}
+        isLoading={false}
+      />,
+    );
+
+    const badge = screen.getByText('5 active');
+    expect(badge.className).toContain('bg-amber-100');
+    expect(badge.className).toContain('text-amber-700');
+  });
+
+  it('applies danger badge color for count 7+', () => {
+    render(
+      <MedTechWorkloadPanel
+        workloads={[{ user_id: 'mt-3', full_name: 'Carol Lab', active_count: 8 }]}
+        selectedMedTechId={null}
+        onSelect={() => {}}
+        isLoading={false}
+      />,
+    );
+
+    const badge = screen.getByText('8 active');
+    expect(badge.className).toContain('bg-rose-100');
+    expect(badge.className).toContain('text-rose-700');
   });
 
   it('highlights the selected MedTech', () => {
@@ -71,7 +116,7 @@ describe('MedTechWorkloadPanel', () => {
     expect(aliceButton?.className).toContain('border-slate-200');
   });
 
-  it('fires onSelect when a MedTech is clicked', () => {
+  it('fires onSelect with user_id when a MedTech is clicked', () => {
     const handleSelect = vi.fn();
 
     render(
