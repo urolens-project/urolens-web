@@ -340,7 +340,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
             <span className="font-bold text-slate-800 font-mono">{data.requestUid}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="font-bold text-slate-400 uppercase tracking-wider">Diagnostic panel</span>
+            <span className="font-bold text-slate-400 uppercase tracking-wider">Test</span>
             <span className="font-bold text-slate-700">{data.test}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
@@ -504,7 +504,7 @@ export default function SpecimenReceivingForm() {
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-3.5 bg-slate-50/50">
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Verification Snapshot</h4>
+              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Current Sample</h4>
             </div>
 
             <div className="p-5 space-y-5">
@@ -546,7 +546,7 @@ export default function SpecimenReceivingForm() {
           <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
             <div className="border-b border-slate-100 px-5 py-3 flex items-center gap-2 bg-slate-50/50">
               <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
-              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Live System Feed</h4>
+              <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Activity Log</h4>
             </div>
             <div className="p-4 max-h-36 overflow-y-auto divide-y divide-slate-50 font-mono text-[10px] leading-relaxed">
               {sessionLogs.map((log, index) => (
