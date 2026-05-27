@@ -34,6 +34,17 @@ export interface BoundingBox {
   h: number;
 }
 
+export type ScoreLevel = 'LOW' | 'MODERATE' | 'HIGH';
+
+export interface SmartDiagnosisData {
+  gout_score: ScoreLevel;
+  gn_score: ScoreLevel;
+  nephro_score: ScoreLevel;
+  no_significant_indicators: boolean;
+  evidence_map: Record<string, string[]>;
+  engine_version: string;
+}
+
 export interface FullResultDetail {
   result_id: string;
   specimen_id: string;
@@ -49,6 +60,7 @@ export interface FullResultDetail {
   model_version: string;
   manual_overrides: ManualOverrideItem[];
   image_url: string | null;
+  smart_diagnosis: SmartDiagnosisData | null;
   smart_diagnosis_unavailable: boolean;
   status: string;
   annotation_notes: string | null;

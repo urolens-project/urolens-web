@@ -62,8 +62,8 @@ export default function LoginForm() {
       <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] relative flex-col justify-between p-12 bg-slate-900 overflow-hidden">
 
         {/* Background glow blobs */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-950/60 via-slate-900 to-slate-900" />
-        <div className="pointer-events-none absolute -top-32 -right-32 h-[480px] w-[480px] rounded-full bg-emerald-600/10 blur-[120px]" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-emerald-950/60 via-slate-900 to-slate-900" />
+        <div className="pointer-events-none absolute -top-32 -right-32 h-120 w-120 rounded-full bg-emerald-600/10 blur-[120px]" />
         <div className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-emerald-400/8 blur-[100px]" />
 
         {/* Subtle grid overlay */}
