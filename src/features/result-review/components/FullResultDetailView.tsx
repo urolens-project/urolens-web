@@ -56,89 +56,82 @@ export function FullResultDetailView() {
   }
 
   const statusInfo = STATUS_BADGE[data.status] ?? { variant: 'default', label: data.status };
+  
+  // Define logic for when actions are allowed
   const canAct = data.status === 'PENDING_SUPERVISOR_APPROVAL';
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+  <div className="h-full overflow-y-auto bg-slate-50 p-6">
+    <div className="mx-auto max-w-7xl space-y-6">
+      
+      {/* Header Section: Improved alignment and spacing */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/supervisor/results')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm hover:bg-slate-50 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4 text-slate-500" />
+            <ArrowLeft className="h-5 w-5 text-slate-500" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Result Review</h1>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">{data.result_id}</p>
+            <h1 className="text-2xl font-bold text-slate-900">Result Review</h1>
+            <p className="text-xs text-slate-500 font-mono mt-0.5 bg-slate-200/50 px-2 py-0.5 rounded w-fit">
+              {data.result_id}
+            </p>
           </div>
         </div>
-        <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+        <Badge variant={statusInfo.variant} className="px-4 py-1 text-sm">
+          {statusInfo.label}
+        </Badge>
       </div>
 
-      {/* Content grid */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+      {/* Main Content Grid: Balanced spacing between columns */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        
+        {/* Left Column: Data sections */}
+        <div className="lg:col-span-2 space-y-6">
           <PatientInfoSection result={data} />
           <AIFindingsSection result={data} />
           <MedTechConfirmationSection result={data} />
           <ManualOverridesSection result={data} />
           <SmartDiagnosisSectionPlaceholder result={data} />
         </div>
-        <div className="space-y-4">
+
+        {/* Right Column: Imagery and Actions */}
+        <div className="space-y-6">
           <MicroscopyImageSection result={data} />
           <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
 
+          {/* Action Panel: Refined button layouts */}
           {canAct && (
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Actions</p>
-              <Button
-                className="w-full"
-                onClick={() => setApproveOpen(true)}
-              >
-                <CheckCircle className="h-4 w-4" />
-                Approve Result
-              </Button>
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => setReturnOpen(true)}
-              >
-                <RotateCcw className="h-4 w-4" />
-                Return for Correction
-              </Button>
-              <Button
-                variant="danger"
-                className="w-full"
-                onClick={() => setEscalateOpen(true)}
-              >
-                <AlertTriangle className="h-4 w-4" />
-                Escalate
-              </Button>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                Supervisor Actions
+              </p>
+              <div className="space-y-2">
+                <Button className="w-full justify-start gap-2" onClick={() => setApproveOpen(true)}>
+                  <CheckCircle className="h-4 w-4" />
+                  Approve Result
+                </Button>
+                <Button variant="secondary" className="w-full justify-start gap-2" onClick={() => setReturnOpen(true)}>
+                  <RotateCcw className="h-4 w-4" />
+                  Return for Correction
+                </Button>
+                <Button variant="danger" className="w-full justify-start gap-2" onClick={() => setEscalateOpen(true)}>
+                  <AlertTriangle className="h-4 w-4" />
+                  Escalate
+                </Button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      <ApproveModal
-        resultId={resultId}
-        open={approveOpen}
-        onClose={() => setApproveOpen(false)}
-        onSuccess={handleActionSuccess}
-      />
-      <ReturnModal
-        resultId={resultId}
-        open={returnOpen}
-        onClose={() => setReturnOpen(false)}
-        onSuccess={handleActionSuccess}
-      />
-      <EscalateModal
-        resultId={resultId}
-        open={escalateOpen}
-        onClose={() => setEscalateOpen(false)}
-        onSuccess={handleActionSuccess}
-      />
+      {/* Modals */}
+      <ApproveModal resultId={resultId} open={approveOpen} onClose={() => setApproveOpen(false)} onSuccess={handleActionSuccess} />
+      <ReturnModal resultId={resultId} open={returnOpen} onClose={() => setReturnOpen(false)} onSuccess={handleActionSuccess} />
+      <EscalateModal resultId={resultId} open={escalateOpen} onClose={() => setEscalateOpen(false)} onSuccess={handleActionSuccess} />
     </div>
-  );
+  </div>
+);
 }

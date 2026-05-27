@@ -5,6 +5,8 @@ import {
   Activity,
   ClipboardList,
   LayoutDashboard,
+  CheckSquare,
+  AlertOctagon,
   LogOut,
   Menu,
   Settings,
@@ -19,15 +21,29 @@ const navItems = [
     label: 'Dashboard',
     description: 'Supervisor overview',
     icon: LayoutDashboard,
-    end: true,
+    end: true, 
   },
   {
     to: '/supervisor/results',
-    label: 'Result Approvals',
+    label: 'Lab Results Queue',
     description: 'Pending result review queue',
     icon: ClipboardList,
+    end: true, 
+  },
+  {
+    to: '/supervisor/results/approved',
+    label: 'Approved Results',
+    description: 'Reviewed and approved results',
+    icon: CheckSquare, 
     end: false,
   },
+  {
+    to: '/supervisor/results/escalated',
+    label: 'Escalated Results',
+    description: 'Results flagged for further review',
+    icon: AlertOctagon, 
+    end: false,
+  }
 ];
 
 export default function SupervisorShell() {
