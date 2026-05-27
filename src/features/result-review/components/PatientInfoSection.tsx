@@ -25,7 +25,7 @@ export function PatientInfoSection({ result }: Props) {
         <LabelValue label="Full Name" value={result.patient_name} />
         <LabelValue
           label="Age"
-          value={result.patient_age !== null ? `${result.patient_age} yrs` : '—'}
+          value={result.patient_age != null ? `${result.patient_age} yrs` : '—'}
         />
         <LabelValue
           label="Sex"

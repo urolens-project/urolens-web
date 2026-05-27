@@ -2,10 +2,15 @@ import apiClient from '../../../lib/apiClient';
 import type {
   AnnotationResponse,
   ApproveResponse,
+  ApprovedTodayListResponse,
+  BoundingBox,
   EscalateResponse,
+  EscalatedListResponse,
   FullResultDetail,
+  OverrideResponse,
   PendingResultListResponse,
   ReturnResponse,
+  SupervisorStats,
 } from '../types';
 
 export async function fetchPendingResults(page: number, pageSize: number): Promise<PendingResultListResponse> {
@@ -20,9 +25,30 @@ export async function fetchFullResult(resultId: string): Promise<FullResultDetai
   return data;
 }
 
-export async function saveAnnotation(resultId: string, annotationNotes: string): Promise<AnnotationResponse> {
+export async function saveAnnotation(
+  resultId: string,
+  annotationNotes: string,
+  spatialAnnotations?: BoundingBox[],
+): Promise<AnnotationResponse> {
   const { data } = await apiClient.patch<AnnotationResponse>(`/results/${resultId}/annotate`, {
     annotation_notes: annotationNotes,
+    spatial_annotations: spatialAnnotations ?? null,
+  });
+  return data;
+}
+
+export async function saveOverride(
+  resultId: string,
+  parameter: string,
+  correctedValue: number,
+  rationale: string,
+  originalAiValue: number,
+): Promise<OverrideResponse> {
+  const { data } = await apiClient.post<OverrideResponse>(`/results/${resultId}/override`, {
+    parameter_name: parameter,
+    original_ai_value: String(originalAiValue),
+    corrected_value: String(correctedValue),
+    rationale,
   });
   return data;
 }
@@ -45,6 +71,25 @@ export async function escalateResult(
   const { data } = await apiClient.post<EscalateResponse>(`/results/${resultId}/escalate`, {
     escalation_path: escalationPath,
     escalation_note: escalationNote ?? null,
+  });
+  return data;
+}
+
+export async function fetchSupervisorStats(): Promise<SupervisorStats> {
+  const { data } = await apiClient.get<SupervisorStats>('/results/supervisor/stats');
+  return data;
+}
+
+export async function fetchApprovedToday(page: number, pageSize: number): Promise<ApprovedTodayListResponse> {
+  const { data } = await apiClient.get<ApprovedTodayListResponse>('/results/approved-today', {
+    params: { page, page_size: pageSize },
+  });
+  return data;
+}
+
+export async function fetchEscalated(page: number, pageSize: number): Promise<EscalatedListResponse> {
+  const { data } = await apiClient.get<EscalatedListResponse>('/results/escalated', {
+    params: { page, page_size: pageSize },
   });
   return data;
 }
