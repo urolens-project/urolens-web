@@ -7,7 +7,8 @@ export default function AppShell() {
   const { role, logout } = useAuthContext();
   const navigate = useNavigate();
 
-  useSessionTimeout();
+  const loginPath = role === 'patient' ? '/patient/login' : '/login';
+  useSessionTimeout(loginPath);
 
   async function handleLogout() {
     try {
@@ -16,7 +17,7 @@ export default function AppShell() {
       /* ignore network errors on logout */
     }
     logout();
-    navigate('/login', { replace: true });
+    navigate(loginPath, { replace: true });
   }
 
   return (

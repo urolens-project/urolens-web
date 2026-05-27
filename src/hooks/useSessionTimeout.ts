@@ -5,7 +5,7 @@ import { authApi } from '../features/auth/api/authApi';
 
 const WARNING_MINUTES = 2;
 
-export function useSessionTimeout() {
+export function useSessionTimeout(logoutPath = '/login') {
   const { isAuthenticated, logout } = useAuthContext();
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -40,11 +40,11 @@ export function useSessionTimeout() {
       timerRef.current = setTimeout(() => {
         authApi.logout().finally(() => {
           logout();
-          navigate('/login?reason=timeout', { replace: true });
+          navigate(`${logoutPath}?reason=timeout`, { replace: true });
         });
       }, timeoutMs);
     }
-  }, [clearTimers, logout, navigate, timeoutMs, warningMs]);
+  }, [clearTimers, logout, navigate, timeoutMs, warningMs, logoutPath]);
 
   useEffect(() => {
     if (!isAuthenticated) {
