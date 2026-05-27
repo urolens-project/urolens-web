@@ -30,10 +30,11 @@ export async function saveAnnotation(
   annotationNotes: string,
   spatialAnnotations?: BoundingBox[],
 ): Promise<AnnotationResponse> {
-  const { data } = await apiClient.patch<AnnotationResponse>(`/results/${resultId}/annotate`, {
-    annotation_notes: annotationNotes,
-    spatial_annotations: spatialAnnotations ?? null,
-  });
+  const body: Record<string, unknown> = { annotation_notes: annotationNotes };
+  if (spatialAnnotations !== undefined) {
+    body.spatial_annotations = spatialAnnotations;
+  }
+  const { data } = await apiClient.patch<AnnotationResponse>(`/results/${resultId}/annotate`, body);
   return data;
 }
 
