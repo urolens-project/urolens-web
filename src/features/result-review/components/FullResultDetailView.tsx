@@ -14,7 +14,7 @@ import { MedTechConfirmationSection } from './MedTechConfirmationSection';
 import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
 import { ReturnModal } from './ReturnModal';
-import { SmartDiagnosisSectionPlaceholder } from './SmartDiagnosisSectionPlaceholder';
+import { SmartDiagnosisResultPanel } from '../../../features/smart-diagnosis';
 
 const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }> = {
   PENDING_SUPERVISOR_APPROVAL: { variant: 'warning', label: 'Pending Approval' },
@@ -84,7 +84,7 @@ export function FullResultDetailView() {
           <AIFindingsSection result={data} />
           <MedTechConfirmationSection result={data} />
           <ManualOverridesSection result={data} />
-          <SmartDiagnosisSectionPlaceholder result={data} />
+          <SmartDiagnosisResultPanel resultId={data.result_id} />
         </div>
         <div className="space-y-4">
           <MicroscopyImageSection result={data} />
