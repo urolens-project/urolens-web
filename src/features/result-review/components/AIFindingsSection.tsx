@@ -7,25 +7,37 @@ interface Props {
   result: FullResultDetail;
 }
 
-function toTitle(key: string) {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
+const PARTICLE_CLASSES: { key: string; label: string }[] = [
+  { key: 'erythrocytes',           label: 'Erythrocytes (RBC)' },
+  { key: 'leukocytes',             label: 'Leukocytes (WBC)' },
+  { key: 'epithelial_cells',       label: 'Epithelial Cells' },
+  { key: 'urinary_casts',          label: 'Urinary Casts' },
+  { key: 'crystals',               label: 'Crystals' },
+  { key: 'mucus_threads',          label: 'Mucus Threads' },
+  { key: 'bacteria',               label: 'Bacteria' },
+  { key: 'yeast',                  label: 'Yeast' },
+  { key: 'sperm_cells',            label: 'Sperm Cells' },
+  { key: 'trichomonas_vaginalis',  label: 'Trichomonas vaginalis' },
+];
 
 function getEffectiveValue(key: string, overrides: ManualOverrideItem[]): string | null {
   const match = [...overrides].reverse().find((o) => o.parameter_name === key);
   return match ? match.corrected_value : null;
 }
 
-interface EditableRowProps {
-  paramKey: string;
-  aiValue: number;
+interface ParticleRowProps {
+  particleKey: string;
+  label: string;
+  aiValue: number | null;
   overrides: ManualOverrideItem[];
   resultId: string;
+  isLast: boolean;
 }
 
-function EditableRow({ paramKey, aiValue, overrides, resultId }: EditableRowProps) {
-  const effective = getEffectiveValue(paramKey, overrides);
-  const displayValue = effective ?? String(aiValue);
+function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast }: ParticleRowProps) {
+  const effective = getEffectiveValue(particleKey, overrides);
+  const displayValue = effective ?? (aiValue !== null ? String(aiValue) : '—');
+  const hasOverride = !!effective;
 
   const [editing, setEditing] = useState(false);
   const [inputVal, setInputVal] = useState(displayValue);
@@ -35,7 +47,7 @@ function EditableRow({ paramKey, aiValue, overrides, resultId }: EditableRowProp
   const mutation = useSaveOverride(resultId);
 
   function startEdit() {
-    setInputVal(displayValue);
+    setInputVal(effective ?? (aiValue !== null ? String(aiValue) : '0'));
     setRationale('');
     setEditing(true);
     setLocalSaved(false);
@@ -48,152 +60,151 @@ function EditableRow({ paramKey, aiValue, overrides, resultId }: EditableRowProp
   async function confirm() {
     const num = parseFloat(inputVal);
     if (isNaN(num) || num < 0 || !rationale.trim()) return;
-    await mutation.mutateAsync({ parameter: paramKey, correctedValue: num, rationale: rationale.trim() });
+    await mutation.mutateAsync({ parameter: particleKey, correctedValue: num, rationale: rationale.trim() });
     setLocalSaved(true);
     setEditing(false);
-    setTimeout(() => setLocalSaved(false), 2000);
+    setTimeout(() => setLocalSaved(false), 2500);
   }
 
-  const hasOverride = !!effective;
-  const isChanged = inputVal !== displayValue;
+  const isChanged = inputVal !== (effective ?? (aiValue !== null ? String(aiValue) : '0'));
 
   return (
-    <div className={`rounded-xl border p-3 transition-colors ${hasOverride ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-slate-50'}`}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={`${!isLast ? 'border-b border-slate-100' : ''} ${hasOverride ? 'bg-amber-50' : ''}`}>
+      {/* Main row */}
+      <div className={`flex items-center gap-3 px-4 py-3 ${editing ? '' : 'group'}`}>
+        {/* Left: label */}
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-slate-500 capitalize">{toTitle(paramKey)}</p>
-          {!editing ? (
-            <div className="mt-0.5 flex items-center gap-2">
-              {hasOverride && (
-                <span className="text-xs text-slate-400 line-through">{aiValue}</span>
-              )}
-              <span className={`text-sm font-bold ${hasOverride ? 'text-amber-700' : 'text-slate-800'}`}>
-                {displayValue}
-              </span>
-              {localSaved && <span className="text-xs text-emerald-600 font-medium">Saved!</span>}
-            </div>
-          ) : (
-            <div className="mt-2 space-y-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-slate-400 line-through">{aiValue}</span>
-                <span className="text-xs text-slate-400">→</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  className="w-20 rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm font-semibold text-slate-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                  autoFocus
-                />
-              </div>
-              <textarea
-                value={rationale}
-                onChange={(e) => setRationale(e.target.value)}
-                placeholder="Reason for correction (required)…"
-                rows={2}
-                className="w-full resize-none rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              />
-              {mutation.isError && (
-                <p className="text-xs text-red-600">Save failed. Check value and rationale.</p>
-              )}
-            </div>
-          )}
+          <span className="text-sm text-slate-600 font-medium">{label}</span>
         </div>
 
+        {/* Right: value + actions */}
         {!editing ? (
-          <button
-            onClick={startEdit}
-            className="mt-0.5 flex-shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors"
-            title="Correct this value"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {hasOverride && (
+              <span className="text-xs text-slate-400 line-through">{aiValue ?? '—'}</span>
+            )}
+            <span className={`text-base font-bold tabular-nums min-w-8 text-right ${hasOverride ? 'text-amber-700' : 'text-slate-900'}`}>
+              {displayValue}
+            </span>
+            {hasOverride && (
+              <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                edited
+              </span>
+            )}
+            {localSaved && (
+              <span className="text-xs text-emerald-600 font-semibold">Saved!</span>
+            )}
+            <button
+              onClick={startEdit}
+              className="rounded-lg p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+              title="Correct this value"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </div>
         ) : (
-          <div className="flex gap-1 mt-0.5">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               onClick={confirm}
               disabled={!isChanged || !rationale.trim() || mutation.isPending}
-              className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               title="Save correction"
             >
-              <Check className="h-3.5 w-3.5" />
+              <Check className="h-4 w-4" />
             </button>
             <button
               onClick={cancel}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 transition-colors"
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 transition-colors"
               title="Cancel"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         )}
       </div>
+
+      {/* Inline edit panel — expands below the row */}
+      {editing && (
+        <div className="px-4 pb-3 space-y-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">AI value:</span>
+            <span className="text-xs font-semibold text-slate-500 line-through">{aiValue ?? '—'}</span>
+            <span className="text-xs text-slate-400 mx-0.5">→</span>
+            <span className="text-xs text-slate-400">New value:</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-bold text-slate-900 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              autoFocus
+            />
+          </div>
+          <textarea
+            value={rationale}
+            onChange={(e) => setRationale(e.target.value)}
+            placeholder="Reason for correction (required)…"
+            rows={2}
+            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+          />
+          {mutation.isError && (
+            <p className="text-xs text-red-600 font-medium">Save failed. Please try again.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 export function AIFindingsSection({ result }: Props) {
-  const numericFindings = Object.entries(result.ai_findings ?? {}).filter(
-    ([, v]) => typeof v === 'number'
-  );
+  const counts = result.particle_classes ?? {};
+  const overrides = result.manual_overrides ?? [];
 
-  const hasFindings =
-    numericFindings.length > 0 ||
-    Object.keys(result.flagged_anomalies ?? {}).length > 0 ||
-    Object.keys(result.particle_classes ?? {}).length > 0;
+  const overriddenKeys = new Set(overrides.map((o) => o.parameter_name));
+  const overrideCount = PARTICLE_CLASSES.filter((p) => overriddenKeys.has(p.key)).length;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4 text-slate-400" />
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">AI Findings</h3>
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Particle Counts</h3>
+          {overrideCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-700">
+              {overrideCount} edited
+            </span>
+          )}
         </div>
-        <span className="text-xs text-slate-400">Model: {result.model_version}</span>
+        <span className="text-xs text-slate-400 font-mono">v{result.model_version || '—'}</span>
       </div>
 
-      {!hasFindings ? (
-        <p className="text-sm text-slate-400">No AI findings available.</p>
-      ) : (
-        <div className="space-y-4">
-          {numericFindings.length > 0 && (
-            <div>
-              <p className="mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Findings
-                <span className="ml-2 font-normal normal-case text-slate-400">— click ✏ to correct a value</span>
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {numericFindings.map(([key, val]) => (
-                  <EditableRow
-                    key={key}
-                    paramKey={key}
-                    aiValue={val as number}
-                    overrides={result.manual_overrides}
-                    resultId={result.result_id}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Hint */}
+      <div className="px-4 py-2 bg-slate-50 border-b border-slate-100">
+        <p className="text-[11px] text-slate-400">
+          Hover a row and click <Pencil className="inline h-2.5 w-2.5 mx-0.5" /> to correct a count. All edits are logged.
+        </p>
+      </div>
 
-          {Object.keys(result.flagged_anomalies ?? {}).length > 0 && (
-            <div>
-              <p className="mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Flagged Anomalies</p>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 space-y-1.5">
-                {Object.entries(result.flagged_anomalies).map(([key, val]) => (
-                  <div key={key} className="flex items-start justify-between gap-4">
-                    <span className="text-xs text-slate-500 capitalize">{key.replace(/_/g, ' ')}</span>
-                    <span className="text-xs font-semibold text-slate-800 text-right">
-                      {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Particle list */}
+      <div>
+        {PARTICLE_CLASSES.map(({ key, label }, idx) => {
+          const raw = counts[key];
+          const aiValue = typeof raw === 'number' ? raw : null;
+          return (
+            <ParticleRow
+              key={key}
+              particleKey={key}
+              label={label}
+              aiValue={aiValue}
+              overrides={overrides}
+              resultId={result.result_id}
+              isLast={idx === PARTICLE_CLASSES.length - 1}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
