@@ -21,6 +21,7 @@ import PatientPortalPage, { PatientResultDetailPage } from './features/patient-p
 import { PendingApprovalQueueView, FullResultDetailView } from './features/result-review';
 
 import LoginPage from './routes/auth.routes';
+import PatientLoginPage from './features/auth/components/PatientLoginPage';
 import MedTechDashboard from './routes/medtech.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
@@ -45,6 +46,7 @@ export default function App() {
           <Routes>
             {/* Global Unauthenticated Public Core Routing Nodes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/patient/login" element={<PatientLoginPage />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* 1. RECEPTIONIST ACTIVE SECURE WORKSPACE BOUNDARIES */}
@@ -98,7 +100,7 @@ export default function App() {
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
             <Route
               element={
-                <RequireRole roles={[UserRole.PATIENT]}>
+                <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
                   <AppShell />
                 </RequireRole>
               }

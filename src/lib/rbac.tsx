@@ -6,15 +6,17 @@ import type { UserRole } from '../types/enums';
 export function RequireRole({
   roles,
   children,
+  loginPath = '/login',
 }: {
   roles: UserRole[];
   children: ReactNode;
+  loginPath?: string;
 }) {
   const { isAuthenticated, role } = useAuthContext();
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
   }
 
   if (!role || !roles.includes(role)) {
