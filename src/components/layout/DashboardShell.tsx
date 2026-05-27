@@ -3,7 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity, Barcode, ClipboardList, FileText, FlaskConical,
-  LogOut, Menu, Settings, UserPlus
+  LogOut, Menu, Settings, UserPlus, Send
 } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
@@ -39,7 +39,13 @@ const navItems = [
     label: 'Queue Assignment',
     description: 'Specimen to MedTech queue assignment',
     icon: ClipboardList,
-  },
+  }, 
+  {
+    to: '/receptionist/results/approved',
+    label: 'Release Results',
+    description: 'Release approved results to patients',
+    icon: Send,
+  }
 ];
 
 export default function DashboardShell() {

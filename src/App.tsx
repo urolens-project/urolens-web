@@ -17,6 +17,7 @@ import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
+import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
 
 import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
@@ -58,7 +59,9 @@ export default function App() {
             >
               <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
+              <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
             </Route>
+            
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
             <Route
