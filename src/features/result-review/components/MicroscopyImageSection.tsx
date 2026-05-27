@@ -7,12 +7,18 @@ import type { BoundingBox, FullResultDetail } from '../types';
 
 interface Props {
   result: FullResultDetail;
+  onBoxesChange?: (boxes: BoundingBox[]) => void;
 }
 
-export function MicroscopyImageSection({ result }: Props) {
+export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
   const [boxes, setBoxes] = useState<BoundingBox[]>(result.spatial_annotations ?? []);
   const [saved, setSaved] = useState(false);
   const mutation = useSaveAnnotation(result.result_id);
+
+  function handleBoxesChange(next: BoundingBox[]) {
+    setBoxes(next);
+    onBoxesChange?.(next);
+  }
 
   async function handleSave() {
     await mutation.mutateAsync({
@@ -26,14 +32,16 @@ export function MicroscopyImageSection({ result }: Props) {
   const isDirty = JSON.stringify(boxes) !== JSON.stringify(result.spatial_annotations ?? []);
 
   return (
-    <div className="flex flex-col flex-1 rounded-2xl border border-slate-200 bg-white overflow-hidden h-full min-h-130">
+    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-160">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
-        <div className="flex items-center gap-2">
-          <Microscope className="h-4 w-4 text-slate-400" />
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Microscopy Image</h3>
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/80 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+            <Microscope className="h-3.5 w-3.5 text-slate-500" />
+          </div>
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">Microscopy Image</h3>
           {boxes.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
               {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
             </span>
           )}
@@ -57,7 +65,7 @@ export function MicroscopyImageSection({ result }: Props) {
           <AnnotationCanvas
             imageUrl={result.image_url}
             boxes={boxes}
-            onChange={setBoxes}
+            onChange={handleBoxesChange}
             fullHeight
           />
         ) : (
