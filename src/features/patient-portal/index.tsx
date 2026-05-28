@@ -44,7 +44,7 @@ export function PatientResultDetailPage() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
   const { data: result, isLoading, isError } = useResultDetail(resultId ?? '');
-  const { mutate: downloadPdf } = useDownloadResultPdf();
+  const { mutate: downloadPdf, isPending: isDownloading } = useDownloadResultPdf();
 
   if (isLoading) {
     return (
@@ -77,6 +77,7 @@ export function PatientResultDetailPage() {
       <PatientResultDetail
         result={result}
         onDownloadPdf={() => downloadPdf(resultId!)}
+        isDownloading={isDownloading}
       />
     </div>
   );

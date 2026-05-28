@@ -11,13 +11,14 @@ export function useResultDetail(resultId: string) {
 }
 
 export function useDownloadResultPdf() {
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (resultId: string) => patientPortalApi.downloadPdf(resultId),
     onSuccess: () => {
-      toast.success('PDF downloaded successfully.');
+      toast.success('Your PDF is opening in a new tab.');
     },
     onError: () => {
       toast.error('Failed to download PDF. Please try again.');
     },
   });
+  return mutation;
 }
