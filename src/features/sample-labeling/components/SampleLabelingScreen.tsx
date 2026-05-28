@@ -172,7 +172,7 @@ export default function SampleLabelingScreen() {
                       <FlaskConical className="h-3.5 w-3.5 text-emerald-600" />
                       <span className="font-mono font-bold text-slate-900">{spec.sample_uid}</span>
                       <span className="text-slate-300">|</span>
-                      <span className="font-semibold text-slate-600">{spec.patient_name}</span>
+                      <span className="font-semibold text-slate-600">{spec.patient_uid}</span>
                     </div>
                     <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded border border-emerald-200/40">RECEIVED</span>
                   </div>
@@ -277,7 +277,7 @@ export default function SampleLabelingScreen() {
                         <div className="flex-1 space-y-3 min-w-0">
                           <div>
                             <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Patient</p>
-                            <p className="text-sm font-black text-slate-900 leading-tight truncate">{previewData.patient_name}</p>
+                            <p className="text-sm font-black text-slate-900 leading-tight truncate">{previewData.patient_uid}</p>
                           </div>
                           <div>
                             <p className="text-[9px] uppercase font-bold text-slate-400 tracking-widest">Sample ID</p>
@@ -395,7 +395,7 @@ export default function SampleLabelingScreen() {
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">Patient Profile:</span>
                   <span className="text-slate-700 font-bold truncate max-w-40">
-                    {selectedSpecimen ? selectedSpecimen.patient_name : 'N/A'}
+                    {selectedSpecimen ? selectedSpecimen.patient_uid : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

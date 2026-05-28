@@ -1,6 +1,7 @@
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { authApi } from '../../features/auth/api/authApi';
+import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 
 export default function AppShell() {
@@ -10,13 +11,18 @@ export default function AppShell() {
   useSessionTimeout();
 
   async function handleLogout() {
+    const isPatient = role === 'patient';
     try {
-      await authApi.logout();
+      if (isPatient) {
+        await patientAuthApi.logout();
+      } else {
+        await authApi.logout();
+      }
     } catch {
       /* ignore network errors on logout */
     }
     logout();
-    navigate('/login', { replace: true });
+    navigate(isPatient ? '/patient/login' : '/login', { replace: true });
   }
 
   return (

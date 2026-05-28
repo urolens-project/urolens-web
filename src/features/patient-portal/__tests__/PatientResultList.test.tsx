@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { PatientResultList } from '../components/PatientResultList';
-import type { PatientResultSummary } from '../types';
+import type { PatientResultItem } from '../types';
 
 const { mockNavigate } = vi.hoisted(() => {
   const fn = vi.fn();
@@ -19,20 +19,18 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-const mockResults: PatientResultSummary[] = [
+const mockResults: PatientResultItem[] = [
   {
     result_id: 'abc12345-6789',
-    specimen_id: 'spec-001',
+    test_type: 'Urinalysis',
     status: 'RELEASED',
     released_at: '2026-05-20T10:00:00Z',
-    created_at: '2026-05-15T08:00:00Z',
   },
   {
     result_id: 'def67890-1234',
-    specimen_id: 'spec-002',
+    test_type: 'Urinalysis',
     status: 'PENDING',
     released_at: null,
-    created_at: '2026-05-16T09:00:00Z',
   },
 ];
 
@@ -41,14 +39,14 @@ describe('PatientResultList', () => {
     vi.clearAllMocks();
   });
 
-  it('renders result cards with shortened IDs', () => {
+  it('renders test type for each result', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
       </MemoryRouter>
     );
-    expect(screen.getByText('abc12345')).toBeInTheDocument();
-    expect(screen.getByText('def67890')).toBeInTheDocument();
+    const labels = screen.getAllByText('Urinalysis');
+    expect(labels.length).toBeGreaterThanOrEqual(2);
   });
 
   it('renders status chips for each result', () => {
@@ -88,32 +86,37 @@ describe('PatientResultList', () => {
     expect(screen.getByText('You have no lab results yet.')).toBeInTheDocument();
   });
 
-  it('navigates to detail page on View Details click', async () => {
-    const user = userEvent.setup();
+  it('renders View Details only for RELEASED results', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
       </MemoryRouter>
     );
     const viewDetailsButtons = screen.getAllByText('View Details');
-    expect(viewDetailsButtons).toHaveLength(2);
-
-    await user.click(viewDetailsButtons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      '/dashboard/patient/results/abc12345-6789'
-    );
+    expect(viewDetailsButtons).toHaveLength(1);
   });
 
-  it('navigates to detail page on card click', () => {
+  it('navigates to detail page when RELEASED result is clicked', async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
       </MemoryRouter>
     );
-    const cards = screen.getAllByRole('button');
-    fireEvent.click(cards[0]);
+    await user.click(screen.getByText('View Details'));
     expect(mockNavigate).toHaveBeenCalledWith(
       '/dashboard/patient/results/abc12345-6789'
     );
+  });
+
+  it('does not navigate when a PENDING result card is clicked', () => {
+    render(
+      <MemoryRouter>
+        <PatientResultList results={mockResults} />
+      </MemoryRouter>
+    );
+    // PENDING card has no role="button"
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(1); // only the RELEASED card
   });
 });

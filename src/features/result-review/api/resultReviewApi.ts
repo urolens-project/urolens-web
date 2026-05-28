@@ -41,15 +41,15 @@ export async function saveAnnotation(
 export async function saveOverride(
   resultId: string,
   parameter: string,
-  correctedValue: number,
+  corrected_value: number,
   rationale: string,
-  originalAiValue: number,
+  original_ai_value: number // Ensure this is accepted here
 ): Promise<OverrideResponse> {
-  const { data } = await apiClient.post<OverrideResponse>(`/results/${resultId}/override`, {
-    parameter_name: parameter,
-    original_ai_value: String(originalAiValue),
-    corrected_value: String(correctedValue),
+  const { data } = await apiClient.post<OverrideResponse>(`/api/v1/results/${resultId}/override`, {
+    parameter,
+    corrected_value,
     rationale,
+    original_ai_value, // Packages it safely into your network JSON body
   });
   return data;
 }

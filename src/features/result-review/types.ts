@@ -10,7 +10,7 @@ export interface ManualOverrideItem {
 export interface PendingResultItem {
   result_id: string;
   specimen_id: string;
-  patient_name: string;
+  patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
   medtech_name: string;
@@ -48,7 +48,7 @@ export interface SmartDiagnosisData {
 export interface FullResultDetail {
   result_id: string;
   specimen_id: string;
-  patient_name: string;
+  patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
   medtech_name: string;
@@ -112,7 +112,7 @@ export interface SupervisorStats {
 export interface ApprovedResultItem {
   result_id: string;
   specimen_id: string;
-  patient_name: string;
+  patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
   medtech_name: string;
@@ -130,7 +130,7 @@ export interface ApprovedTodayListResponse {
 export interface EscalatedResultItem {
   result_id: string;
   specimen_id: string;
-  patient_name: string;
+  patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
   medtech_name: string;

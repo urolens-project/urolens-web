@@ -2,67 +2,68 @@
 
 import { render, screen } from '@testing-library/react';
 import { CellCountTable } from '../components/CellCountTable';
-import type { CellCounts } from '../types';
+import type { ParticleCount } from '../types';
 
-const fullCellCounts: CellCounts = {
-  rbc: 5,
-  wbc: 2,
-  epithelial_cells: 0,
-  casts: 1,
-  bacteria: 0,
-  crystals: 3,
-  mucus_threads: 0,
-};
+const ALL_LABELS = [
+  'bacteria',
+  'crystals',
+  'epithelial-cells',
+  'erythrocytes',
+  'leukocytes',
+  'mucus-threads',
+  'sperm-cells',
+  'trichomonas-vaginalis',
+  'urinary-casts',
+  'yeast',
+];
 
-const allZeroCellCounts: CellCounts = {
-  rbc: 0,
-  wbc: 0,
-  epithelial_cells: 0,
-  casts: 0,
-  bacteria: 0,
-  crystals: 0,
-  mucus_threads: 0,
-};
+function makeParticleCounts(overrides: Partial<Record<string, number>> = {}): ParticleCount[] {
+  return ALL_LABELS.map(label => ({ label, count: overrides[label] ?? 0 }));
+}
 
 describe('CellCountTable', () => {
-  it('renders all 7 parameters', () => {
-    render(<CellCountTable cellCounts={fullCellCounts} />);
-    expect(screen.getByText('Red Blood Cells (RBC)')).toBeInTheDocument();
-    expect(screen.getByText('White Blood Cells (WBC)')).toBeInTheDocument();
-    expect(screen.getByText('Epithelial Cells')).toBeInTheDocument();
-    expect(screen.getByText('Casts')).toBeInTheDocument();
-    expect(screen.getByText('Bacteria')).toBeInTheDocument();
-    expect(screen.getByText('Crystals')).toBeInTheDocument();
-    expect(screen.getByText('Mucus Threads')).toBeInTheDocument();
+  it('always renders all 10 particle rows', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts()} />);
+    expect(screen.getAllByRole('row')).toHaveLength(11); // header + 10 data rows
   });
 
-  it('highlights non-zero values', () => {
-    render(<CellCountTable cellCounts={fullCellCounts} />);
-    const nonZeroCells = screen.getAllByText(/^(5|2|1|3)$/);
+  it('formats hyphenated labels for display', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts()} />);
+    expect(screen.getByText('Epithelial cells')).toBeInTheDocument();
+    expect(screen.getByText('Trichomonas vaginalis')).toBeInTheDocument();
+    expect(screen.getByText('Urinary casts')).toBeInTheDocument();
+  });
+
+  it('renders non-zero counts with amber highlight', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts({ bacteria: 5, leukocytes: 12 })} />);
+    const nonZeroCells = screen.getAllByText(/^(5|12)$/);
     for (const cell of nonZeroCells) {
       expect(cell.className).toContain('text-amber-700');
     }
   });
 
-  it('does not highlight zero values', () => {
-    render(<CellCountTable cellCounts={fullCellCounts} />);
+  it('renders zero counts with muted style', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts({ bacteria: 3 })} />);
     const zeroCells = screen.getAllByText('0');
+    // 9 rows have count 0
+    expect(zeroCells).toHaveLength(9);
     for (const cell of zeroCells) {
-      expect(cell.className).toContain('text-slate-500');
+      expect(cell.className).toContain('text-slate-400');
     }
   });
 
-  it('shows empty state when cellCounts is null', () => {
-    render(<CellCountTable cellCounts={null} />);
-    expect(screen.getByText('Cell count data not yet available.')).toBeInTheDocument();
+  it('never filters out zero-count rows', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts()} />);
+    const zeroCells = screen.getAllByText('0');
+    expect(zeroCells).toHaveLength(10);
   });
 
-  it('renders all zero values without amber highlight', () => {
-    render(<CellCountTable cellCounts={allZeroCellCounts} />);
+  it('renders all zero counts without amber highlight when all are 0', () => {
+    render(<CellCountTable cellCounts={makeParticleCounts()} />);
     const zeroCells = screen.getAllByText('0');
-    expect(zeroCells).toHaveLength(7);
     for (const cell of zeroCells) {
-      expect(cell.className).toContain('text-slate-500');
+      expect(cell.className).not.toContain('text-amber-700');
+      expect(cell.className).toContain('text-slate-400');
     }
   });
 });

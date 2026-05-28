@@ -28,7 +28,7 @@ export function PatientInfoSection({ result }: Props) {
         <h3 className="text-xs font-bold text-indigo-800 uppercase tracking-widest">Patient Information</h3>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
-        <Cell label="Full Name" value={result.patient_name} />
+        <Cell label="Patient ID" value={result.patient_uid} />
         <Cell label="Age" value={result.patient_age != null ? `${result.patient_age} yrs` : '—'} />
         <Cell label="Sex" value={sex} />
         <Cell label="Specimen ID" value={result.specimen_id.slice(0, 8).toUpperCase()} />

@@ -171,10 +171,9 @@ export function PhysicianResultDetailView() {
             <FlaskConical className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">{data.patient_name}</h1>
+            <h1 className="text-xl font-bold text-slate-900">{data.patient_uid}</h1>
             <p className="mt-0.5 text-sm text-slate-500">
-              {data.patient_uid}
-              {data.patient_age !== null ? ` · ${data.patient_age}y` : ''}
+              {data.patient_age !== null ? `${data.patient_age}y` : ''}
               {data.patient_sex ? ` · ${data.patient_sex}` : ''}
             </p>
           </div>

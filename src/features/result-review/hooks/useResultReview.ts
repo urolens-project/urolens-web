@@ -69,10 +69,17 @@ export function useSaveAnnotation(resultId: string) {
 export function useSaveOverride(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ parameter, corrected_value, rationale, original_ai_value }: { parameter: string; corrected_value: number; rationale: string; original_ai_value: number }) =>
+    mutationFn: ({ parameter, corrected_value, rationale, original_ai_value }: { 
+      parameter: string; 
+      corrected_value: number; 
+      rationale: string; 
+      original_ai_value: number 
+    }) =>
       saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
+    
+    // Change onSuccess to onSettled here:
+    onSettled: async () => {
+      return await qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },
   });
 }

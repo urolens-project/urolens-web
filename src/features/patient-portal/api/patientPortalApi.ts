@@ -1,8 +1,8 @@
 import apiClient from '../../../lib/apiClient';
-import type { PatientResultSummary, PatientResultDetail } from '../types';
+import type { PatientResultItem, PatientResultDetail } from '../types';
 
 export const patientPortalApi = {
-  getResults: (): Promise<PatientResultSummary[]> =>
+  getPatientResults: (): Promise<PatientResultItem[]> =>
     apiClient.get('/patient/results').then(res => res.data),
 
   getResultDetail: (resultId: string): Promise<PatientResultDetail> =>
