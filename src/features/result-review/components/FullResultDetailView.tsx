@@ -105,7 +105,7 @@ export function FullResultDetailView() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-violet-100 truncate">
-                    {data.patient_name}
+                    {data.patient_uid}
                     {patientMeta ? ` · ${patientMeta}` : ''}
                   </p>
                 </div>

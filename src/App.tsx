@@ -18,11 +18,13 @@ import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
+import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
 
 import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
 
 import LoginPage from './routes/auth.routes';
+import PatientLoginPage from './features/auth/components/PatientLoginPage';
 import MedTechDashboard from './routes/medtech.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
@@ -47,6 +49,7 @@ export default function App() {
           <Routes>
             {/* Global Unauthenticated Public Core Routing Nodes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/patient/login" element={<PatientLoginPage />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* 1. RECEPTIONIST ACTIVE SECURE WORKSPACE BOUNDARIES */}
@@ -60,7 +63,9 @@ export default function App() {
               <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
               <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
+              <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
             </Route>
+            
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
             <Route
@@ -105,7 +110,7 @@ export default function App() {
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
             <Route
               element={
-                <RequireRole roles={[UserRole.PATIENT]}>
+                <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
                   <AppShell />
                 </RequireRole>
               }

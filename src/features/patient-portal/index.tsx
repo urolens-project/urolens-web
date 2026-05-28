@@ -1,11 +1,32 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { FileText } from 'lucide-react';
+import { Spinner } from '../../components/ui/Spinner';
 import { PatientResultList } from './components/PatientResultList';
 import { PatientResultDetail } from './components/PatientResultDetail';
-import { MOCK_RESULTS, MOCK_RESULT_DETAILS } from './mock/mockResults';
+import { usePatientResults } from './hooks/usePatientResults';
+import { useResultDetail, useDownloadResultPdf } from './hooks/useResultDetail';
 
 export default function PatientPortalPage() {
+  const { data: results, isLoading, isError } = usePatientResults();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="md" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-8 text-center">
+        <p className="text-sm text-red-700 font-medium">
+          Failed to load results. Please try again.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-6">
@@ -14,7 +35,7 @@ export default function PatientPortalPage() {
           View and download your laboratory test results.
         </p>
       </div>
-      <PatientResultList results={MOCK_RESULTS} />
+      <PatientResultList results={results ?? []} />
     </div>
   );
 }
@@ -22,14 +43,22 @@ export default function PatientPortalPage() {
 export function PatientResultDetailPage() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
+  const { data: result, isLoading, isError } = useResultDetail(resultId ?? '');
+  const { mutate: downloadPdf } = useDownloadResultPdf();
 
-  const result = resultId ? MOCK_RESULT_DETAILS[resultId] : undefined;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="md" />
+      </div>
+    );
+  }
 
-  if (!result) {
+  if (isError || !result) {
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-8 text-center">
         <FileText className="mx-auto h-10 w-10 text-red-300 mb-3" />
-        <p className="text-sm text-red-700 font-medium">Result not found.</p>
+        <p className="text-sm text-red-700 font-medium">Result not found or access denied.</p>
         <button
           onClick={() => navigate('/dashboard/patient/results')}
           className="mt-3 text-sm font-medium text-red-600 hover:text-red-800 underline cursor-pointer"
@@ -47,9 +76,7 @@ export function PatientResultDetailPage() {
       </div>
       <PatientResultDetail
         result={result}
-        onDownloadPdf={() =>
-          toast.info('PDF download will be available once connected to the backend.')
-        }
+        onDownloadPdf={() => downloadPdf(resultId!)}
       />
     </div>
   );
