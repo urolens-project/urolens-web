@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Spinner';
+import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
 import type { BoundingBox } from '../types';
 import { AIFindingsSection } from './AIFindingsSection';
@@ -14,7 +15,6 @@ import { MedTechConfirmationSection } from './MedTechConfirmationSection';
 import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
 import { ReturnModal } from './ReturnModal';
-import { SmartDiagnosisSection } from './SmartDiagnosisSection';
 
 const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }> = {
   PENDING_SUPERVISOR_APPROVAL: { variant: 'warning', label: 'Pending Approval' },
@@ -196,7 +196,7 @@ export function FullResultDetailView() {
             <AIFindingsSection result={data} />
             <MedTechConfirmationSection result={data} />
             <ManualOverridesSection result={data} />
-            <SmartDiagnosisSection result={data} />
+            <SmartDiagnosisPanel data={data.smart_diagnosis} unavailable={data.smart_diagnosis_unavailable} />
           </div>
         </div>
       </div>
