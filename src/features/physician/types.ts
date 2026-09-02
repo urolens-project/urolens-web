@@ -1,3 +1,5 @@
+import type { SmartDiagnosisAttached } from '../smart-diagnosis/types';
+
 export interface PhysicianPatient {
   patient_id: string;
   patient_uid: string;
@@ -42,17 +44,6 @@ export interface PhysicianResultListResponse {
   page_size: number;
 }
 
-export interface SmartDiagnosisDetail {
-  gout_score: string;
-  gn_score: string;
-  nephro_score: string;
-  uti_score: string;
-  tricho_score: string;
-  evidence_map: Record<string, string[]>;
-  no_significant_indicators: boolean;
-  engine_version: string;
-}
-
 export interface PhysicianResultDetail {
   result_id: string;
   specimen_id: string;
@@ -66,7 +57,7 @@ export interface PhysicianResultDetail {
   flagged_anomalies: Record<string, unknown>;
   particle_classes: Record<string, unknown>;
   model_version: string;
-  smart_diagnosis: SmartDiagnosisDetail | null;
+  smart_diagnosis: SmartDiagnosisAttached | null;
   image_url: string | null;
   status: string;
   annotation_notes: string | null;
