@@ -55,7 +55,7 @@ describe('useDownloadResultPdf', () => {
     });
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('PDF downloaded successfully.');
+      expect(toast.success).toHaveBeenCalledWith('Your PDF is opening in a new tab.');
     });
   });
 
