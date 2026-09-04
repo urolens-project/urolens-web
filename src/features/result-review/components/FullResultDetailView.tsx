@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -48,9 +49,19 @@ export function FullResultDetailView() {
     });
   }
 
-  async function openApprove() { await flushBoxesIfDirty(); setApproveOpen(true); }
-  async function openReturn()  { await flushBoxesIfDirty(); setReturnOpen(true); }
-  async function openEscalate(){ await flushBoxesIfDirty(); setEscalateOpen(true); }
+  async function withFlushedBoxes(openAction: () => void) {
+    try {
+      await flushBoxesIfDirty();
+    } catch {
+      toast.error('Failed to save your annotation changes. Please try again.');
+      return;
+    }
+    openAction();
+  }
+
+  async function openApprove()  { await withFlushedBoxes(() => setApproveOpen(true)); }
+  async function openReturn()   { await withFlushedBoxes(() => setReturnOpen(true)); }
+  async function openEscalate() { await withFlushedBoxes(() => setEscalateOpen(true)); }
 
   function handleActionSuccess() {
     navigate('/supervisor/results');

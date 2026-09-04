@@ -22,8 +22,10 @@ const PARTICLE_CLASSES: { key: string; label: string }[] = [
 ];
 
 function getEffectiveValue(key: string, overrides: ManualOverrideItem[]): string | null {
-  const match = [...overrides].reverse().find((o) => o.parameter_name === key);
-  return match ? match.corrected_value : null;
+  const matches = overrides.filter((o) => o.parameter_name === key);
+  if (matches.length === 0) return null;
+  const latest = matches.reduce((a, b) => (a.overridden_at > b.overridden_at ? a : b));
+  return latest.corrected_value;
 }
 
 interface ParticleRowProps {
@@ -102,7 +104,7 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
       setLocalSaved(true);
       setEditing(false);
       setTimeout(() => setLocalSaved(false), 2500);
-    } catch (e) {
+    } catch {
       setError('Failed to save. Please try again.');
     }
   }
@@ -221,6 +223,40 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
   );
 }
 
+function GenericFindingsCard({
+  title,
+  tone,
+  data,
+}: {
+  title: string;
+  tone: 'neutral' | 'warning';
+  data: Record<string, unknown>;
+}) {
+  const entries = Object.entries(data);
+  if (entries.length === 0) return null;
+
+  const headerClass = tone === 'warning' ? 'border-amber-100 bg-amber-50' : 'border-slate-100 bg-slate-50';
+  const titleClass = tone === 'warning' ? 'text-amber-700' : 'text-slate-500';
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className={`px-5 py-3.5 border-b ${headerClass}`}>
+        <h3 className={`text-xs font-bold uppercase tracking-widest ${titleClass}`}>{title}</h3>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {entries.map(([key, value]) => (
+          <div key={key} className="flex items-center justify-between px-5 py-3">
+            <span className="text-sm text-slate-500 capitalize">{key.replace(/_/g, ' ')}</span>
+            <span className="text-sm font-semibold text-slate-800 font-mono">
+              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AIFindingsSection({ result }: Props) {
   const counts = result.particle_classes ?? {};
   const overrides = result.manual_overrides ?? [];
@@ -229,52 +265,57 @@ export function AIFindingsSection({ result }: Props) {
   const overrideCount = PARTICLE_CLASSES.filter((p) => overriddenKeys.has(p.key)).length;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-blue-100 bg-blue-50">
-        <div className="flex items-center gap-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
-            <Bot className="h-3.5 w-3.5 text-blue-600" />
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-blue-100 bg-blue-50">
+          <div className="flex items-center gap-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
+              <Bot className="h-3.5 w-3.5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-blue-800 uppercase tracking-widest">AI Particle Counts</h3>
+              <p className="text-[10px] text-blue-400 uppercase tracking-widest mt-0.5">
+                Hover any row to correct
+              </p>
+            </div>
+            {overrideCount > 0 && (
+              <span className="ml-1 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                {overrideCount} Manual Edit{overrideCount !== 1 ? 's' : ''}
+              </span>
+            )}
           </div>
-          <div>
-            <h3 className="text-xs font-bold text-blue-800 uppercase tracking-widest">AI Particle Counts</h3>
-            <p className="text-[10px] text-blue-400 uppercase tracking-widest mt-0.5">
-              Hover any row to correct
-            </p>
-          </div>
-          {overrideCount > 0 && (
-            <span className="ml-1 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-              {overrideCount} Manual Edit{overrideCount !== 1 ? 's' : ''}
-            </span>
-          )}
+        </div>
+
+        {/* Column headers */}
+        <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
+          <span className="flex-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Particle</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 text-right">Count</span>
+          <span className="w-6" />
+        </div>
+
+        {/* Particle list */}
+        <div className="divide-y divide-slate-100">
+          {PARTICLE_CLASSES.map(({ key, label }, idx) => {
+            const raw = counts[key];
+            const aiValue = typeof raw === 'number' ? raw : null;
+            return (
+              <ParticleRow
+                key={key}
+                particleKey={key}
+                label={label}
+                aiValue={aiValue}
+                overrides={overrides}
+                resultId={result.result_id}
+                isLast={idx === PARTICLE_CLASSES.length - 1}
+              />
+            );
+          })}
         </div>
       </div>
 
-      {/* Column headers */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
-        <span className="flex-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Particle</span>
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 text-right">Count</span>
-        <span className="w-6" />
-      </div>
-
-      {/* Particle list */}
-      <div className="divide-y divide-slate-100">
-        {PARTICLE_CLASSES.map(({ key, label }, idx) => {
-          const raw = counts[key];
-          const aiValue = typeof raw === 'number' ? raw : null;
-          return (
-            <ParticleRow
-              key={key}
-              particleKey={key}
-              label={label}
-              aiValue={aiValue}
-              overrides={overrides}
-              resultId={result.result_id}
-              isLast={idx === PARTICLE_CLASSES.length - 1}
-            />
-          );
-        })}
-      </div>
+      <GenericFindingsCard title="Flagged Anomalies" tone="warning" data={result.flagged_anomalies ?? {}} />
+      <GenericFindingsCard title="AI Findings" tone="neutral" data={result.ai_findings ?? {}} />
     </div>
   );
 }

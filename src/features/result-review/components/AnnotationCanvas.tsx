@@ -22,6 +22,13 @@ const LABEL_DISPLAY: Record<string, string> = {
   mucus_threads: 'Mucus Threads',
 };
 
+function generateBoxId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `box-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 const LABEL_COLOR: Record<string, string> = {
   leukocytes: '#60a5fa',
   erythrocytes: '#f87171',
@@ -90,7 +97,7 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
     const h = Math.abs(drawing.currentY - drawing.startY);
     if (w > 1 && h > 1) {
       const newBox: BoundingBox = {
-        id: crypto.randomUUID(),
+        id: generateBoxId(),
         label: selectedLabel,
         x, y, w, h,
       };
