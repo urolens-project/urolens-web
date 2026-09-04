@@ -19,20 +19,24 @@ export interface ConditionEvidence {
 }
 
 export interface EvidenceMap {
-  gout: ConditionEvidence | Record<string, unknown>;
-  glomerulonephritis: ConditionEvidence | Record<string, unknown>;
-  nephrolithiasis: ConditionEvidence | Record<string, unknown>;
+  gout: ConditionEvidence;
+  glomerulonephritis: ConditionEvidence;
+  nephrolithiasis: ConditionEvidence;
 }
 
-export interface SmartDiagnosisOutput {
-  output_id: string;
-  result_id: string;
+/** Fields present whenever the Smart Diagnosis engine successfully attached a result. */
+export interface SmartDiagnosisAttached {
   gout_score: ProbabilityLevel;
   gn_score: ProbabilityLevel;
   nephro_score: ProbabilityLevel;
   evidence_map: EvidenceMap;
   no_significant_indicators: boolean;
   engine_version: string;
+}
+
+export interface SmartDiagnosisOutput extends SmartDiagnosisAttached {
+  output_id: string;
+  result_id: string;
   status: SmartDiagnosisStatus;
   generated_at: string;
 }
@@ -54,4 +58,30 @@ export interface ConditionResult {
   label: string;
   score: ProbabilityLevel;
   evidence: EvidenceEntry[];
+}
+
+const CONDITION_LABELS: Record<keyof EvidenceMap, string> = {
+  gout: 'Gout',
+  glomerulonephritis: 'Glomerulonephritis',
+  nephrolithiasis: 'Nephrolithiasis',
+};
+
+export function buildConditions(data: SmartDiagnosisAttached): ConditionResult[] {
+  return [
+    {
+      label: CONDITION_LABELS.gout,
+      score: data.gout_score,
+      evidence: data.evidence_map.gout?.evidence ?? [],
+    },
+    {
+      label: CONDITION_LABELS.glomerulonephritis,
+      score: data.gn_score,
+      evidence: data.evidence_map.glomerulonephritis?.evidence ?? [],
+    },
+    {
+      label: CONDITION_LABELS.nephrolithiasis,
+      score: data.nephro_score,
+      evidence: data.evidence_map.nephrolithiasis?.evidence ?? [],
+    },
+  ];
 }

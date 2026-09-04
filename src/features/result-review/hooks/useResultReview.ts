@@ -15,9 +15,6 @@ import type { BoundingBox } from '../types';
 export const resultReviewKeys = {
   pending: (page: number, pageSize: number) => ['results', 'pending', page, pageSize] as const,
   detail: (resultId: string) => ['results', 'detail', resultId] as const,
-};
-
-export const resultReviewKeys2 = {
   approvedToday: (page: number, pageSize: number) => ['results', 'approved-today', page, pageSize] as const,
   escalated: (page: number, pageSize: number) => ['results', 'escalated', page, pageSize] as const,
 };
@@ -32,7 +29,7 @@ export function usePendingResults(page: number, pageSize: number) {
 
 export function useApprovedToday(page: number, pageSize: number) {
   return useQuery({
-    queryKey: resultReviewKeys2.approvedToday(page, pageSize),
+    queryKey: resultReviewKeys.approvedToday(page, pageSize),
     queryFn: () => fetchApprovedToday(page, pageSize),
     staleTime: 30_000,
   });
@@ -40,7 +37,7 @@ export function useApprovedToday(page: number, pageSize: number) {
 
 export function useEscalated(page: number, pageSize: number) {
   return useQuery({
-    queryKey: resultReviewKeys2.escalated(page, pageSize),
+    queryKey: resultReviewKeys.escalated(page, pageSize),
     queryFn: () => fetchEscalated(page, pageSize),
     staleTime: 30_000,
   });
@@ -76,10 +73,8 @@ export function useSaveOverride(resultId: string) {
       original_ai_value: number 
     }) =>
       saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
-    
-    // Change onSuccess to onSettled here:
-    onSettled: async () => {
-      return await qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },
   });
 }
