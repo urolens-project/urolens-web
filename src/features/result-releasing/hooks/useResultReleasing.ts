@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { resultReleasingApi } from '../api/resultReleasingApi';
 import type { ReleaseMethod } from '../types';
+import type { ApiError } from '../../../types/domain';
 
 export function useApprovedResults(limit = 20, cursor?: string) {
   return useQuery({
@@ -24,14 +25,14 @@ export function useReleaseResult() {
           : 'Result marked as released via physical printout.',
       );
     },
-    onError: (err: any) => {
-      const code = err?.response?.data?.error?.code;
+    onError: (err: ApiError) => {
+      const code = err.response?.data?.error?.code;
       const messages: Record<string, string> = {
         NOT_FOUND: 'Result not found.',
         RESULT_NOT_APPROVED: 'Result is not in APPROVED status.',
         ALREADY_RELEASED: 'This result has already been released.',
       };
-      toast.error(messages[code] ?? 'Failed to release result. Please try again.');
+      toast.error((code && messages[code]) ?? 'Failed to release result. Please try again.');
     },
   });
 }
