@@ -130,8 +130,8 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByText('Alice Med'));
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
-    expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
-    expect(screen.getByText('Juan Dela Cruz · Urinalysis')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
+    expect(screen.getByText('PAT-00001 · Urinalysis')).toBeInTheDocument();
   });
 
   it('calls queueApi.assignSpecimen with correct payload on modal confirm', async () => {
@@ -146,7 +146,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
@@ -171,7 +171,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
@@ -193,13 +193,13 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
 
     await waitFor(() => {
-      expect(screen.queryByText('Confirm Assignment')).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Confirm Assignment' })).not.toBeInTheDocument();
     });
 
     expect(screen.getByRole('button', { name: /Assign Specimen/i })).toBeDisabled();
@@ -221,7 +221,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
@@ -247,7 +247,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
@@ -273,7 +273,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Assign Specimen/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Assignment')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Confirm Assignment' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));

@@ -6,22 +6,20 @@ import type { SupervisorStats } from '../features/result-review/types';
 
 type LabStats = SupervisorStats;
 
+function greetingForHour(hour: number): string {
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
 export default function SupervisorDashboard() {
   const navigate = useNavigate();
-  const [greeting, setGreeting] = useState('Good day');
-  
+  const greeting = greetingForHour(new Date().getHours());
+
   // 2. Set up states for your data and loading conditions
   const [stats, setStats] = useState<LabStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Dynamic greeting hook based on system time
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-  }, []);
 
   // 3. Dynamic Data Fetching Hook
   useEffect(() => {
@@ -37,7 +35,7 @@ export default function SupervisorDashboard() {
           setStats(data);
           setError(null);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) setError('Failed to refresh system metrics.');
       } finally {
         if (isMounted) setIsLoading(false);
