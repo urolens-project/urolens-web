@@ -1,4 +1,4 @@
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ResultStatusChip } from './ResultStatusChip';
 import { CellCountTable } from './CellCountTable';
@@ -8,6 +8,7 @@ import type { PatientResultDetail as DetailType } from '../types';
 interface PatientResultDetailProps {
   result: DetailType;
   onDownloadPdf?: () => void;
+  isDownloading?: boolean;
 }
 
 function formatDate(dateStr: string | null): string {
@@ -19,7 +20,7 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-export function PatientResultDetail({ result, onDownloadPdf }: PatientResultDetailProps) {
+export function PatientResultDetail({ result, onDownloadPdf, isDownloading = false }: PatientResultDetailProps) {
   const navigate = useNavigate();
   const isReleased = result.status === 'RELEASED';
 
@@ -106,10 +107,15 @@ export function PatientResultDetail({ result, onDownloadPdf }: PatientResultDeta
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <button
             onClick={() => onDownloadPdf?.()}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
+            disabled={isDownloading}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer"
           >
-            <Download className="h-4 w-4" />
-            Download PDF
+            {isDownloading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            {isDownloading ? 'Preparing PDF...' : 'Download PDF'}
           </button>
         </div>
       )}
