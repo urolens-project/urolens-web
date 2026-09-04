@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useCreateLabRequest, usePatientSearch } from '../hooks/usePhysician';
 import type { LabRequestCreateResponse, PhysicianPatient } from '../types';
-import type { AxiosError } from 'axios';
+import type { ApiError } from '../../../types/domain';
 
 const TEST_TYPES = [
   'Urinalysis - Routine',
@@ -156,10 +156,10 @@ export function NewLabRequestForm() {
           setSubmittedPatientUid(selectedPatient!.patient_uid);
           setConfirmation(data);
         },
-        onError: (err: AxiosError<{ error?: { message?: string } }>) => {
-          setServerError(
-            err.response?.data?.error?.message ?? 'Something went wrong. Please try again.',
-          );
+        onError: (err: ApiError) => {
+          const raw = err.response?.data?.error?.message;
+          const message = typeof raw === 'string' ? raw : raw?.error?.message;
+          setServerError(message ?? 'Something went wrong. Please try again.');
         },
       },
     );

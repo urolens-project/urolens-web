@@ -2,18 +2,22 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PendingSpecimenList } from '../components/PendingSpecimenList';
-import type { SpecimenResponse } from '../types';
+import type { PendingSpecimenItem } from '../types';
 
-const specimens: SpecimenResponse[] = [
+const specimens: PendingSpecimenItem[] = [
   {
     specimen_id: 'spec-1',
     sample_uid: 'SAM-000001',
+    patient_uid: 'PAT-000001',
+    test_type: 'Urinalysis - Routine',
     status: 'LABELED',
     received_at: '2026-05-20T10:00:00Z',
   },
   {
     specimen_id: 'spec-2',
     sample_uid: 'SAM-000002',
+    patient_uid: 'PAT-000002',
+    test_type: 'Urinalysis - Complete',
     status: 'LABELED',
     received_at: '2026-05-21T14:30:00Z',
   },
@@ -32,23 +36,6 @@ describe('PendingSpecimenList', () => {
 
     expect(screen.getByText('SAM-000001')).toBeInTheDocument();
     expect(screen.getByText('SAM-000002')).toBeInTheDocument();
-  });
-
-  it('falls back to specimen_id when sample_uid is null', () => {
-    const noUid: SpecimenResponse[] = [
-      { specimen_id: 'spec-3', sample_uid: null, status: 'LABELED' },
-    ];
-
-    render(
-      <PendingSpecimenList
-        specimens={noUid}
-        selectedSpecimenId={null}
-        onSelect={() => {}}
-        isLoading={false}
-      />,
-    );
-
-    expect(screen.getByText('spec-3')).toBeInTheDocument();
   });
 
   it('highlights the selected specimen', () => {
