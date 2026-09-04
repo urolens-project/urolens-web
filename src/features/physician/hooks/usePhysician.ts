@@ -5,7 +5,8 @@ import {
   fetchResultDetail,
   searchPatients,
 } from '../api/physicianApi';
-import type { LabRequestCreatePayload } from '../types';
+import type { LabRequestCreatePayload, LabRequestCreateResponse } from '../types';
+import type { ApiError } from '../../../types/domain';
 
 export const physicianKeys = {
   patientSearch: (q: string) => ['physician', 'patients', q] as const,
@@ -40,7 +41,7 @@ export function useResultDetail(resultId: string) {
 }
 
 export function useCreateLabRequest() {
-  return useMutation({
+  return useMutation<LabRequestCreateResponse, ApiError, LabRequestCreatePayload>({
     mutationFn: (payload: LabRequestCreatePayload) => createLabRequest(payload),
   });
 }
