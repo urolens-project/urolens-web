@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queueApi } from '../api/queueApi';
 import type { ApiError } from '../../../types/domain';
+import type { AssignSpecimenRequest } from '../types';
 
 const ERROR_MESSAGES: Record<string, string> = {
   SPECIMEN_NOT_FOUND: 'Specimen not found.',
@@ -14,7 +15,7 @@ export function useAssignSpecimen() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: queueApi.assignSpecimen,
+    mutationFn: (payload: AssignSpecimenRequest) => queueApi.assignSpecimen(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['queue', 'pending'] });
       queryClient.invalidateQueries({ queryKey: ['queue', 'workloads'] });
