@@ -4,44 +4,12 @@ import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, RefreshCw } from 'l
 import { Button } from '../../../components/ui/Button';
 import { useApprovedToday } from '../hooks/useResultReview';
 import type { ApprovedResultItem } from '../types';
+import { formatAge, formatTimestamp } from '../utils/format';
+import { SkeletonRows } from './SkeletonRows';
 
 const PAGE_SIZE = 20;
 
-function formatAge(age: number | null, sex: string | null): string {
-  const parts: string[] = [];
-  if (age !== null) parts.push(`${age}y`);
-  if (sex) parts.push(sex.charAt(0).toUpperCase() + sex.slice(1).toLowerCase());
-  return parts.join(' / ') || '—';
-}
-
-function formatTimestamp(iso: string): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
 const today = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-function SkeletonRows({ cols }: { cols: number }) {
-  return (
-    <>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <tr key={i} className="animate-pulse border-b border-slate-100 last:border-0">
-          <td className="px-5 py-4">
-            <div className="space-y-2">
-              <div className="h-3.5 bg-slate-100 rounded-md w-32" />
-              <div className="h-2.5 bg-slate-100 rounded-md w-16" />
-            </div>
-          </td>
-          {Array.from({ length: cols - 1 }).map((_, j) => (
-            <td key={j} className="px-5 py-4">
-              <div className="h-3 bg-slate-100 rounded-md w-20" />
-            </td>
-          ))}
-        </tr>
-      ))}
-    </>
-  );
-}
 
 export function ApprovedTodayQueueView() {
   const [page, setPage] = useState(1);
