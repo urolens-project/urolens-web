@@ -95,9 +95,9 @@ export interface EscalateResponse {
 }
 
 export interface SupervisorStats {
-  pendingCount: number;
-  approvedToday: number;
-  escalatedCount: number;
+  pending_count: number;
+  approved_today: number;
+  escalated_count: number;
 }
 
 export interface ApprovedResultItem {
