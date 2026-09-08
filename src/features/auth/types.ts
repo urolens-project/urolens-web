@@ -9,6 +9,7 @@ export interface LoginResponse {
   access_token: string;
   token_type: string;
   role: UserRole;
+  user_id?: string;
 }
 
 export interface ApiError {
