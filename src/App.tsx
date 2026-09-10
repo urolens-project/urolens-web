@@ -19,7 +19,6 @@ import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
 import AdminDashboard from './routes/admin.routes';
-import QueueAssignmentPage from './features/queue-assignment';
 
 const Unauthorized = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -48,7 +47,10 @@ export default function App() {
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
+              <Route
+                path="/dashboard/receptionist"
+                element={<Navigate to="/intake/register" replace />}
+              />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
             </Route>
 
@@ -99,7 +101,9 @@ export default function App() {
             {/* 6. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
-                <RequireRole roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}>
+                <RequireRole
+                  roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}
+                >
                   <DashboardShell />
                 </RequireRole>
               }
