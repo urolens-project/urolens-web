@@ -13,6 +13,7 @@ import {
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 import { Modal } from '../ui/Modal';
+import { NotificationBell } from '../../features/notifications';
 
 const navItems = [
   {
@@ -147,6 +148,7 @@ export default function PhysicianShell() {
                 </h1>
               </div>
             </div>
+            <NotificationBell />
           </div>
         </header>
 
