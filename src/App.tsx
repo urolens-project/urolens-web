@@ -60,7 +60,10 @@ export default function App() {
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
+              <Route
+                path="/dashboard/receptionist"
+                element={<Navigate to="/intake/register" replace />}
+              />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
               <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
               <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
@@ -134,7 +137,9 @@ export default function App() {
             {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
-                <RequireRole roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}>
+                <RequireRole
+                  roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}
+                >
                   <DashboardShell />
                 </RequireRole>
               }
