@@ -8,7 +8,7 @@ const specimens: PendingSpecimenItem[] = [
   {
     specimen_id: 'spec-1',
     sample_uid: 'SAM-000001',
-    patient_uid: 'PAT-000001',
+    patient_name: 'PAT-000001',
     test_type: 'Urinalysis - Routine',
     status: 'LABELED',
     received_at: '2026-05-20T10:00:00Z',
@@ -16,7 +16,7 @@ const specimens: PendingSpecimenItem[] = [
   {
     specimen_id: 'spec-2',
     sample_uid: 'SAM-000002',
-    patient_uid: 'PAT-000002',
+    patient_name: 'PAT-000002',
     test_type: 'Urinalysis - Complete',
     status: 'LABELED',
     received_at: '2026-05-21T14:30:00Z',
@@ -94,9 +94,7 @@ describe('PendingSpecimenList', () => {
       />,
     );
 
-    expect(
-      screen.getByText('No labeled specimens awaiting assignment.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('No labeled specimens awaiting assignment.')).toBeInTheDocument();
   });
 
   it('shows loading skeletons when isLoading is true', () => {
