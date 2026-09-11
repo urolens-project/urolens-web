@@ -9,12 +9,15 @@ import { Button } from '../../../components/ui/Button';
 
 const PAGE_SIZE = 20;
 
+// The backend masks every pre-release workflow state (PENDING_CONFIRM,
+// PENDING_SUPERVISOR_APPROVAL, RETURNED_FOR_CORRECTION, CRITICAL_ESCALATED,
+// etc.) down to a single "PENDING" placeholder for the physician view — a
+// physician sees released/not-released, not lab-internal review stages.
+// Only RELEASED and PENDING are ever actually sent; see
+// physician_result_service.py's _PENDING_PLACEHOLDER_STATUS.
 const STATUS_CHIP: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  APPROVED: { label: 'Approved', bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  PENDING_SUPERVISOR_APPROVAL: { label: 'Under Review', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
-  PENDING_CONFIRM: { label: 'Pending Confirm', bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400' },
-  RETURNED_FOR_CORRECTION: { label: 'Returned', bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500' },
-  CRITICAL_ESCALATED: { label: 'Escalated', bg: 'bg-rose-50', text: 'text-rose-700', dot: 'bg-rose-500' },
+  RELEASED: { label: 'Released', bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  PENDING: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
 };
 
 const fallbackChip = { label: 'Unknown', bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-300' };

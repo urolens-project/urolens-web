@@ -56,12 +56,11 @@ export function PhysicianResultDetailView() {
     );
   }
 
-  const statusLabel =
-    data.status === 'APPROVED'
-      ? 'Approved'
-      : data.status === 'PENDING_SUPERVISOR_APPROVAL'
-      ? 'Under Supervisor Review'
-      : data.status.replace(/_/g, ' ');
+  // getResultDetail 403s (RESULT_NOT_RELEASED) before returning anything
+  // unless the result is already RELEASED, so that's the only status this
+  // view ever actually renders — but fall back gracefully rather than
+  // assume, in case that gate ever changes.
+  const statusLabel = data.status === 'RELEASED' ? 'Released' : data.status.replace(/_/g, ' ');
 
   return (
     <div className="space-y-6 max-w-3xl">
