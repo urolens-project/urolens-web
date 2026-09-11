@@ -7,6 +7,7 @@ import type { ApiError } from '../types';
 
 const roleToDashboard: Record<string, string> = {
   receptionist: '/dashboard/receptionist',
+  medtech: '/dashboard/medtech',
   supervisor: '/dashboard/supervisor',
   physician: '/dashboard/physician',
   patient: '/dashboard/patient',
