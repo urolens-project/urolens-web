@@ -1,6 +1,6 @@
 export interface ApprovedResultItem {
   result_id: string;
-  patient_uid: string;
+  patient_name: string;
   sample_uid: string | null;
   test_type: string | null;
   approved_at: string;
