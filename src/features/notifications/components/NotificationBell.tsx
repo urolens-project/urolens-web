@@ -58,7 +58,9 @@ export function NotificationBell() {
       {open && (
         <div className="absolute right-0 top-11 z-40 w-80 max-h-[28rem] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg flex flex-col">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Notifications</p>
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Notifications
+            </p>
             {unreadCount > 0 && (
               <button
                 type="button"
@@ -98,7 +100,9 @@ export function NotificationBell() {
                           <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
                         )}
                         <div className={`min-w-0 ${item.is_read ? 'pl-3.5' : ''}`}>
-                          <p className={`text-xs leading-snug ${item.is_read ? 'text-slate-500' : 'text-slate-800 font-medium'}`}>
+                          <p
+                            className={`text-xs leading-snug ${item.is_read ? 'text-slate-500' : 'text-slate-800 font-medium'}`}
+                          >
                             {item.message}
                           </p>
                           <p className="text-[10px] text-slate-400 mt-1">
@@ -112,6 +116,17 @@ export function NotificationBell() {
               </ul>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              navigate('/notifications');
+            }}
+            className="shrink-0 px-4 py-2.5 border-t border-slate-100 text-center text-xs font-semibold text-emerald-600 hover:bg-emerald-50 cursor-pointer transition-colors"
+          >
+            View all notifications
+          </button>
         </div>
       )}
     </div>
