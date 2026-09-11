@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, FlaskConical, RotateCcw } from 'lucide-react';
@@ -6,12 +6,14 @@ import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
-import { useFullResult } from '../../result-review/hooks/useResultReview';
+import { useFullResult, useSaveAnnotation } from '../../result-review/hooks/useResultReview';
+import type { BoundingBox } from '../../result-review/types';
 import { AIFindingsSection } from '../../result-review/components/AIFindingsSection';
+import { AnnotationInputControl } from '../../result-review/components/AnnotationInputControl';
 import { ManualOverridesSection } from '../../result-review/components/ManualOverridesSection';
+import { MicroscopyImageSection } from '../../result-review/components/MicroscopyImageSection';
 import { PatientInfoSection } from '../../result-review/components/PatientInfoSection';
 import { useConfirmResult } from '../hooks/useMedtechConfirmation';
-import { MedtechImageViewer } from './MedtechImageViewer';
 
 interface LocationState {
   returnReason?: string | null;
@@ -25,7 +27,12 @@ export function ResultConfirmationDetailView() {
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const confirmMutation = useConfirmResult(resultId ?? '');
+  const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
   const [confirmError, setConfirmError] = useState('');
+
+  // Tracks the latest drawn boxes so we can flush them before confirming —
+  // same pattern as the Supervisor's FullResultDetailView.
+  const pendingBoxesRef = useRef<BoundingBox[] | null>(null);
 
   if (!resultId) return null;
 
@@ -55,6 +62,23 @@ export function ResultConfirmationDetailView() {
 
   async function handleConfirm() {
     setConfirmError('');
+    // Flush any drawn-but-unsaved annotation boxes first, so confirming
+    // never silently discards a mark the MedTech just made.
+    if (data && pendingBoxesRef.current !== null) {
+      const saved = JSON.stringify(data.spatial_annotations ?? []);
+      const pending = JSON.stringify(pendingBoxesRef.current);
+      if (saved !== pending) {
+        try {
+          await saveAnnotationMutation.mutateAsync({
+            notes: data.annotation_notes ?? '',
+            boxes: pendingBoxesRef.current,
+          });
+        } catch {
+          setConfirmError('Failed to save your annotation. Please try again.');
+          return;
+        }
+      }
+    }
     try {
       await confirmMutation.mutateAsync();
       toast.success(isReturned ? 'Result re-submitted for supervisor approval.' : 'Result confirmed.');
@@ -123,7 +147,11 @@ export function ResultConfirmationDetailView() {
 
         <div className="grid gap-5 lg:grid-cols-3">
           <div className="lg:col-span-2 flex flex-col gap-5">
-            <MedtechImageViewer result={data} />
+            <MicroscopyImageSection
+              result={data}
+              onBoxesChange={(boxes) => { pendingBoxesRef.current = boxes; }}
+            />
+            <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
           </div>
 
           <div className="space-y-4">
