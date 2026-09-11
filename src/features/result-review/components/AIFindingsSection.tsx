@@ -258,7 +258,13 @@ function GenericFindingsCard({
 }
 
 export function AIFindingsSection({ result }: Props) {
-  const counts = result.particle_classes ?? {};
+  // The AI-detected baseline for the "was" value and for the override
+  // request's original_ai_value must come from ai_findings, not
+  // particle_classes — the latter already has overrides folded in (settled
+  // at confirm time, and kept in sync on every subsequent override), so a
+  // second correction would otherwise show the *previous* correction as if
+  // it were the original AI detection.
+  const counts = result.ai_findings ?? {};
   const overrides = result.manual_overrides ?? [];
 
   const overriddenKeys = new Set(overrides.map((o) => o.parameter_name));

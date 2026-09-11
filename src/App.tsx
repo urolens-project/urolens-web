@@ -22,10 +22,10 @@ import { ApprovedResultsQueue } from './features/result-releasing/components/App
 
 import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
+import { PendingConfirmationQueueView, ResultConfirmationDetailView } from './features/medtech-confirmation';
 
 import LoginPage from './routes/auth.routes';
 import PatientLoginPage from './features/auth/components/PatientLoginPage';
-import MedTechDashboard from './routes/medtech.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
@@ -78,7 +78,9 @@ export default function App() {
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/medtech" element={<MedTechDashboard />} />
+              <Route path="/dashboard/medtech" element={<Navigate to="/medtech/results" replace />} />
+              <Route path="/medtech/results" element={<PendingConfirmationQueueView />} />
+              <Route path="/medtech/results/:resultId" element={<ResultConfirmationDetailView />} />
             </Route>
 
             {/* 2. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}
