@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import type { LabRequestPayload, LabRequestResponse } from '../../../types/types';
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 
 export default function LabRequestForm() {
+  const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -175,7 +177,8 @@ export default function LabRequestForm() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Lab Request Submitted</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  This request is now queued for sample collection.
+                  This request is now queued for sample collection. Next, receive the specimen from
+                  the patient to continue the workflow.
                 </p>
               </div>
             </div>
@@ -219,17 +222,27 @@ export default function LabRequestForm() {
               </div>
             </div>
 
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full bg-slate-900 hover:bg-slate-800"
-              onClick={() => {
-                setConfirmationData(null);
-                handleClearForm();
-              }}
-            >
-              <RotateCcw className="h-4 w-4" /> Submit Another Request
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full bg-emerald-700 hover:bg-emerald-800"
+                onClick={() => navigate('/intake/receive')}
+              >
+                Next: Receive Specimen <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => {
+                  setConfirmationData(null);
+                  handleClearForm();
+                }}
+              >
+                <RotateCcw className="h-4 w-4" /> Submit Another Request
+              </Button>
+            </div>
           </div>
         </div>
       </div>
