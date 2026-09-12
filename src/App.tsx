@@ -10,6 +10,7 @@ import AppShell from './components/layout/AppShell';
 import DashboardShell from './components/layout/DashboardShell';
 import SupervisorShell from './components/layout/SupervisorShell';
 import PhysicianShell from './components/layout/PhysicianShell';
+import NotificationsShell from './components/layout/NotificationsShell';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -19,6 +20,7 @@ import QueueAssignmentPage from './features/queue-assignment';
 import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
+import { NotificationsPage } from './features/notifications';
 
 import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
@@ -132,6 +134,21 @@ export default function App() {
               }
             >
               <Route path="/dashboard/administrator" element={<AdminDashboard />} />
+            </Route>
+
+            {/* 7.5 NOTIFICATIONS — shared by every role, one route rather than
+                repeated per-role (see NotificationsShell for why: React
+                Router breaks same-path ties by registration order, so a
+                literal "/notifications" path duplicated inside each of the
+                blocks above would only ever honor the first one's guard). */}
+            <Route
+              element={
+                <RequireRole roles={Object.values(UserRole)}>
+                  <NotificationsShell />
+                </RequireRole>
+              }
+            >
+              <Route path="/notifications" element={<NotificationsPage />} />
             </Route>
 
             {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
