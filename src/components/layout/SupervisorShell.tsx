@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
@@ -21,39 +21,47 @@ const navItems = [
     label: 'Dashboard',
     description: 'Supervisor overview',
     icon: LayoutDashboard,
-    end: true, 
+    end: true,
   },
   {
     to: '/supervisor/results',
     label: 'Lab Results Queue',
     description: 'Pending result review queue',
     icon: ClipboardList,
-    end: true, 
+    end: true,
   },
   {
     to: '/supervisor/results/approved',
     label: 'Approved Results',
     description: 'Reviewed and approved results',
-    icon: CheckSquare, 
+    icon: CheckSquare,
     end: false,
   },
   {
     to: '/supervisor/results/escalated',
     label: 'Escalated Results',
     description: 'Results flagged for further review',
-    icon: AlertOctagon, 
+    icon: AlertOctagon,
     end: false,
-  }
+  },
 ];
 
 export default function SupervisorShell() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { logout: performLogout } = useAuthContext();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
+  const location = useLocation();
+
+  // The header shows whichever page is actually open, not a fixed title.
+  // Longest-prefix match so a detail route under a nav item (e.g. a
+  // result's own page) still resolves to that item, not the fallback.
+  const currentPage =
+    [...navItems]
+      .sort((a, b) => b.to.length - a.to.length)
+      .find((item) => location.pathname.startsWith(item.to)) ?? navItems[0];
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-[#F4F7F5] text-slate-800 font-sans antialiased">
-
       <AnimatePresence initial={false}>
         {isSidebarOpen && (
           <motion.aside
@@ -69,8 +77,12 @@ export default function SupervisorShell() {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">UroLens LIS</h1>
-                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">Laboratory System</p>
+                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+                    UroLens LIS
+                  </h1>
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">
+                    Laboratory System
+                  </p>
                 </div>
               </div>
             </div>
@@ -90,24 +102,28 @@ export default function SupervisorShell() {
 
             {/* NAV */}
             <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-              <div className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-emerald-700/60">
-                Supervisor Workspace
+              <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">
+                Menu
               </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink key={item.to} to={item.to} end={item.end} className="block no-underline">
                     {({ isActive }) => (
-                      <div className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
-                        isActive
-                          ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
-                          : 'text-slate-500 hover:bg-emerald-50/40'
-                      }`}>
+                      <div
+                        className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
+                            : 'text-slate-500 hover:bg-emerald-50/40'
+                        }`}
+                      >
                         <Icon className="h-4 w-4 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs tracking-wide truncate">{item.label}</p>
                           {!isActive && (
-                            <p className="text-[10px] text-slate-400 truncate mt-0.5">{item.description}</p>
+                            <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                              {item.description}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -147,11 +163,11 @@ export default function SupervisorShell() {
                 <Menu className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  Supervisor Workspace
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  Supervisor
                 </span>
-                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">
-                  Laboratory Review Console
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight mt-1.5">
+                  {currentPage.label}
                 </h1>
               </div>
             </div>
@@ -166,10 +182,16 @@ export default function SupervisorShell() {
       </div>
 
       {/* SESSION TIMEOUT WARNING */}
-      <Modal open={isWarningVisible} onClose={dismissWarning} title="Session Expiring Soon" maxWidth="sm">
+      <Modal
+        open={isWarningVisible}
+        onClose={dismissWarning}
+        title="Session Expiring Soon"
+        maxWidth="sm"
+      >
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
-            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any key to stay signed in.
+            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any
+            key to stay signed in.
           </p>
           <button
             onClick={dismissWarning}

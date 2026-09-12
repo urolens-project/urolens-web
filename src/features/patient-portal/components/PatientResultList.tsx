@@ -9,7 +9,7 @@ interface PatientResultListProps {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Not yet released';
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString('en-PH', {
     month: 'short',
     day: '2-digit',
     year: 'numeric',
@@ -53,9 +53,7 @@ export function PatientResultList({ results }: PatientResultListProps) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800">
-                      {result.test_type}
-                    </span>
+                    <span className="text-sm font-semibold text-slate-800">{result.test_type}</span>
                     <ResultStatusChip status={result.status} />
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
@@ -82,9 +80,7 @@ export function PatientResultList({ results }: PatientResultListProps) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-800">
-                    {result.test_type}
-                  </span>
+                  <span className="text-sm font-semibold text-slate-800">{result.test_type}</span>
                   <ResultStatusChip status={result.status} />
                 </div>
                 <div className="mt-1 text-xs text-slate-500">Not yet released</div>

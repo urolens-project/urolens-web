@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { useSaveOverride } from '../hooks/useResultReview';
+import { Badge } from '../../../components/ui/Badge';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
-
 
 interface Props {
   result: FullResultDetail;
 }
 
 const PARTICLE_CLASSES: { key: string; label: string }[] = [
-  { key: 'erythrocytes',           label: 'Erythrocytes (RBC)' },
-  { key: 'leukocytes',             label: 'Leukocytes (WBC)' },
-  { key: 'epithelial_cells',       label: 'Epithelial Cells' },
-  { key: 'urinary_casts',          label: 'Urinary Casts' },
-  { key: 'crystals',               label: 'Crystals' },
-  { key: 'mucus_threads',          label: 'Mucus Threads' },
-  { key: 'bacteria',               label: 'Bacteria' },
-  { key: 'yeast',                  label: 'Yeast' },
-  { key: 'sperm_cells',            label: 'Sperm Cells' },
-  { key: 'trichomonas_vaginalis',  label: 'Trichomonas vaginalis' },
+  { key: 'erythrocytes', label: 'Erythrocytes (RBC)' },
+  { key: 'leukocytes', label: 'Leukocytes (WBC)' },
+  { key: 'epithelial_cells', label: 'Epithelial Cells' },
+  { key: 'urinary_casts', label: 'Urinary Casts' },
+  { key: 'crystals', label: 'Crystals' },
+  { key: 'mucus_threads', label: 'Mucus Threads' },
+  { key: 'bacteria', label: 'Bacteria' },
+  { key: 'yeast', label: 'Yeast' },
+  { key: 'sperm_cells', label: 'Sperm Cells' },
+  { key: 'trichomonas_vaginalis', label: 'Trichomonas vaginalis' },
 ];
 
 function getEffectiveValue(key: string, overrides: ManualOverrideItem[]): string | null {
@@ -37,7 +37,14 @@ interface ParticleRowProps {
   isLast: boolean;
 }
 
-function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast }: ParticleRowProps) {
+function ParticleRow({
+  particleKey,
+  label,
+  aiValue,
+  overrides,
+  resultId,
+  isLast,
+}: ParticleRowProps) {
   const effective = getEffectiveValue(particleKey, overrides);
   const displayValue = effective ?? (aiValue !== null ? String(aiValue) : '—');
   const hasOverride = !!effective;
@@ -51,11 +58,7 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
   const mutation = useSaveOverride(resultId);
 
   // The baseline numeric value before any edit
-  const baselineNum = effective !== null
-    ? parseFloat(effective)
-    : aiValue !== null
-      ? aiValue
-      : 0;
+  const baselineNum = effective !== null ? parseFloat(effective) : aiValue !== null ? aiValue : 0;
 
   function startEdit() {
     setInputVal(String(baselineNum));
@@ -96,11 +99,11 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
 
     try {
       await mutation.mutateAsync({
-      parameter: particleKey,
-      corrected_value: num,
-      rationale: rationale.trim(),
-      original_ai_value: aiValue ?? 0,
-    });
+        parameter: particleKey,
+        corrected_value: num,
+        rationale: rationale.trim(),
+        original_ai_value: aiValue ?? 0,
+      });
       setLocalSaved(true);
       setEditing(false);
       setTimeout(() => setLocalSaved(false), 2500);
@@ -118,7 +121,9 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
     rationale.trim().length > 0;
 
   return (
-    <div className={`${!isLast ? 'border-b border-slate-100' : ''} ${hasOverride ? 'bg-amber-50' : ''}`}>
+    <div
+      className={`${!isLast ? 'border-b border-slate-100' : ''} ${hasOverride ? 'bg-amber-50' : ''}`}
+    >
       {/* Main row */}
       <div className={`flex items-center gap-3 px-4 py-3 ${editing ? '' : 'group'}`}>
         {/* Label */}
@@ -214,9 +219,7 @@ function ParticleRow({ particleKey, label, aiValue, overrides, resultId, isLast 
             rows={2}
             className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
           />
-          {error && (
-            <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>
-          )}
+          {error && <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>}
         </div>
       )}
     </div>
@@ -235,7 +238,8 @@ function GenericFindingsCard({
   const entries = Object.entries(data);
   if (entries.length === 0) return null;
 
-  const headerClass = tone === 'warning' ? 'border-amber-100 bg-amber-50' : 'border-slate-100 bg-slate-50';
+  const headerClass =
+    tone === 'warning' ? 'border-amber-100 bg-amber-50' : 'border-slate-100 bg-slate-50';
   const titleClass = tone === 'warning' ? 'text-amber-700' : 'text-slate-500';
 
   return (
@@ -274,23 +278,29 @@ export function AIFindingsSection({ result }: Props) {
               <Bot className="h-3.5 w-3.5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-blue-800 uppercase tracking-widest">AI Particle Counts</h3>
+              <h3 className="text-xs font-bold text-blue-800 uppercase tracking-widest">
+                AI Particle Counts
+              </h3>
               <p className="text-[10px] text-blue-400 uppercase tracking-widest mt-0.5">
                 Hover any row to correct
               </p>
             </div>
             {overrideCount > 0 && (
-              <span className="ml-1 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <Badge variant="warning" className="ml-1">
                 {overrideCount} Manual Edit{overrideCount !== 1 ? 's' : ''}
-              </span>
+              </Badge>
             )}
           </div>
         </div>
 
         {/* Column headers */}
         <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
-          <span className="flex-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Particle</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 text-right">Count</span>
+          <span className="flex-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Particle
+          </span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-14 text-right">
+            Count
+          </span>
           <span className="w-6" />
         </div>
 
@@ -314,7 +324,11 @@ export function AIFindingsSection({ result }: Props) {
         </div>
       </div>
 
-      <GenericFindingsCard title="Flagged Anomalies" tone="warning" data={result.flagged_anomalies ?? {}} />
+      <GenericFindingsCard
+        title="Flagged Anomalies"
+        tone="warning"
+        data={result.flagged_anomalies ?? {}}
+      />
       <GenericFindingsCard title="AI Findings" tone="neutral" data={result.ai_findings ?? {}} />
     </div>
   );

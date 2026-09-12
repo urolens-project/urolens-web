@@ -20,7 +20,9 @@ export function SmartDiagnosisPanel({ data, unavailable = false, generatedAt }: 
       <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-4">
         <PanelHeader engineVersion={data.engine_version} generatedAt={generatedAt} />
         <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
-          <p className="text-sm font-semibold text-slate-500">No significant diagnostic indicators detected for this sample.</p>
+          <p className="text-sm font-semibold text-slate-500">
+            No significant diagnostic indicators detected for this sample.
+          </p>
         </div>
         <AIDisclaimer />
       </div>
@@ -42,14 +44,20 @@ export function SmartDiagnosisPanel({ data, unavailable = false, generatedAt }: 
   );
 }
 
-function PanelHeader({ engineVersion, generatedAt }: { engineVersion: string; generatedAt?: string }) {
+function PanelHeader({
+  engineVersion,
+  generatedAt,
+}: {
+  engineVersion: string;
+  generatedAt?: string;
+}) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
           <Brain className="h-4 w-4" />
         </div>
-        <h3 className="text-sm font-black text-slate-900">Smart Diagnosis Result</h3>
+        <h3 className="text-sm font-bold text-slate-900">Smart Diagnosis Result</h3>
       </div>
       <span className="text-[10px] font-mono text-slate-400">
         v{engineVersion}
