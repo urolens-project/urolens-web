@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ConsentCapture } from './ConsentCapture';
 import { useCreatePatient } from '../hooks/usePatientRegistration';
@@ -46,6 +47,7 @@ function areAllConsentsChecked(consent: ConsentData): boolean {
 }
 
 export function PatientRegistrationForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormFields>({ ...INITIAL_FORM });
   const [consent, setConsent] = useState<ConsentData>({ ...INITIAL_CONSENT });
   const [showConsentErrors, setShowConsentErrors] = useState(false);
@@ -155,15 +157,28 @@ export function PatientRegistrationForm() {
             <p className="mt-3 text-2xl font-black text-emerald-700 tracking-tight">
               Patient UID: {successPatientUid}
             </p>
-            <p className="mt-2 text-sm text-slate-500">Please note this UID for the patient record.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Note this ID — it's how staff will look this patient up everywhere else in the system,
+              including to submit their lab request next.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setSuccessPatientUid(null)}
-            className="mt-2 h-11 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all shadow-sm"
-          >
-            Register Another Patient
-          </button>
+          <div className="mt-2 flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+            <button
+              type="button"
+              onClick={() => setSuccessPatientUid(null)}
+              className="flex-1 h-11 px-6 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all"
+            >
+              Register Another Patient
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/intake/request')}
+              className="flex-1 h-11 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
+            >
+              Next: Create Lab Request
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -187,7 +202,6 @@ export function PatientRegistrationForm() {
         </div>
 
         <div className="p-8 space-y-6">
-
           {/* NAME ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
@@ -327,7 +341,9 @@ export function PatientRegistrationForm() {
           <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
             <div>
               <p className="text-sm font-semibold text-slate-700">Walk-in Patient</p>
-              <p className="text-xs text-slate-400 mt-0.5">Enable if the patient arrived without a prior appointment.</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Enable if the patient arrived without a prior appointment.
+              </p>
             </div>
             <button
               type="button"
