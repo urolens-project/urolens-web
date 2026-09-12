@@ -14,6 +14,11 @@ export function usePatientSearch(query: string) {
     queryKey: ['patients', 'search', query],
     queryFn: () => labRequestApi.searchPatients(query),
     enabled: query.trim().length > 0,
+    // No staleTime override here inherits the app-wide 5-minute default,
+    // which is wrong for a live search: re-typing the same text after
+    // registering a patient (a very normal duplicate-check habit) would
+    // silently replay the earlier "not found" result for up to 5 minutes.
+    staleTime: 0,
   });
 }
 
