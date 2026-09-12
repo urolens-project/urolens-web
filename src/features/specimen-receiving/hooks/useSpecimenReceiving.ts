@@ -7,6 +7,10 @@ export function useLabRequestSearch(query: string) {
     queryKey: ['lab-requests', 'search', query],
     queryFn: () => specimenReceivingApi.searchLabRequests(query),
     enabled: query.trim().length > 0,
+    // Same reasoning as usePatientSearch — a live search must not serve a
+    // 5-minute-old cached result for the same text after the underlying
+    // lab request was just created.
+    staleTime: 0,
   });
 }
 
