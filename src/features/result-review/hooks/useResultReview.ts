@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   approveResult,
   escalateResult,
@@ -15,7 +16,8 @@ import type { BoundingBox } from '../types';
 export const resultReviewKeys = {
   pending: (page: number, pageSize: number) => ['results', 'pending', page, pageSize] as const,
   detail: (resultId: string) => ['results', 'detail', resultId] as const,
-  approvedToday: (page: number, pageSize: number) => ['results', 'approved-today', page, pageSize] as const,
+  approvedToday: (page: number, pageSize: number) =>
+    ['results', 'approved-today', page, pageSize] as const,
   escalated: (page: number, pageSize: number) => ['results', 'escalated', page, pageSize] as const,
 };
 
@@ -66,13 +68,17 @@ export function useSaveAnnotation(resultId: string) {
 export function useSaveOverride(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ parameter, corrected_value, rationale, original_ai_value }: { 
-      parameter: string; 
-      corrected_value: number; 
-      rationale: string; 
-      original_ai_value: number 
-    }) =>
-      saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
+    mutationFn: ({
+      parameter,
+      corrected_value,
+      rationale,
+      original_ai_value,
+    }: {
+      parameter: string;
+      corrected_value: number;
+      rationale: string;
+      original_ai_value: number;
+    }) => saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },
@@ -86,6 +92,7 @@ export function useApproveResult(resultId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      toast.success('Result approved and released.');
     },
   });
 }
@@ -97,6 +104,7 @@ export function useReturnResult(resultId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      toast.success('Result returned to the Medical Technologist.');
     },
   });
 }
@@ -104,11 +112,17 @@ export function useReturnResult(resultId: string) {
 export function useEscalateResult(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ escalationPath, escalationNote }: { escalationPath: string; escalationNote?: string }) =>
-      escalateResult(resultId, escalationPath, escalationNote),
+    mutationFn: ({
+      escalationPath,
+      escalationNote,
+    }: {
+      escalationPath: string;
+      escalationNote?: string;
+    }) => escalateResult(resultId, escalationPath, escalationNote),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      toast.success('Result escalated.');
     },
   });
 }

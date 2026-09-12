@@ -16,11 +16,15 @@ import LabRequestForm from './features/lab-request';
 import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
-import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
 
-import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
+import {
+  PendingApprovalQueueView,
+  FullResultDetailView,
+  ApprovedTodayQueueView,
+  EscalatedQueueView,
+} from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
 
 import LoginPage from './routes/auth.routes';
@@ -43,7 +47,7 @@ const Unauthorized = () => (
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+      <AuthProvider>
         <Toaster position="top-right" richColors />
         <BrowserRouter>
           <Routes>
@@ -65,10 +69,8 @@ export default function App() {
                 element={<Navigate to="/intake/register" replace />}
               />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
-              <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
               <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
             </Route>
-            
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
             <Route
@@ -118,10 +120,13 @@ export default function App() {
                 </RequireRole>
               }
             >
-            <Route path="/dashboard/patient" element={<PatientDashboard />} />
+              <Route path="/dashboard/patient" element={<PatientDashboard />} />
               <Route path="/dashboard/patient/results" element={<PatientPortalPage />} />
-              <Route path="/dashboard/patient/results/:resultId" element={<PatientResultDetailPage />} />
-          </Route>
+              <Route
+                path="/dashboard/patient/results/:resultId"
+                element={<PatientResultDetailPage />}
+              />
+            </Route>
 
             {/* 7. SYSTEM SECURITY ROOT / ADMINISTRATOR BOUNDARIES */}
             <Route
