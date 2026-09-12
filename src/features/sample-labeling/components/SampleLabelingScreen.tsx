@@ -208,7 +208,7 @@ export default function SampleLabelingScreen() {
                 <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-900 text-[10px] text-white font-mono">
                   2
                 </span>
-                Print Label
+                Generate Label
               </h3>
               {selectedSpecimen && (
                 <div className="text-xs font-mono font-bold bg-slate-100 text-slate-600 px-2.5 py-1 rounded border border-slate-200/70">
@@ -228,17 +228,26 @@ export default function SampleLabelingScreen() {
                     This specimen is now ready to be assigned to a Medical Technologist.
                   </p>
                 </div>
-                <div className="flex gap-3 justify-center max-w-sm mx-auto pt-2">
-                  <Button variant="secondary" className="flex-1" onClick={handleClearWorkspace}>
-                    Label Another Specimen
-                  </Button>
+                <div className="flex flex-col gap-3 justify-center max-w-sm mx-auto pt-2">
                   <Button
                     variant="primary"
-                    className="flex-1 bg-emerald-700 hover:bg-emerald-800"
-                    onClick={() => navigate('/intake/register')}
+                    className="w-full bg-emerald-700 hover:bg-emerald-800"
+                    onClick={() => navigate('/intake/queue')}
                   >
-                    Register New Patient <ArrowRight className="h-3.5 w-3.5" />
+                    Next: Assign to Queue <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
+                  <div className="flex gap-3">
+                    <Button variant="secondary" className="flex-1" onClick={handleClearWorkspace}>
+                      Label Another Specimen
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={() => navigate('/intake/register')}
+                    >
+                      Register New Patient
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -275,7 +284,7 @@ export default function SampleLabelingScreen() {
                 {previewData && (
                   <div className="max-w-sm mx-auto animate-slideDown">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-2">
-                      Label Preview
+                      Label Preview — check this before printing
                     </p>
 
                     {/* Label card — mimics a physical thermal label, so its type
@@ -347,11 +356,15 @@ export default function SampleLabelingScreen() {
                         </span>
                         {reprintCount > 0 && (
                           <span className="text-[10px] text-red-500 font-bold uppercase border border-red-200 bg-red-50 px-1.5 py-0.5 rounded">
-                            Reprint ×{reprintCount}
+                            Regenerated ×{reprintCount}
                           </span>
                         )}
                       </div>
                     </div>
+                    <p className="mt-3 text-xs text-slate-500 text-center">
+                      Next: print this on your label printer, affix it to the specimen container,
+                      then confirm below.
+                    </p>
                   </div>
                 )}
 
@@ -374,7 +387,7 @@ export default function SampleLabelingScreen() {
                       disabled={printMutation.isPending}
                       onClick={handleReprintTrigger}
                     >
-                      {printMutation.isPending ? 'Reprinting...' : 'Reprint Damaged Label'}
+                      {printMutation.isPending ? 'Regenerating...' : 'Regenerate Label'}
                       <RefreshCw
                         className={`h-3.5 w-3.5 ${printMutation.isPending ? 'animate-spin' : ''}`}
                       />
@@ -387,7 +400,7 @@ export default function SampleLabelingScreen() {
                       loading={printMutation.isPending}
                       onClick={() => printMutation.mutate(selectedSpecimen!.specimen_id)}
                     >
-                      {printMutation.isPending ? 'Printing...' : 'Print Label'}
+                      {printMutation.isPending ? 'Generating...' : 'Generate Label'}
                       <Printer className="h-3.5 w-3.5" />
                     </Button>
                   )}
