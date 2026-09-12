@@ -2,6 +2,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { PatientRegistrationForm } from '../components/PatientRegistrationForm';
 import { patientApi } from '../api/patientApi';
 import type { PatientResponse } from '../types';
@@ -25,7 +26,9 @@ function createQueryClient() {
 function renderForm() {
   const queryClient = createQueryClient();
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
   );
   return render(<PatientRegistrationForm />, { wrapper });
 }
@@ -34,10 +37,10 @@ const mockSuccessResponse: PatientResponse = {
   patient_id: '1',
   patient_uid: 'PAT-000001',
   first_name: 'Juan',
-  middle_name: '',       // add this
+  middle_name: '', // add this
   last_name: 'Dela Cruz',
   date_of_birth: '1990-01-01',
-  sex: 'MALE',           // add this
+  sex: 'MALE', // add this
   contact_no: '',
   address: '',
   is_walkin: false,
@@ -176,9 +179,7 @@ describe('PatientRegistrationForm', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Something went wrong. Please try again.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     });
   });
 
@@ -195,9 +196,7 @@ describe('PatientRegistrationForm', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Date of birth must be a past date.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Date of birth must be a past date.')).toBeInTheDocument();
     });
   });
 
