@@ -257,7 +257,7 @@ export default function LabRequestForm() {
                 Find Patient
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                Search for the patient this request is for.
+                Enter the Patient ID for this request (found on their registration receipt).
               </p>
             </div>
 
@@ -279,7 +279,7 @@ export default function LabRequestForm() {
                   if (searchQuery.trim()) setDropdownDismissed(false);
                 }}
                 disabled={!!selectedPatient}
-                placeholder="Search by patient name or ID..."
+                placeholder="Search by Patient ID (e.g. PAT-000123)..."
                 className="w-full h-11 rounded-xl border border-slate-200 pl-10 pr-4 text-sm outline-none transition-all focus:border-emerald-500 bg-white disabled:bg-slate-50 disabled:text-slate-400"
               />
 
@@ -323,9 +323,9 @@ export default function LabRequestForm() {
                 <div className="mt-3 bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5 text-amber-800 animate-fadeIn">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-bold">No patients found</h4>
+                    <h4 className="text-sm font-bold">No patient found with that ID</h4>
                     <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-                      Double-check the spelling, or register this patient first if they're new.
+                      Double-check the Patient ID, or register this patient first if they're new.
                     </p>
                   </div>
                 </div>

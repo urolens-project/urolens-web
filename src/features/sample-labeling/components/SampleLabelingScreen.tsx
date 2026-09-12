@@ -147,7 +147,7 @@ export default function SampleLabelingScreen() {
 
               <input
                 type="text"
-                placeholder="Search by patient name or specimen ID..."
+                placeholder="Search by Patient ID or Sample ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 disabled={!!selectedSpecimen || workflowCompleted}
