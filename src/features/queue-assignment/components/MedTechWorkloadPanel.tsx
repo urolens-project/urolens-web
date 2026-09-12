@@ -1,4 +1,5 @@
 import { User, CheckCircle2 } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import type { MedTechWorkloadItem } from '../types';
 
 interface MedTechWorkloadPanelProps {
@@ -8,10 +9,10 @@ interface MedTechWorkloadPanelProps {
   isLoading: boolean;
 }
 
-function workloadBadge(count: number): { label: string; className: string } {
-  if (count <= 3) return { label: `${count} active`, className: 'bg-emerald-100 text-emerald-700' };
-  if (count <= 6) return { label: `${count} active`, className: 'bg-amber-100 text-amber-700' };
-  return { label: `${count} active`, className: 'bg-rose-100 text-rose-700' };
+function workloadBadgeVariant(count: number): 'success' | 'warning' | 'danger' {
+  if (count <= 3) return 'success';
+  if (count <= 6) return 'warning';
+  return 'danger';
 }
 
 function barColor(count: number): string {
@@ -23,7 +24,9 @@ function barColor(count: number): string {
 const Header = () => (
   <div className="px-8 py-6 border-b border-slate-100 bg-linear-to-r from-emerald-50 to-white">
     <h2 className="text-lg font-bold text-slate-900">Medical Technologists</h2>
-    <p className="text-sm text-slate-500 mt-0.5">Select a MedTech to assign — least-loaded first.</p>
+    <p className="text-sm text-slate-500 mt-0.5">
+      Select a MedTech to assign — least-loaded first.
+    </p>
   </div>
 );
 
@@ -64,7 +67,7 @@ export function MedTechWorkloadPanel({
       <div className="p-4 space-y-2 max-h-125 overflow-y-auto">
         {workloads.map((mt) => {
           const isSelected = selectedMedTechId === mt.user_id;
-          const badge = workloadBadge(mt.active_count);
+          const badgeVariant = workloadBadgeVariant(mt.active_count);
           const bar = barColor(mt.active_count);
           return (
             <button
@@ -83,9 +86,9 @@ export function MedTechWorkloadPanel({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-semibold text-slate-900 truncate">{mt.full_name}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${badge.className}`}>
-                    {badge.label}
-                  </span>
+                  <Badge variant={badgeVariant} className="shrink-0">
+                    {mt.active_count} active
+                  </Badge>
                 </div>
                 <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden max-w-48">
                   <div
@@ -94,9 +97,7 @@ export function MedTechWorkloadPanel({
                   />
                 </div>
               </div>
-              {isSelected && (
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
-              )}
+              {isSelected && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />}
             </button>
           );
         })}

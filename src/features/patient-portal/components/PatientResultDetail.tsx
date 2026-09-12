@@ -13,14 +13,18 @@ interface PatientResultDetailProps {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'N/A';
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString('en-PH', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
   });
 }
 
-export function PatientResultDetail({ result, onDownloadPdf, isDownloading = false }: PatientResultDetailProps) {
+export function PatientResultDetail({
+  result,
+  onDownloadPdf,
+  isDownloading = false,
+}: PatientResultDetailProps) {
   const navigate = useNavigate();
   const isReleased = result.status === 'RELEASED';
 
@@ -58,10 +62,7 @@ export function PatientResultDetail({ result, onDownloadPdf, isDownloading = fal
 
       {/* Analyzed By */}
       {result.analyzed_by && (
-        <div
-          className="rounded-xl border border-slate-200 bg-white p-6"
-          aria-label="Analyzed by"
-        >
+        <div className="rounded-xl border border-slate-200 bg-white p-6" aria-label="Analyzed by">
           <h2 className="text-base font-bold text-slate-800 mb-3">Analyzed by</h2>
           <p className="text-sm font-semibold text-slate-700">{result.analyzed_by}</p>
           <p className="text-xs text-slate-400 mt-1">Medical Technologist</p>
@@ -69,10 +70,7 @@ export function PatientResultDetail({ result, onDownloadPdf, isDownloading = fal
       )}
 
       {/* Particle Count Table */}
-      <div
-        className="rounded-xl border border-slate-200 bg-white p-6"
-        aria-label="Particle counts"
-      >
+      <div className="rounded-xl border border-slate-200 bg-white p-6" aria-label="Particle counts">
         <h2 className="text-base font-bold text-slate-800 mb-4">Particle counts</h2>
         <CellCountTable cellCounts={result.particle_counts} />
       </div>

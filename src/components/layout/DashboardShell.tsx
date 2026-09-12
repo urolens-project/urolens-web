@@ -2,8 +2,16 @@ import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Activity, Barcode, ClipboardList, FileText, FlaskConical,
-  LogOut, Menu, Settings, UserPlus, Send
+  Activity,
+  Barcode,
+  ClipboardList,
+  FileText,
+  FlaskConical,
+  LogOut,
+  Menu,
+  Settings,
+  UserPlus,
+  Send,
 } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
@@ -39,13 +47,13 @@ const navItems = [
     label: 'Queue Assignment',
     description: 'Specimen to MedTech queue assignment',
     icon: ClipboardList,
-  }, 
+  },
   {
     to: '/receptionist/results/approved',
     label: 'Release Results',
     description: 'Release approved results to patients',
     icon: Send,
-  }
+  },
 ];
 
 export default function DashboardShell() {
@@ -53,13 +61,10 @@ export default function DashboardShell() {
   const { logout: performLogout, role } = useAuthContext();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
 
-  const roleLabel = role
-    ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
-    : 'User';
+  const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User';
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-[#F4F7F5] text-slate-800 font-sans antialiased">
-
       <AnimatePresence initial={false}>
         {isSidebarOpen && (
           <motion.aside
@@ -75,8 +80,12 @@ export default function DashboardShell() {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">UroLens LIS</h1>
-                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">Laboratory System</p>
+                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+                    UroLens LIS
+                  </h1>
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">
+                    Laboratory System
+                  </p>
                 </div>
               </div>
             </div>
@@ -96,15 +105,21 @@ export default function DashboardShell() {
 
             {/* NAVIGATION LINKS */}
             <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-              <div className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-emerald-700/60">Main Operations</div>
+              <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">
+                Main Operations
+              </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <NavLink key={item.to} to={item.to} className="block no-underline">
                     {({ isActive }) => (
-                      <div className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
-                        isActive ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs' : 'text-slate-500 hover:bg-emerald-50/40'
-                      }`}>
+                      <div
+                        className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                          isActive
+                            ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
+                            : 'text-slate-500 hover:bg-emerald-50/40'
+                        }`}
+                      >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span className="text-xs tracking-wide flex-1 truncate">{item.label}</span>
                       </div>
@@ -126,7 +141,6 @@ export default function DashboardShell() {
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
-
           </motion.aside>
         )}
       </AnimatePresence>
@@ -142,8 +156,12 @@ export default function DashboardShell() {
                 <Menu className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">Intake Workspace</span>
-                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">Reception Management Node</h1>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  Intake Workspace
+                </span>
+                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">
+                  Reception Management Node
+                </h1>
               </div>
             </div>
           </div>
@@ -156,10 +174,16 @@ export default function DashboardShell() {
         </main>
       </div>
 
-      <Modal open={isWarningVisible} onClose={dismissWarning} title="Session Expiring Soon" maxWidth="sm">
+      <Modal
+        open={isWarningVisible}
+        onClose={dismissWarning}
+        title="Session Expiring Soon"
+        maxWidth="sm"
+      >
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
-            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any key to stay signed in.
+            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any
+            key to stay signed in.
           </p>
           <button
             onClick={dismissWarning}
@@ -169,7 +193,6 @@ export default function DashboardShell() {
           </button>
         </div>
       </Modal>
-
     </div>
   );
 }
