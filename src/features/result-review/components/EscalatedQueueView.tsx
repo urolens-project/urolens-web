@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, RefreshCw, ShieldAlert } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+  ShieldAlert,
+} from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
 import { useEscalated } from '../hooks/useResultReview';
 import type { EscalatedResultItem } from '../types';
 import { formatAge, formatTimestamp } from '../utils/format';
@@ -9,22 +17,13 @@ import { SkeletonRows } from './SkeletonRows';
 
 const PAGE_SIZE = 20;
 
-const escalationChip: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
-  NOTIFY_PHYSICIAN: {
-    label: 'Notify Physician',
-    bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500',
-  },
-  FLAG_SENIOR_REVIEW: {
-    label: 'Senior Review',
-    bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500',
-  },
-  MARK_CRITICAL: {
-    label: 'Mark Critical',
-    bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-600',
-  },
+const escalationChip: Record<string, { label: string; variant: 'info' | 'warning' | 'danger' }> = {
+  NOTIFY_PHYSICIAN: { label: 'Notify Physician', variant: 'info' },
+  FLAG_SENIOR_REVIEW: { label: 'Senior Review', variant: 'warning' },
+  MARK_CRITICAL: { label: 'Mark Critical', variant: 'danger' },
 };
 
-const fallbackChip = { label: '—', bg: 'bg-slate-50', text: 'text-slate-500', border: 'border-slate-200', dot: 'bg-slate-300' };
+const fallbackChip = { label: '—', variant: 'default' as const };
 
 export function EscalatedQueueView() {
   const [page, setPage] = useState(1);
@@ -35,7 +34,6 @@ export function EscalatedQueueView() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-
       {/* Breadcrumb */}
       <button
         onClick={() => navigate('/dashboard/supervisor')}
@@ -83,7 +81,10 @@ export function EscalatedQueueView() {
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               {['Patient', 'Sample ID', 'MedTech', 'Escalation Type', 'Escalated At'].map((h) => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <th
+                  key={h}
+                  className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                >
                   {h}
                 </th>
               ))}
@@ -100,7 +101,9 @@ export function EscalatedQueueView() {
                       <ShieldAlert className="h-7 w-7 text-emerald-400" />
                     </div>
                     <p className="font-semibold text-slate-800">No active escalations</p>
-                    <p className="text-xs text-slate-400">All escalated cases have been resolved.</p>
+                    <p className="text-xs text-slate-400">
+                      All escalated cases have been resolved.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -117,7 +120,9 @@ export function EscalatedQueueView() {
                       <p className="font-semibold text-slate-800 group-hover:text-rose-700 transition-colors">
                         {row.patient_uid || '—'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{formatAge(row.patient_age, row.patient_sex)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {formatAge(row.patient_age, row.patient_sex)}
+                      </p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
@@ -126,12 +131,13 @@ export function EscalatedQueueView() {
                     </td>
                     <td className="px-5 py-4 text-slate-600">{row.medtech_name || '—'}</td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${chip.bg} ${chip.text} ${chip.border}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
+                      <Badge variant={chip.variant} dot>
                         {chip.label}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-5 py-4 text-xs text-slate-400">{formatTimestamp(row.escalated_at)}</td>
+                    <td className="px-5 py-4 text-xs text-slate-400">
+                      {formatTimestamp(row.escalated_at)}
+                    </td>
                   </tr>
                 );
               })
@@ -147,10 +153,20 @@ export function EscalatedQueueView() {
             Page {page} of {totalPages} &middot; {data.total} total
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
-            <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

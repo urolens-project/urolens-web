@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FlaskConical, Loader2 } from 'lucide-react';
 import { AIDisclaimer } from '../../../components/feedback/AIDisclaimer';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
+import { Badge } from '../../../components/ui/Badge';
 import { useResultDetail } from '../hooks/usePhysician';
 
 function FindingsGrid({ title, data }: { title: string; data: Record<string, unknown> }) {
@@ -60,8 +61,8 @@ export function PhysicianResultDetailView() {
     data.status === 'APPROVED'
       ? 'Approved'
       : data.status === 'PENDING_SUPERVISOR_APPROVAL'
-      ? 'Under Supervisor Review'
-      : data.status.replace(/_/g, ' ');
+        ? 'Under Supervisor Review'
+        : data.status.replace(/_/g, ' ');
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -87,12 +88,9 @@ export function PhysicianResultDetailView() {
             </p>
           </div>
         </div>
-        <span className={`mt-1 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
-          data.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-        }`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${data.status === 'APPROVED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+        <Badge variant={data.status === 'APPROVED' ? 'success' : 'warning'} dot className="mt-1">
           {statusLabel}
-        </span>
+        </Badge>
       </div>
 
       {/* Meta row */}
@@ -100,7 +98,18 @@ export function PhysicianResultDetailView() {
         {[
           { label: 'Sample ID', value: data.specimen_id.slice(0, 8).toUpperCase() },
           { label: 'Processed by', value: data.medtech_name ?? '—' },
-          { label: 'Confirmed At', value: data.confirmed_at ? new Date(data.confirmed_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—' },
+          {
+            label: 'Confirmed At',
+            value: data.confirmed_at
+              ? new Date(data.confirmed_at).toLocaleString('en-PH', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '—',
+          },
           { label: 'AI Model', value: data.model_version || '—' },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-xl border border-slate-100 bg-white px-4 py-3">
@@ -140,7 +149,9 @@ export function PhysicianResultDetailView() {
           <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-900">Supervisor Notes</h2>
           </div>
-          <p className="px-6 py-4 text-sm text-slate-700 whitespace-pre-wrap">{data.annotation_notes}</p>
+          <p className="px-6 py-4 text-sm text-slate-700 whitespace-pre-wrap">
+            {data.annotation_notes}
+          </p>
         </div>
       )}
 

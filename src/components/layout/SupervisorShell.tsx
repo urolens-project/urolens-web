@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
@@ -50,6 +50,15 @@ export default function SupervisorShell() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { logout: performLogout } = useAuthContext();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
+  const location = useLocation();
+
+  // The header shows whichever page is actually open, not a fixed title.
+  // Longest-prefix match so a detail route under a nav item (e.g. a
+  // result's own page) still resolves to that item, not the fallback.
+  const currentPage =
+    [...navItems]
+      .sort((a, b) => b.to.length - a.to.length)
+      .find((item) => location.pathname.startsWith(item.to)) ?? navItems[0];
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-[#F4F7F5] text-slate-800 font-sans antialiased">
@@ -94,7 +103,7 @@ export default function SupervisorShell() {
             {/* NAV */}
             <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
               <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">
-                Supervisor Workspace
+                Menu
               </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -155,10 +164,10 @@ export default function SupervisorShell() {
               </button>
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  Supervisor Workspace
+                  Supervisor
                 </span>
-                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">
-                  Laboratory Review Console
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight mt-1.5">
+                  {currentPage.label}
                 </h1>
               </div>
             </div>
