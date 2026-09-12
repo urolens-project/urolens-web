@@ -129,7 +129,7 @@ export function NotificationsPage() {
         ) : (
           grouped.map(([label, items]) => (
             <div key={label}>
-              <p className="px-5 pt-4 pb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+              <p className="px-5 pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
                 {label}
               </p>
               <ul>
