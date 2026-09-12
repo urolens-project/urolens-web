@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CheckCircle, RefreshCw, Send, FlaskConical } from 'lucide-react';
 import { useApprovedResults, useReleaseResult } from '../hooks/useResultReleasing';
 import { ReleaseConfirmationModal } from './ReleaseConfirmationModal';
+import { Button } from '../../../components/ui/Button';
 import type { ApprovedResultItem, ReleaseMethod } from '../types';
 
 function formatDate(iso: string): string {
@@ -58,18 +59,22 @@ export function ApprovedResultsQueue() {
             <div>
               <h1 className="text-xl font-bold text-slate-900">Approved Results</h1>
               <p className="mt-0.5 text-sm text-emerald-700">
-                {isLoading ? 'Loading…' : `${data?.data.length ?? 0} result${data?.data.length !== 1 ? 's' : ''} ready for release`}
+                {isLoading
+                  ? 'Loading…'
+                  : `${data?.data.length ?? 0} result${data?.data.length !== 1 ? 's' : ''} ready for release`}
               </p>
             </div>
           </div>
-          <button
-            onClick={() => refetch()}
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
             disabled={isFetching}
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 h-9 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors disabled:opacity-60 shrink-0 cursor-pointer"
+            onClick={() => refetch()}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             {isFetching ? 'Refreshing…' : 'Refresh'}
-          </button>
+          </Button>
         </div>
 
         {isError && (
@@ -84,7 +89,10 @@ export function ApprovedResultsQueue() {
             <thead className="border-b border-slate-200 bg-slate-50">
               <tr>
                 {['Patient', 'Sample ID', 'Test Type', 'Approved At', 'Action'].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                  <th
+                    key={h}
+                    className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                  >
                     {h}
                   </th>
                 ))}
@@ -109,7 +117,9 @@ export function ApprovedResultsQueue() {
                         <FlaskConical className="h-7 w-7 text-slate-300" />
                       </div>
                       <p className="font-semibold text-slate-800">No approved results</p>
-                      <p className="text-xs text-slate-400">Approved results will appear here once the Supervisor approves them.</p>
+                      <p className="text-xs text-slate-400">
+                        Approved results will appear here once the Supervisor approves them.
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -117,7 +127,9 @@ export function ApprovedResultsQueue() {
                 (data?.data ?? []).map((row) => (
                   <tr key={row.result_id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">{row.patient_uid}</p>
+                      <p className="font-semibold text-slate-800">
+                        {row.patient_name || 'Unknown Patient'}
+                      </p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
@@ -125,15 +137,14 @@ export function ApprovedResultsQueue() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">{row.test_type ?? '—'}</td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{formatDate(row.approved_at)}</td>
+                    <td className="px-5 py-4 text-xs text-slate-500">
+                      {formatDate(row.approved_at)}
+                    </td>
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => handleOpenModal(row)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 h-8 text-xs font-semibold text-white transition-colors cursor-pointer"
-                      >
+                      <Button variant="primary" size="sm" onClick={() => handleOpenModal(row)}>
                         <Send className="h-3 w-3" />
                         Release
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -145,12 +156,13 @@ export function ApprovedResultsQueue() {
         {/* Pagination */}
         {data?.pagination.has_more && (
           <div className="flex justify-end">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => setCursor(data.pagination.next_cursor ?? undefined)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 h-9 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Load more
-            </button>
+            </Button>
           </div>
         )}
       </div>
