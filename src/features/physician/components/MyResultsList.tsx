@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, ChevronLeft, ChevronRight, ClipboardCheck, FlaskConical, RefreshCw,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  FlaskConical,
+  RefreshCw,
 } from 'lucide-react';
 import { useMyResults } from '../hooks/usePhysician';
 import type { PhysicianResultSummary } from '../types';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
 
 const PAGE_SIZE = 20;
 
@@ -15,12 +21,12 @@ const PAGE_SIZE = 20;
 // physician sees released/not-released, not lab-internal review stages.
 // Only RELEASED and PENDING are ever actually sent; see
 // physician_result_service.py's _PENDING_PLACEHOLDER_STATUS.
-const STATUS_CHIP: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  RELEASED: { label: 'Released', bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  PENDING: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500' },
+const STATUS_CHIP: Record<string, { label: string; variant: 'success' | 'warning' }> = {
+  RELEASED: { label: 'Released', variant: 'success' },
+  PENDING: { label: 'Pending', variant: 'warning' },
 };
 
-const fallbackChip = { label: 'Unknown', bg: 'bg-slate-100', text: 'text-slate-500', dot: 'bg-slate-300' };
+const fallbackChip = { label: 'Unknown', variant: 'default' as const };
 
 function formatAge(age: number | null, sex: string | null): string {
   const parts: string[] = [];
@@ -114,7 +120,10 @@ export function MyResultsList() {
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               {['Patient', 'Sample ID', 'Status', 'Confirmed At', 'Requested On'].map((h) => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <th
+                  key={h}
+                  className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                >
                   {h}
                 </th>
               ))}
@@ -160,13 +169,16 @@ export function MyResultsList() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${chip.bg} ${chip.text} border border-transparent`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
+                      <Badge variant={chip.variant} dot>
                         {chip.label}
-                      </span>
+                      </Badge>
                     </td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{formatDate(row.confirmed_at)}</td>
-                    <td className="px-5 py-4 text-xs text-slate-400">{formatDate(row.created_at)}</td>
+                    <td className="px-5 py-4 text-xs text-slate-500">
+                      {formatDate(row.confirmed_at)}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-slate-400">
+                      {formatDate(row.created_at)}
+                    </td>
                   </tr>
                 );
               })
@@ -181,10 +193,20 @@ export function MyResultsList() {
             Page {page} of {totalPages} &middot; {data.total} total
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
-            <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
