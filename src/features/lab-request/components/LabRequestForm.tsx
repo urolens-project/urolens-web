@@ -4,8 +4,11 @@ import { useMutation } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import type { LabRequestPayload, LabRequestResponse } from '../../../types/types';
 import type { PatientSearchResult } from '../types';
+import type { ReceiveHandoffState } from '../../specimen-receiving/types';
+import type { ApiError } from '../../../types/domain';
 import { labRequestApi } from '../api/labRequestApi';
 import { usePhysicians, usePatientSearch } from '../hooks/useLabRequest';
+import { buildClinicalNotes, getLabRequestErrorMessage } from '../utils';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 
@@ -96,7 +99,7 @@ export default function LabRequestForm() {
   const { data: physiciansData } = usePhysicians();
   const dbPhysicians = physiciansData ?? [];
 
-  const requestMutation = useMutation({
+  const requestMutation = useMutation<LabRequestResponse, ApiError, LabRequestPayload>({
     mutationFn: (payload: LabRequestPayload) => labRequestApi.createLabRequest(payload),
     onSuccess: (data) => {
       const matchedPhysician = dbPhysicians.find((p) => p.user_id === physicianId);
@@ -111,8 +114,8 @@ export default function LabRequestForm() {
         test: testType === 'OTHER' ? otherTestDescription : testType,
       });
     },
-    onError: (error: Error) => {
-      setFormErrors((prev) => ({ ...prev, submit: error.message }));
+    onError: (error) => {
+      setFormErrors((prev) => ({ ...prev, submit: getLabRequestErrorMessage(error) }));
     },
   });
 
@@ -164,7 +167,7 @@ export default function LabRequestForm() {
       physician_id: isManualPhysician ? undefined : physicianId,
       physician_name: isManualPhysician ? physicianName.trim() : undefined,
       test_type: testType === 'OTHER' ? otherTestDescription.trim() : testType,
-      clinical_notes: `${clinicalNotes}\n\nSpecial Instructions:\n${specialInstructions}`.trim(),
+      clinical_notes: buildClinicalNotes(clinicalNotes, specialInstructions),
     };
 
     requestMutation.mutate(payload);
@@ -240,7 +243,18 @@ export default function LabRequestForm() {
                 variant="primary"
                 size="lg"
                 className="w-full bg-emerald-700 hover:bg-emerald-800"
-                onClick={() => navigate('/intake/receive')}
+                onClick={() => {
+                  const handoff: ReceiveHandoffState = {
+                    labRequest: {
+                      lab_request_id: confirmationData.lab_request_id,
+                      request_uid: confirmationData.request_uid,
+                      test_type: confirmationData.test_type,
+                      physician_name: confirmationData.physician_name ?? '',
+                      patient_id: confirmationData.patient_id,
+                    },
+                  };
+                  navigate('/intake/receive', { state: handoff });
+                }}
               >
                 Next: Receive Specimen <ArrowRight className="h-4 w-4" />
               </Button>
@@ -296,7 +310,7 @@ export default function LabRequestForm() {
 
               <input
                 type="text"
-                value={searchQuery}
+                value={selectedPatient ? selectedPatient.patient_uid : searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setDropdownDismissed(false);
