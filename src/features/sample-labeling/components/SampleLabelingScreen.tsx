@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { QRCodeSVG } from 'qrcode.react';
 import type {
@@ -7,7 +7,11 @@ import type {
   ConfirmAffixedResponse,
   LabelPreviewData,
 } from '../../../types/types';
+import type { ApiError } from '../../../types/domain';
+import type { LabelHandoffState } from '../../specimen-receiving/types';
+import type { QueueHandoffState } from '../types';
 import type { ReceivedSpecimenResult } from '../types';
+import { formatTestType, getLabelErrorMessage } from '../utils';
 import { sampleLabelingApi } from '../api/sampleLabelingApi';
 import { useSpecimenSearch } from '../hooks/useSampleLabeling';
 import { useMutation } from '@tanstack/react-query';
@@ -29,14 +33,20 @@ import {
 
 export default function SampleLabelingScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Set when the receptionist arrives straight from receiving a specimen.
+  const handedOffSpecimen = (location.state as LabelHandoffState | null)?.specimen ?? null;
+  const [handoffDismissed, setHandoffDismissed] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedSpecimen, setSelectedSpecimen] = useState<ReceivedSpecimenResult | null>(null);
+  const [pickedSpecimen, setPickedSpecimen] = useState<ReceivedSpecimenResult | null>(null);
 
   const [hasPrinted, setHasPrinted] = useState(false);
   const [previewData, setPreviewData] = useState<LabelPreviewData | null>(null);
   const [reprintCount, setReprintCount] = useState(0);
+  // Number of labels the server holds for this specimen; falls back to the local count.
+  const [serverLabelCount, setServerLabelCount] = useState<number | null>(null);
   const [printerOfflineOverride, setPrinterOfflineOverride] = useState(false);
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -52,52 +62,70 @@ export default function SampleLabelingScreen() {
   const searchResults: ReceivedSpecimenResult[] = searchData ?? [];
   const hasSearched = debouncedQuery.trim().length > 0;
 
+  const { data: handoffResults } = useSpecimenSearch(
+    handedOffSpecimen && !handoffDismissed ? handedOffSpecimen.sample_uid : '',
+  );
+  const handoffMatch =
+    handedOffSpecimen && !handoffDismissed
+      ? (handoffResults?.find((spec) => spec.specimen_id === handedOffSpecimen.specimen_id) ?? null)
+      : null;
+  const selectedSpecimen = pickedSpecimen ?? handoffMatch;
+
   const handleSelectSpecimen = (spec: ReceivedSpecimenResult) => {
-    setSelectedSpecimen(spec);
+    setPickedSpecimen(spec);
     setSearchQuery('');
     setFormErrors({});
     setHasPrinted(false);
     setPreviewData(null);
     setReprintCount(0);
+    setServerLabelCount(null);
     setPrinterOfflineOverride(false);
   };
 
   const handleClearWorkspace = () => {
-    setSelectedSpecimen(null);
+    setPickedSpecimen(null);
+    setHandoffDismissed(true);
     setSearchQuery('');
     setDebouncedQuery('');
     setHasPrinted(false);
     setPreviewData(null);
     setReprintCount(0);
+    setServerLabelCount(null);
     setPrinterOfflineOverride(false);
     setFormErrors({});
     setWorkflowCompleted(false);
   };
 
-  const printMutation = useMutation({
+  const printMutation = useMutation<PrintLabelResponse, ApiError, string>({
     mutationFn: (specimenId: string): Promise<PrintLabelResponse> =>
       sampleLabelingApi.printLabel(specimenId),
     onSuccess: (data) => {
       setPreviewData(data.preview);
       setHasPrinted(true);
+      setPrinterOfflineOverride(false);
+      setServerLabelCount(data.label_count ?? null);
+      if (hasPrinted) setReprintCount((prev) => prev + 1);
       setFormErrors((prev) => {
         const n = { ...prev };
         delete n.print;
         return n;
       });
     },
-    onError: (error: Error) => {
-      setFormErrors((prev) => ({ ...prev, print: error.message }));
+    onError: (error: ApiError) => {
+      setFormErrors((prev) => ({ ...prev, print: getLabelErrorMessage(error) }));
     },
   });
 
   const handleReprintTrigger = () => {
     if (!selectedSpecimen) return;
-    setReprintCount((prev) => prev + 1);
     printMutation.mutate(selectedSpecimen.specimen_id);
   };
 
-  const confirmMutation = useMutation({
+  const confirmMutation = useMutation<
+    ConfirmAffixedResponse,
+    ApiError,
+    { specimenId: string; offlineOverride: boolean }
+  >({
     mutationFn: ({
       specimenId,
       offlineOverride,
@@ -109,10 +137,12 @@ export default function SampleLabelingScreen() {
     onSuccess: () => {
       setWorkflowCompleted(true);
     },
-    onError: (error: Error) => {
-      setFormErrors((prev) => ({ ...prev, confirm: error.message }));
+    onError: (error: ApiError) => {
+      setFormErrors((prev) => ({ ...prev, confirm: getLabelErrorMessage(error) }));
     },
   });
+
+  const regeneratedCount = serverLabelCount !== null ? serverLabelCount - 1 : reprintCount;
 
   const isConfirmationUnlocked =
     !!selectedSpecimen &&
@@ -124,6 +154,11 @@ export default function SampleLabelingScreen() {
       <Helmet>
         <title>Sample Labeling — UroLens</title>
       </Helmet>
+      <style>{`@media print {
+        body * { visibility: hidden; }
+        .label-print-area, .label-print-area * { visibility: visible; }
+        .label-print-area { position: absolute; left: 0; top: 0; }
+      }`}</style>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-350 mx-auto">
         <div className="lg:col-span-2 space-y-6">
           {/* Step 1 — find the specimen */}
@@ -232,7 +267,21 @@ export default function SampleLabelingScreen() {
                   <Button
                     variant="primary"
                     className="w-full bg-emerald-700 hover:bg-emerald-800"
-                    onClick={() => navigate('/intake/queue')}
+                    onClick={() => {
+                      if (!selectedSpecimen) {
+                        navigate('/intake/queue');
+                        return;
+                      }
+                      const handoff: QueueHandoffState = {
+                        specimen: {
+                          specimen_id: selectedSpecimen.specimen_id,
+                          sample_uid: selectedSpecimen.sample_uid,
+                          patient_uid: selectedSpecimen.patient_uid,
+                          test_type: selectedSpecimen.test_type,
+                        },
+                      };
+                      navigate('/intake/queue', { state: handoff });
+                    }}
                   >
                     Next: Assign to Queue <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
@@ -282,7 +331,7 @@ export default function SampleLabelingScreen() {
                 )}
 
                 {previewData && (
-                  <div className="max-w-sm mx-auto animate-slideDown">
+                  <div className="label-print-area max-w-sm mx-auto animate-slideDown">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-2">
                       Label Preview — check this before printing
                     </p>
@@ -306,7 +355,10 @@ export default function SampleLabelingScreen() {
                               Patient
                             </p>
                             <p className="text-sm font-black text-slate-900 leading-tight truncate">
-                              {previewData.patient_uid}
+                              {previewData.patient_name}
+                            </p>
+                            <p className="text-xs font-mono font-bold text-slate-500">
+                              {previewData.patient_uid ?? 'N/A'}
                             </p>
                           </div>
                           <div>
@@ -314,7 +366,7 @@ export default function SampleLabelingScreen() {
                               Sample ID
                             </p>
                             <p className="text-xs font-mono font-black text-[#005B4B] tracking-wider">
-                              {previewData.sample_uid}
+                              {previewData.sample_uid ?? 'N/A'}
                             </p>
                           </div>
                           <div>
@@ -322,7 +374,7 @@ export default function SampleLabelingScreen() {
                               Test
                             </p>
                             <p className="text-xs font-semibold text-slate-700">
-                              {previewData.test_type.replace(/_/g, ' ')}
+                              {formatTestType(previewData.test_type)}
                             </p>
                           </div>
                           <div>
@@ -338,7 +390,7 @@ export default function SampleLabelingScreen() {
                         <div className="flex flex-col items-center gap-1 shrink-0">
                           <div className="p-1.5 border border-slate-200 rounded-lg bg-white">
                             <QRCodeSVG
-                              value={previewData.sample_uid}
+                              value={previewData.sample_uid ?? 'N/A'}
                               size={80}
                               fgColor="#1e293b"
                               bgColor="#ffffff"
@@ -354,17 +406,22 @@ export default function SampleLabelingScreen() {
                         <span className="text-[10px] text-slate-400 font-mono">
                           UroLens Specimen Management System
                         </span>
-                        {reprintCount > 0 && (
+                        {regeneratedCount > 0 && (
                           <span className="text-[10px] text-red-500 font-bold uppercase border border-red-200 bg-red-50 px-1.5 py-0.5 rounded">
-                            Regenerated ×{reprintCount}
+                            Regenerated ×{regeneratedCount}
                           </span>
                         )}
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-slate-500 text-center">
-                      Next: print this on your label printer, affix it to the specimen container,
-                      then confirm below.
+                      Next: print this label, affix it to the specimen container, then confirm
+                      below.
                     </p>
+                    <div className="print:hidden mt-3 flex justify-center">
+                      <Button variant="secondary" onClick={() => window.print()}>
+                        Print Label <Printer className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 )}
 
@@ -464,7 +521,7 @@ export default function SampleLabelingScreen() {
                     Test
                   </span>
                   <span className="text-slate-600 font-semibold truncate max-w-35">
-                    {selectedSpecimen ? selectedSpecimen.test_type.replace(/_/g, ' ') : 'N/A'}
+                    {selectedSpecimen ? formatTestType(selectedSpecimen.test_type) : 'N/A'}
                   </span>
                 </div>
               </div>
