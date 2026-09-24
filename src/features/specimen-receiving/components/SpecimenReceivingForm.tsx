@@ -2,7 +2,9 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../../types/types';
-import type { LabRequestSearchResult, ReceiveHandoffState } from '../types';
+import type { ApiError } from '../../../types/domain';
+import type { LabRequestSearchResult, ReceiveHandoffState, LabelHandoffState } from '../types';
+import { getReceiveErrorMessage } from '../utils';
 import { specimenReceivingApi } from '../api/specimenReceivingApi';
 import { useLabRequestSearch } from '../hooks/useSpecimenReceiving';
 import { useMutation } from '@tanstack/react-query';
@@ -347,7 +349,7 @@ function ReceiveSampleForm({
 }
 
 interface ConfirmationCardProps {
-  data: SpecimenReceiveResponse & { requestUid: string; test: string };
+  data: SpecimenReceiveResponse & { requestUid: string; test: string; labRequestId: string };
   onReset: () => void;
 }
 
@@ -420,7 +422,18 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
               variant="primary"
               size="lg"
               className="bg-emerald-700 hover:bg-emerald-800"
-              onClick={() => navigate('/intake/label')}
+              onClick={() => {
+                const handoff: LabelHandoffState = {
+                  specimen: {
+                    specimen_id: data.specimen_id,
+                    sample_uid: data.sample_uid ?? '',
+                    lab_request_id: data.labRequestId,
+                    request_uid: data.requestUid,
+                    test_type: data.test,
+                  },
+                };
+                navigate('/intake/label', { state: handoff });
+              }}
             >
               Continue to Labeling <Beaker className="h-3.5 w-3.5" />
             </Button>
@@ -444,6 +457,8 @@ export default function SpecimenReceivingForm() {
   const [visualCheckPassed, setVisualCheckPassed] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   const [freeTextNote, setFreeTextNote] = useState('');
+  // Remounts the checklist so its checkboxes go back to ticked on Clear Form.
+  const [checklistKey, setChecklistKey] = useState(0);
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -451,6 +466,7 @@ export default function SpecimenReceivingForm() {
     | (SpecimenReceiveResponse & {
         requestUid: string;
         test: string;
+        labRequestId: string;
       })
     | null
   >(null);
@@ -475,21 +491,23 @@ export default function SpecimenReceivingForm() {
     });
   };
 
-  const receiveMutation = useMutation({
+  const receiveMutation = useMutation<SpecimenReceiveResponse, ApiError, SpecimenReceivePayload>({
     mutationFn: (payload: SpecimenReceivePayload) => specimenReceivingApi.receiveSpecimen(payload),
     onSuccess: (data) => {
       setConfirmationData({
         ...data,
         requestUid: selectedRequest ? selectedRequest.request_uid : 'N/A',
         test: selectedRequest ? selectedRequest.test_type : 'Unknown',
+        labRequestId: selectedRequest ? selectedRequest.lab_request_id : '',
       });
     },
-    onError: (error: Error) => {
-      setFormErrors((prev) => ({ ...prev, submit: error.message }));
+    onError: (error) => {
+      setFormErrors((prev) => ({ ...prev, submit: getReceiveErrorMessage(error) }));
     },
   });
 
   const handleClearForm = () => {
+    setChecklistKey((k) => k + 1);
     setSelectedRequest(null);
     setSearchQuery('');
     setDebouncedQuery('');
@@ -546,6 +564,7 @@ export default function SpecimenReceivingForm() {
           />
 
           <ReceiveSampleForm
+            key={checklistKey}
             selectedRequest={selectedRequest}
             visualCheckPassed={visualCheckPassed}
             setVisualCheckPassed={setVisualCheckPassed}
@@ -592,6 +611,16 @@ export default function SpecimenReceivingForm() {
                     {selectedRequest ? selectedRequest.test_type : 'N/A'}
                   </span>
                 </div>
+                {selectedRequest?.patient_uid && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">
+                      Patient
+                    </span>
+                    <span className="text-slate-700 font-mono font-bold truncate max-w-40">
+                      {selectedRequest.patient_uid}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">
                     Physician
