@@ -74,9 +74,9 @@ export interface SpecimenReceiveResponse {
 
 export interface LabelPreviewData {
   patient_name: string;
-  patient_uid: string;
-  sample_uid: string;
-  test_type: string;
+  patient_uid: string | null;
+  sample_uid: string | null;
+  test_type: string | null;
   date: string;
 }
 
@@ -84,6 +84,8 @@ export interface PrintLabelResponse {
   success: boolean;
   label_id: string;
   print_job_id: string;
+  // Total labels held for the specimen; not sent by the API yet.
+  label_count?: number;
   preview: LabelPreviewData;
 }
 

@@ -4,7 +4,9 @@ import type { PrintLabelResponse, ConfirmAffixedResponse } from '../../../types/
 
 export const sampleLabelingApi = {
   searchReceivedSpecimens: (q: string) =>
-    apiClient.get<ReceivedSpecimenResult[]>('/specimens/search-received', { params: { q } }).then((r) => r.data),
+    apiClient
+      .get<ReceivedSpecimenResult[]>('/specimens/search-received', { params: { q } })
+      .then((r) => r.data),
 
   printLabel: (specimenId: string) =>
     apiClient.post<PrintLabelResponse>(`/specimens/${specimenId}/label`).then((r) => r.data),
