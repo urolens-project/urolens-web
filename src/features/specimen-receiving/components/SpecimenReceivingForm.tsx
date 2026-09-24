@@ -1,8 +1,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../../types/types';
-import type { LabRequestSearchResult } from '../types';
+import type { LabRequestSearchResult, ReceiveHandoffState } from '../types';
 import { specimenReceivingApi } from '../api/specimenReceivingApi';
 import { useLabRequestSearch } from '../hooks/useSpecimenReceiving';
 import { useMutation } from '@tanstack/react-query';
@@ -432,9 +432,15 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
 }
 
 export default function SpecimenReceivingForm() {
+  const location = useLocation();
+  // Set when the receptionist arrives straight from submitting a lab request.
+  const handedOffRequest = (location.state as ReceiveHandoffState | null)?.labRequest ?? null;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedRequest, setSelectedRequest] = useState<LabRequestSearchResult | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<LabRequestSearchResult | null>(
+    handedOffRequest,
+  );
   const [visualCheckPassed, setVisualCheckPassed] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   const [freeTextNote, setFreeTextNote] = useState('');
