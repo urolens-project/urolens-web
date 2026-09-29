@@ -23,6 +23,7 @@ const createdRequest = {
   physician_name: 'dr.reyes',
   test_type: 'URINALYSIS_-_ROUTINE',
   clinical_notes: null,
+  special_instructions: null,
   status: 'PENDING_SAMPLE',
   created_at: '2026-09-24T00:00:00Z',
 };
@@ -69,7 +70,7 @@ describe('LabRequestForm submission', () => {
       { user_id: 'ph-1', username: 'dr.reyes' },
     ]);
     vi.mocked(labRequestApi.searchPatients).mockResolvedValue([
-      { patient_id: 'p-1', patient_uid: 'PAT-000042', first_name: 'Juan', last_name: 'Dela Cruz' },
+      { patient_id: 'p-1', patient_uid: 'PAT-000042' },
     ]);
     vi.mocked(labRequestApi.createLabRequest).mockResolvedValue(createdRequest);
   });
@@ -91,11 +92,12 @@ describe('LabRequestForm submission', () => {
     await screen.findByText('Lab Request Submitted');
     const payload = vi.mocked(labRequestApi.createLabRequest).mock.calls[0][0];
     expect(payload.clinical_notes).toBeUndefined();
+    expect(payload.special_instructions).toBeUndefined();
     expect(payload.patient_id).toBe('p-1');
     expect(payload.physician_id).toBe('ph-1');
   });
 
-  it('sends the notes and special instructions together when both are typed', async () => {
+  it('sends clinical notes and special instructions as separate fields', async () => {
     renderForm();
     await screen.findByRole('option', { name: 'dr.reyes' });
     await selectPatientAndPhysician();
@@ -109,7 +111,8 @@ describe('LabRequestForm submission', () => {
 
     await screen.findByText('Lab Request Submitted');
     const payload = vi.mocked(labRequestApi.createLabRequest).mock.calls[0][0];
-    expect(payload.clinical_notes).toBe('Dysuria for 3 days\n\nSpecial Instructions:\nSTAT');
+    expect(payload.clinical_notes).toBe('Dysuria for 3 days');
+    expect(payload.special_instructions).toBe('STAT');
   });
 
   it('shows a readable message and keeps the entries when the server rejects the request', async () => {

@@ -1,25 +1,15 @@
 /// <reference types="vitest/globals" />
 
-import { buildClinicalNotes, getLabRequestErrorMessage } from '../utils';
+import { trimmedOrUndefined, getLabRequestErrorMessage } from '../utils';
 
-describe('buildClinicalNotes', () => {
-  it('sends nothing when both boxes are empty or whitespace', () => {
-    expect(buildClinicalNotes('', '')).toBeUndefined();
-    expect(buildClinicalNotes('   ', '\n')).toBeUndefined();
+describe('trimmedOrUndefined', () => {
+  it('sends nothing when the box is empty or whitespace', () => {
+    expect(trimmedOrUndefined('')).toBeUndefined();
+    expect(trimmedOrUndefined('   \n ')).toBeUndefined();
   });
 
-  it('sends only the clinical notes when there are no special instructions', () => {
-    expect(buildClinicalNotes('Dysuria for 3 days', '')).toBe('Dysuria for 3 days');
-  });
-
-  it('labels the special instructions when there are no clinical notes', () => {
-    expect(buildClinicalNotes('', 'STAT')).toBe('Special Instructions:\nSTAT');
-  });
-
-  it('joins both sections and trims each', () => {
-    expect(buildClinicalNotes('  Dysuria  ', ' Keep refrigerated ')).toBe(
-      'Dysuria\n\nSpecial Instructions:\nKeep refrigerated',
-    );
+  it('sends the trimmed text otherwise', () => {
+    expect(trimmedOrUndefined('  Dysuria for 3 days  ')).toBe('Dysuria for 3 days');
   });
 });
 

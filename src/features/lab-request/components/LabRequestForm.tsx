@@ -8,7 +8,7 @@ import type { ReceiveHandoffState } from '../../specimen-receiving/types';
 import type { ApiError } from '../../../types/domain';
 import { labRequestApi } from '../api/labRequestApi';
 import { usePhysicians, usePatientSearch } from '../hooks/useLabRequest';
-import { buildClinicalNotes, getLabRequestErrorMessage } from '../utils';
+import { trimmedOrUndefined, getLabRequestErrorMessage } from '../utils';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 
@@ -167,7 +167,8 @@ export default function LabRequestForm() {
       physician_id: isManualPhysician ? undefined : physicianId,
       physician_name: isManualPhysician ? physicianName.trim() : undefined,
       test_type: testType === 'OTHER' ? otherTestDescription.trim() : testType,
-      clinical_notes: buildClinicalNotes(clinicalNotes, specialInstructions),
+      clinical_notes: trimmedOrUndefined(clinicalNotes),
+      special_instructions: trimmedOrUndefined(specialInstructions),
     };
 
     requestMutation.mutate(payload);

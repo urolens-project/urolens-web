@@ -1,18 +1,10 @@
 import type { ApiError } from '../../types/domain';
 
-const NOTES_SECTION_SEPARATOR = '\n\n';
-
-// The API takes one notes field, so the two free-text boxes are joined into it.
-// A section the receptionist left empty is left out entirely — otherwise every
-// request would be saved with a bare "Special Instructions:" label.
-export function buildClinicalNotes(
-  clinicalNotes: string,
-  specialInstructions: string,
-): string | undefined {
-  const notes = clinicalNotes.trim();
-  const special = specialInstructions.trim();
-  const sections = [notes, special ? `Special Instructions:\n${special}` : ''].filter(Boolean);
-  return sections.length > 0 ? sections.join(NOTES_SECTION_SEPARATOR) : undefined;
+// clinicalNotes and specialInstructions are separate fields on the API —
+// each is sent as its own field, or omitted if the receptionist left it blank.
+export function trimmedOrUndefined(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 const SERVER_ERROR_MESSAGES: Record<string, string> = {
