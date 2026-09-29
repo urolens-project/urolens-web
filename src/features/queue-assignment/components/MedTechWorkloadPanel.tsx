@@ -1,5 +1,5 @@
 import { User, CheckCircle2 } from 'lucide-react';
-import { Badge } from '../../../components/ui/Badge';
+import { Badge } from '../../../components/ui';
 import type { MedTechWorkloadItem } from '../types';
 
 interface MedTechWorkloadPanelProps {

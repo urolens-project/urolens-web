@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { useSaveOverride } from '../hooks/useResultReview';
-import { Badge } from '../../../components/ui/Badge';
+import { Badge } from '../../../components/ui';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
 interface Props {

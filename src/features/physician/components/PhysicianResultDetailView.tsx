@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FlaskConical, Loader2 } from 'lucide-react';
 import { AIDisclaimer } from '../../../components/feedback/AIDisclaimer';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
-import { Badge } from '../../../components/ui/Badge';
+import { Badge } from '../../../components/ui';
 import { useResultDetail } from '../hooks/usePhysician';
 
 function FindingsGrid({ title, data }: { title: string; data: Record<string, unknown> }) {

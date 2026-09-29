@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { QRCodeSVG } from 'qrcode.react';
-import type {
-  PrintLabelResponse,
-  ConfirmAffixedResponse,
-  LabelPreviewData,
-} from '../../../types/types';
+import type { PrintLabelResponse, ConfirmAffixedResponse, LabelPreviewData } from '../../../types';
 import type { ReceivedSpecimenResult } from '../types';
 import { sampleLabelingApi } from '../api/sampleLabelingApi';
 import { useSpecimenSearch } from '../hooks/useSampleLabeling';

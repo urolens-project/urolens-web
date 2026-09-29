@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Badge } from '../../../components/ui/Badge';
+import { Badge } from '../../../components/ui';
 import type { EvidenceEntry } from '../types';
 
 const COLLAPSED_LIMIT = 3;
@@ -12,9 +12,8 @@ interface Props {
 export function EvidenceAttributionList({ evidence }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  if (evidence.length === 0) {
+  if (evidence.length === 0)
     return <p className="text-xs text-slate-400 italic">No specific indicators recorded.</p>;
-  }
 
   const visible = expanded ? evidence : evidence.slice(0, COLLAPSED_LIMIT);
   const hasMore = evidence.length > COLLAPSED_LIMIT;

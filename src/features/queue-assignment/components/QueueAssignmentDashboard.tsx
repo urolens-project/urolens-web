@@ -5,7 +5,7 @@ import { PendingSpecimenList } from './PendingSpecimenList';
 import { AssignmentConfirmationModal } from './AssignmentConfirmationModal';
 import { usePendingSpecimens, useMedTechWorkloads } from '../hooks/useQueueWorkloads';
 import { useAssignSpecimen } from '../hooks/useAssignSpecimen';
-import { Button } from '../../../components/ui/Button';
+import { Button } from '../../../components/ui';
 
 export function QueueAssignmentDashboard() {
   const [selectedSpecimenId, setSelectedSpecimenId] = useState<string | null>(null);

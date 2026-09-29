@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ResultStatusChip } from './ResultStatusChip';
 import { CellCountTable } from './CellCountTable';
 import { AIDisclaimer } from '../../../components/feedback/AIDisclaimer';
-import { Button } from '../../../components/ui/Button';
+import { Button } from '../../../components/ui';
 import type { PatientResultDetail as DetailType } from '../types';
 
 interface PatientResultDetailProps {

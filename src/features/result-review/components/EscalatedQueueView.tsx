@@ -8,8 +8,7 @@ import {
   RefreshCw,
   ShieldAlert,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/Button';
-import { Badge } from '../../../components/ui/Badge';
+import { Button, Badge } from '../../../components/ui';
 import { useEscalated } from '../hooks/useResultReview';
 import type { EscalatedResultItem } from '../types';
 import { formatAge, formatTimestamp } from '../utils/format';

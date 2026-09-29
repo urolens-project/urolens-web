@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { User, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ConsentCapture } from './ConsentCapture';
 import { useCreatePatient } from '../hooks/usePatientRegistration';
-import { Input } from '../../../components/ui/Input';
-import { Button } from '../../../components/ui/Button';
+import { Input, Button } from '../../../components/ui';
 import type { PatientCreateRequest, ConsentData, PatientSex } from '../types';
-import type { ApiError } from '../../../types/domain';
+import type { ApiError } from '../../../types';
 
 const INITIAL_CONSENT: ConsentData = {
   consent_given: false,
