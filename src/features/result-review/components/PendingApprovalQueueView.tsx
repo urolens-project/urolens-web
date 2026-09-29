@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Clock, RefreshCw } 
 import { Button } from '../../../components/ui/Button';
 import { usePendingResults } from '../hooks/useResultReview';
 import type { PendingResultItem } from '../types';
-import { formatAge, formatTimestamp } from '../utils/format';
+import { formatAge, formatTimestamp, formatSampleId } from '../utils/format';
 import { SkeletonRows } from './SkeletonRows';
 
 const PAGE_SIZE = 20;
@@ -124,7 +124,7 @@ export function PendingApprovalQueueView() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                        {row.specimen_id.slice(0, 8).toUpperCase()}
+                        {formatSampleId(row.sample_uid, row.specimen_id)}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-600">{row.medtech_name || '—'}</td>
