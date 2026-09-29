@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { QRCodeSVG } from 'qrcode.react';
 import type {
   PrintLabelResponse,
+  PrintJobResponse,
   ConfirmAffixedResponse,
   LabelPreviewData,
 } from '../../../types/types';
@@ -42,7 +43,7 @@ export default function SampleLabelingScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [pickedSpecimen, setPickedSpecimen] = useState<ReceivedSpecimenResult | null>(null);
 
-  const [hasPrinted, setHasPrinted] = useState(false);
+  const [hasGenerated, setHasGenerated] = useState(false);
   const [previewData, setPreviewData] = useState<LabelPreviewData | null>(null);
   const [reprintCount, setReprintCount] = useState(0);
   // Number of labels the server holds for this specimen; falls back to the local count.
@@ -75,7 +76,7 @@ export default function SampleLabelingScreen() {
     setPickedSpecimen(spec);
     setSearchQuery('');
     setFormErrors({});
-    setHasPrinted(false);
+    setHasGenerated(false);
     setPreviewData(null);
     setReprintCount(0);
     setServerLabelCount(null);
@@ -87,7 +88,7 @@ export default function SampleLabelingScreen() {
     setHandoffDismissed(true);
     setSearchQuery('');
     setDebouncedQuery('');
-    setHasPrinted(false);
+    setHasGenerated(false);
     setPreviewData(null);
     setReprintCount(0);
     setServerLabelCount(null);
@@ -96,30 +97,46 @@ export default function SampleLabelingScreen() {
     setWorkflowCompleted(false);
   };
 
-  const printMutation = useMutation<PrintLabelResponse, ApiError, string>({
+  const generateMutation = useMutation<PrintLabelResponse, ApiError, string>({
     mutationFn: (specimenId: string): Promise<PrintLabelResponse> =>
-      sampleLabelingApi.printLabel(specimenId),
+      sampleLabelingApi.generateLabel(specimenId),
     onSuccess: (data) => {
       setPreviewData(data.preview);
-      setHasPrinted(true);
+      setHasGenerated(true);
       setPrinterOfflineOverride(false);
-      setServerLabelCount(data.label_count ?? null);
-      if (hasPrinted) setReprintCount((prev) => prev + 1);
+      setServerLabelCount(data.label_count);
+      if (hasGenerated) setReprintCount((prev) => prev + 1);
       setFormErrors((prev) => {
         const n = { ...prev };
-        delete n.print;
+        delete n.generate;
         return n;
       });
     },
     onError: (error: ApiError) => {
-      setFormErrors((prev) => ({ ...prev, print: getLabelErrorMessage(error) }));
+      setFormErrors((prev) => ({ ...prev, generate: getLabelErrorMessage(error) }));
     },
   });
 
   const handleReprintTrigger = () => {
     if (!selectedSpecimen) return;
-    printMutation.mutate(selectedSpecimen.specimen_id);
+    generateMutation.mutate(selectedSpecimen.specimen_id);
   };
+
+  const printJobMutation = useMutation<PrintJobResponse, ApiError, string>({
+    mutationFn: (specimenId: string): Promise<PrintJobResponse> =>
+      sampleLabelingApi.printLabel(specimenId),
+    onSuccess: () => {
+      setFormErrors((prev) => {
+        const n = { ...prev };
+        delete n.printJob;
+        return n;
+      });
+      window.print();
+    },
+    onError: (error: ApiError) => {
+      setFormErrors((prev) => ({ ...prev, printJob: getLabelErrorMessage(error) }));
+    },
+  });
 
   const confirmMutation = useMutation<
     ConfirmAffixedResponse,
@@ -146,7 +163,7 @@ export default function SampleLabelingScreen() {
 
   const isConfirmationUnlocked =
     !!selectedSpecimen &&
-    ((hasPrinted && !!previewData) || printerOfflineOverride) &&
+    ((hasGenerated && !!previewData) || printerOfflineOverride) &&
     !workflowCompleted;
 
   return (
@@ -301,7 +318,7 @@ export default function SampleLabelingScreen() {
               </div>
             ) : (
               <div className="p-6 space-y-6">
-                {!hasPrinted && selectedSpecimen && (
+                {!hasGenerated && selectedSpecimen && (
                   <div
                     className={`p-4 border rounded-xl flex items-start gap-3 transition-colors ${printerOfflineOverride ? 'bg-amber-50/50 border-amber-300' : 'bg-slate-50 border-slate-200'}`}
                   >
@@ -341,7 +358,7 @@ export default function SampleLabelingScreen() {
                     <div className="bg-white border border-slate-300 rounded-xl shadow-md overflow-hidden">
                       <div className="bg-[#005B4B] px-4 py-2 flex items-center justify-between">
                         <span className="text-white font-black text-xs tracking-wider uppercase">
-                          UroLens LIS
+                          UroLens
                         </span>
                         <span className="text-emerald-200 text-[10px] font-mono">
                           {previewData.date.split(' ')[0]}
@@ -418,16 +435,26 @@ export default function SampleLabelingScreen() {
                       below.
                     </p>
                     <div className="print:hidden mt-3 flex justify-center">
-                      <Button variant="secondary" onClick={() => window.print()}>
-                        Print Label <Printer className="h-3.5 w-3.5" />
+                      <Button
+                        variant="secondary"
+                        disabled={printJobMutation.isPending}
+                        onClick={() => printJobMutation.mutate(selectedSpecimen!.specimen_id)}
+                      >
+                        {printJobMutation.isPending ? 'Sending to Printer...' : 'Print Label'}
+                        <Printer className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
                 )}
 
-                {formErrors.print && (
+                {formErrors.generate && (
                   <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-3 text-sm font-semibold">
-                    {formErrors.print}
+                    {formErrors.generate}
+                  </div>
+                )}
+                {formErrors.printJob && (
+                  <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-3 text-sm font-semibold">
+                    {formErrors.printJob}
                   </div>
                 )}
                 {formErrors.confirm && (
@@ -437,16 +464,16 @@ export default function SampleLabelingScreen() {
                 )}
 
                 <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                  {hasPrinted ? (
+                  {hasGenerated ? (
                     <Button
                       variant="secondary"
                       className="border-red-200 hover:bg-red-50 text-red-600"
-                      disabled={printMutation.isPending}
+                      disabled={generateMutation.isPending}
                       onClick={handleReprintTrigger}
                     >
-                      {printMutation.isPending ? 'Regenerating...' : 'Regenerate Label'}
+                      {generateMutation.isPending ? 'Regenerating...' : 'Regenerate Label'}
                       <RefreshCw
-                        className={`h-3.5 w-3.5 ${printMutation.isPending ? 'animate-spin' : ''}`}
+                        className={`h-3.5 w-3.5 ${generateMutation.isPending ? 'animate-spin' : ''}`}
                       />
                     </Button>
                   ) : (
@@ -454,10 +481,10 @@ export default function SampleLabelingScreen() {
                       variant="primary"
                       className="bg-slate-900 hover:bg-slate-800"
                       disabled={!selectedSpecimen}
-                      loading={printMutation.isPending}
-                      onClick={() => printMutation.mutate(selectedSpecimen!.specimen_id)}
+                      loading={generateMutation.isPending}
+                      onClick={() => generateMutation.mutate(selectedSpecimen!.specimen_id)}
                     >
-                      {printMutation.isPending ? 'Generating...' : 'Generate Label'}
+                      {generateMutation.isPending ? 'Generating...' : 'Generate Label'}
                       <Printer className="h-3.5 w-3.5" />
                     </Button>
                   )}
@@ -527,8 +554,8 @@ export default function SampleLabelingScreen() {
               </div>
 
               <div className="flex justify-center pt-1">
-                <Badge variant={hasPrinted ? 'success' : 'default'}>
-                  <Printer className="h-3 w-3" /> {hasPrinted ? 'Printed' : 'Not Printed Yet'}
+                <Badge variant={hasGenerated ? 'success' : 'default'}>
+                  <Printer className="h-3 w-3" /> {hasGenerated ? 'Label Generated' : 'No Label Yet'}
                 </Badge>
               </div>
             </div>

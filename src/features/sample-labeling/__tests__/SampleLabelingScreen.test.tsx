@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -11,6 +11,7 @@ import { formatTestType, getLabelErrorMessage } from '../utils';
 vi.mock('../api/sampleLabelingApi', () => ({
   sampleLabelingApi: {
     searchReceivedSpecimens: vi.fn(),
+    generateLabel: vi.fn(),
     printLabel: vi.fn(),
     confirmAffixed: vi.fn(),
   },
@@ -19,10 +20,10 @@ vi.mock('../api/sampleLabelingApi', () => ({
 const specimen = {
   specimen_id: 'sp-1',
   sample_uid: 'SMP-20260924-00001',
-  patient_name: 'Juan Dela Cruz',
   patient_uid: 'PAT-000042',
   test_type: 'URINALYSIS_-_ROUTINE',
   status: 'RECEIVED',
+  label_count: 0,
 };
 
 const preview = {
@@ -70,10 +71,11 @@ describe('SampleLabelingScreen', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(sampleLabelingApi.searchReceivedSpecimens).mockResolvedValue([specimen]);
-    vi.mocked(sampleLabelingApi.printLabel).mockResolvedValue({
+    vi.mocked(sampleLabelingApi.generateLabel).mockResolvedValue({
       success: true,
       label_id: 'l-1',
-      print_job_id: 'j-1',
+      print_job_id: null,
+      label_count: 1,
       preview,
     });
   });
@@ -100,7 +102,7 @@ describe('SampleLabelingScreen', () => {
   });
 
   it('shows a readable message when the specimen is not ready for a label', async () => {
-    vi.mocked(sampleLabelingApi.printLabel).mockRejectedValueOnce({
+    vi.mocked(sampleLabelingApi.generateLabel).mockRejectedValueOnce({
       message: 'Request failed with status code 422',
       response: { data: { error: { code: 'SPECIMEN_NOT_RECEIVED' } } },
     });
@@ -117,6 +119,7 @@ describe('SampleLabelingScreen', () => {
       success: true,
       message: 'ok',
       updated_status: 'LABELED',
+      offline_override_used: false,
     });
     renderScreen(handoff);
     await screen.findByRole('button', { name: 'Change' });
@@ -134,21 +137,28 @@ describe('SampleLabelingScreen additions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(sampleLabelingApi.searchReceivedSpecimens).mockResolvedValue([specimen]);
-    vi.mocked(sampleLabelingApi.printLabel).mockResolvedValue({
+    vi.mocked(sampleLabelingApi.generateLabel).mockResolvedValue({
       success: true,
       label_id: 'l-1',
-      print_job_id: 'j-1',
+      print_job_id: null,
       label_count: 3,
       preview,
+    });
+    vi.mocked(sampleLabelingApi.printLabel).mockResolvedValue({
+      success: true,
+      print_job_id: 'j-1',
+      label_id: 'l-1',
+      status: 'SENT',
     });
     vi.mocked(sampleLabelingApi.confirmAffixed).mockResolvedValue({
       success: true,
       message: 'ok',
       updated_status: 'LABELED',
+      offline_override_used: false,
     });
   });
 
-  it('shows the patient name and UID on the label preview, and a Print button', async () => {
+  it('sends a print job before triggering the browser print dialog', async () => {
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     renderScreen(handoff);
     await screen.findByRole('button', { name: 'Change' });
@@ -157,8 +167,24 @@ describe('SampleLabelingScreen additions', () => {
     await screen.findByText(/Label Preview/i);
     expect(screen.getByText('Juan Dela Cruz')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Print Label/i }));
-    expect(printSpy).toHaveBeenCalled();
+
+    await waitFor(() => expect(printSpy).toHaveBeenCalled());
+    expect(sampleLabelingApi.printLabel).toHaveBeenCalledWith('sp-1');
     printSpy.mockRestore();
+  });
+
+  it('shows a readable message when the label cannot be printed yet', async () => {
+    vi.mocked(sampleLabelingApi.printLabel).mockRejectedValueOnce({
+      message: 'Request failed with status code 400',
+      response: { data: { error: { code: 'LABEL_NOT_FOUND' } } },
+    });
+    renderScreen(handoff);
+    await screen.findByRole('button', { name: 'Change' });
+    fireEvent.click(screen.getByRole('button', { name: /Generate Label/i }));
+    await screen.findByText(/Label Preview/i);
+    fireEvent.click(screen.getByRole('button', { name: /Print Label/i }));
+
+    expect(await screen.findByText(/generate the label first/i)).toBeInTheDocument();
   });
 
   it('shows the regenerate count the server reports', async () => {
