@@ -142,9 +142,7 @@ export default function App() {
             {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
-                <RequireRole
-                  roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}
-                >
+                <RequireRole roles={[UserRole.RECEPTIONIST]}>
                   <DashboardShell />
                 </RequireRole>
               }
