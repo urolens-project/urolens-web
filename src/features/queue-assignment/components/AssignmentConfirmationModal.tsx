@@ -1,6 +1,7 @@
 import { Loader2, FlaskConical, User } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import type { PendingSpecimenItem, MedTechWorkloadItem } from '../types';
+import { formatTestType } from '../utils';
 
 interface AssignmentConfirmationModalProps {
   open: boolean;
@@ -32,7 +33,7 @@ export function AssignmentConfirmationModal({
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">{specimen.sample_uid}</p>
               <p className="text-xs text-slate-500 truncate">
-                {specimen.patient_name} · {specimen.test_type}
+                {specimen.patient_name} · {formatTestType(specimen.test_type)}
               </p>
             </div>
           </div>
