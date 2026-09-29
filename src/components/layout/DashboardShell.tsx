@@ -75,7 +75,7 @@ export default function DashboardShell() {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">UroLens LIS</h1>
+                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">UroLens</h1>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">Laboratory System</p>
                 </div>
               </div>
@@ -89,7 +89,7 @@ export default function DashboardShell() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900">{roleLabel}</p>
-                  <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens LIS</p>
+                  <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens</p>
                 </div>
               </div>
             </div>
