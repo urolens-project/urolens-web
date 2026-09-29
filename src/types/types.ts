@@ -83,14 +83,22 @@ export interface LabelPreviewData {
 export interface PrintLabelResponse {
   success: boolean;
   label_id: string;
-  print_job_id: string;
-  // Total labels held for the specimen; not sent by the API yet.
-  label_count?: number;
+  // Generating a label no longer also creates a print job — always null now.
+  print_job_id: string | null;
+  label_count: number;
   preview: LabelPreviewData;
+}
+
+export interface PrintJobResponse {
+  success: boolean;
+  print_job_id: string;
+  label_id: string;
+  status: string;
 }
 
 export interface ConfirmAffixedResponse {
   success: boolean;
   message: string;
   updated_status: string;
+  offline_override_used: boolean;
 }
