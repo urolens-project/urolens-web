@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { CheckCircle, RefreshCw, Send, FlaskConical } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { CheckCircle, RefreshCw, Send, FlaskConical, Loader2 } from 'lucide-react';
 import { useApprovedResults, useReleaseResult } from '../hooks/useResultReleasing';
 import { ReleaseConfirmationModal } from './ReleaseConfirmationModal';
 import { Button } from '../../../components/ui/Button';
 import type { ApprovedResultItem, ReleaseMethod } from '../types';
+import { formatTestType } from '../utils';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('en-PH', {
@@ -16,13 +17,25 @@ function formatDate(iso: string): string {
 }
 
 export function ApprovedResultsQueue() {
-  const [cursor, setCursor] = useState<string | undefined>();
   const [selectedResult, setSelectedResult] = useState<ApprovedResultItem | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<ReleaseMethod | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data, isLoading, isFetching, isError, refetch } = useApprovedResults(20, cursor);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useApprovedResults();
   const releaseMutation = useReleaseResult();
+
+  // The infinite query already accumulates every page loaded so far —
+  // "Load more" adds to this list rather than replacing what's on screen.
+  const items = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
   function handleOpenModal(result: ApprovedResultItem) {
     setSelectedResult(result);
@@ -61,7 +74,7 @@ export function ApprovedResultsQueue() {
               <p className="mt-0.5 text-sm text-emerald-700">
                 {isLoading
                   ? 'Loading…'
-                  : `${data?.data.length ?? 0} result${data?.data.length !== 1 ? 's' : ''} ready for release`}
+                  : `${items.length} result${items.length !== 1 ? 's' : ''} ready for release`}
               </p>
             </div>
           </div>
@@ -109,7 +122,7 @@ export function ApprovedResultsQueue() {
                     ))}
                   </tr>
                 ))
-              ) : data?.data.length === 0 ? (
+              ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
@@ -124,19 +137,19 @@ export function ApprovedResultsQueue() {
                   </td>
                 </tr>
               ) : (
-                (data?.data ?? []).map((row) => (
+                items.map((row) => (
                   <tr key={row.result_id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">
-                        {row.patient_name || 'Unknown Patient'}
-                      </p>
+                      <p className="font-semibold text-slate-800">{row.patient_uid ?? 'N/A'}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
                         {row.sample_uid ?? '—'}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{row.test_type ?? '—'}</td>
+                    <td className="px-5 py-4 text-xs text-slate-500">
+                      {formatTestType(row.test_type)}
+                    </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
                       {formatDate(row.approved_at)}
                     </td>
@@ -154,14 +167,22 @@ export function ApprovedResultsQueue() {
         </div>
 
         {/* Pagination */}
-        {data?.pagination.has_more && (
+        {hasNextPage && (
           <div className="flex justify-end">
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setCursor(data.pagination.next_cursor ?? undefined)}
+              disabled={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
             >
-              Load more
+              {isFetchingNextPage ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading…
+                </>
+              ) : (
+                'Load more'
+              )}
             </Button>
           </div>
         )}
