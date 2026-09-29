@@ -2,7 +2,7 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { PatientRegistrationForm } from '../components/PatientRegistrationForm';
 import { patientApi } from '../api/patientApi';
 import type { PatientResponse } from '../types';
@@ -46,6 +46,8 @@ const mockSuccessResponse: PatientResponse = {
   is_walkin: false,
   record_flag: '',
   created_at: '2026-01-01T00:00:00Z',
+  portal_username: 'PAT-000001',
+  portal_password: 'X7K9M2PQRT',
 };
 
 function fillRequiredFields() {
@@ -75,19 +77,100 @@ describe('PatientRegistrationForm', () => {
     vi.clearAllMocks();
   });
 
-  it('disables submit button when required fields are empty', () => {
+  it('keeps the submit button enabled on an empty form so errors can explain what is missing', async () => {
     renderForm();
-
-    const submitButton = screen.getByRole('button', { name: /Register Patient/i });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it('enables submit button when required fields are filled', () => {
-    renderForm();
-    fillRequiredFields();
 
     const submitButton = screen.getByRole('button', { name: /Register Patient/i });
     expect(submitButton).toBeEnabled();
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('First name is required.')).toBeInTheDocument();
+      expect(screen.getByText('Last name is required.')).toBeInTheDocument();
+      expect(screen.getByText('Date of birth is required.')).toBeInTheDocument();
+      expect(screen.getByText('Sex is required.')).toBeInTheDocument();
+      expect(screen.getAllByText('This consent is required.')).toHaveLength(3);
+    });
+    expect(patientApi.create).not.toHaveBeenCalled();
+  });
+
+  it('does not allow selecting today or a future date of birth', async () => {
+    renderForm();
+    const dobInput = screen.getByLabelText(/Date of Birth/);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const yesterdayIso = `${yesterday.getFullYear()}-${pad(yesterday.getMonth() + 1)}-${pad(yesterday.getDate())}`;
+    expect(dobInput).toHaveAttribute('max', yesterdayIso);
+
+    fillRequiredFields();
+    checkAllConsents();
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    fireEvent.change(dobInput, { target: { value: todayIso } });
+    fireEvent.click(screen.getByRole('button', { name: /Register Patient/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Date of birth must be a past date.')).toBeInTheDocument();
+    });
+    expect(patientApi.create).not.toHaveBeenCalled();
+  });
+
+  it('carries the registered patient into the lab request step', async () => {
+    vi.mocked(patientApi.create).mockResolvedValueOnce(mockSuccessResponse);
+
+    function LocationProbe() {
+      const location = useLocation();
+      return <div data-testid="probe">{JSON.stringify(location.state)}</div>;
+    }
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={createQueryClient()}>
+        <MemoryRouter initialEntries={['/intake/register']}>
+          <Routes>
+            <Route path="/intake/register" element={children} />
+            <Route path="/intake/request" element={<LocationProbe />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    render(<PatientRegistrationForm />, { wrapper });
+
+    fillRequiredFields();
+    checkAllConsents();
+    fireEvent.click(screen.getByRole('button', { name: /Register Patient/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Patient UID: PAT-000001/)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Next: Create Lab Request/i }));
+
+    const state = JSON.parse((await screen.findByTestId('probe')).textContent ?? '{}');
+    expect(state).toEqual({
+      patient: {
+        patient_id: '1',
+        patient_uid: 'PAT-000001',
+        portal_username: 'PAT-000001',
+        portal_password: 'X7K9M2PQRT',
+      },
+    });
+  });
+
+  it('shows the one-time portal credentials on the success screen', async () => {
+    vi.mocked(patientApi.create).mockResolvedValueOnce(mockSuccessResponse);
+    renderForm();
+
+    fillRequiredFields();
+    checkAllConsents();
+    fireEvent.click(screen.getByRole('button', { name: /Register Patient/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Patient UID: PAT-000001/)).toBeInTheDocument();
+    });
+    expect(screen.getByText('PAT-000001', { selector: 'span' })).toBeInTheDocument();
+    expect(screen.getByText('X7K9M2PQRT')).toBeInTheDocument();
+    expect(screen.getByText(/cannot be shown again/i)).toBeInTheDocument();
   });
 
   it('shows validation errors for empty required fields on submit', async () => {
@@ -133,7 +216,7 @@ describe('PatientRegistrationForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Patient Registered Successfully/i)).toBeInTheDocument();
-      expect(screen.getByText(/PAT-000001/)).toBeInTheDocument();
+      expect(screen.getByText(/Patient UID: PAT-000001/)).toBeInTheDocument();
     });
   });
 

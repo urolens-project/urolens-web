@@ -18,6 +18,14 @@ export interface PatientCreateRequest {
   consent: ConsentData;
 }
 
+// Deliberately slim — matches the backend's PatientSearchItem (RA 10173 data
+// minimization): the full decrypted record isn't returned for a broad
+// name-substring search, only enough to identify and select a patient.
+export interface PatientSearchItem {
+  patient_id: string;
+  patient_uid: string;
+}
+
 export interface PatientResponse {
   patient_id: string;
   patient_uid: string;
@@ -31,4 +39,9 @@ export interface PatientResponse {
   is_walkin: boolean;
   record_flag: string;
   created_at: string;
+  // Only populated on the create response — the one-time plaintext password
+  // isn't re-derivable afterward, so this is the receptionist's only chance
+  // to see and hand it to the patient.
+  portal_username: string | null;
+  portal_password: string | null;
 }
