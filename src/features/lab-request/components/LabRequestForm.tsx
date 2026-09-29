@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import type { LabRequestPayload, LabRequestResponse } from '../../../types/types';
@@ -22,13 +22,26 @@ import {
   FlaskConical,
 } from 'lucide-react';
 
+type SelectedPatient = Pick<PatientSearchResult, 'patient_id' | 'patient_uid'>;
+
+interface LabRequestLocationState {
+  patient?: SelectedPatient;
+}
+
 export default function LabRequestForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Set when the receptionist arrives straight from a successful registration,
+  // so the patient they just registered is already selected.
+  const preselectedPatient = (location.state as LabRequestLocationState | null)?.patient ?? null;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<PatientSearchResult | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(
+    preselectedPatient,
+  );
   const [dropdownDismissed, setDropdownDismissed] = useState(false);
 
   const [isManualPhysician, setIsManualPhysician] = useState(false);
