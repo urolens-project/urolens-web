@@ -23,6 +23,7 @@ const handedOff = {
     physician_name: 'dr.reyes',
     patient_id: 'p-1',
     patient_uid: 'PAT-000042',
+    patient_name: 'Juan Dela Cruz',
   },
 };
 
@@ -55,8 +56,9 @@ describe('SpecimenReceivingForm receiving', () => {
     vi.mocked(specimenReceivingApi.searchLabRequests).mockResolvedValue([]);
   });
 
-  it('shows the patient UID for the label check when the request carries it', () => {
+  it('shows the patient name and UID for the label check when the request carries them', () => {
     renderForm();
+    expect(screen.getByText('Juan Dela Cruz')).toBeInTheDocument();
     expect(screen.getByText('PAT-000042')).toBeInTheDocument();
   });
 
@@ -89,6 +91,7 @@ describe('SpecimenReceivingForm receiving', () => {
       sample_uid: 'SMP-20260924-00001',
       status: 'RECEIVED',
       message: 'ok',
+      patient_uid: 'PAT-000042',
     });
     renderForm();
     fireEvent.click(screen.getByRole('button', { name: /Confirm Specimen Receipt/i }));
@@ -102,6 +105,7 @@ describe('SpecimenReceivingForm receiving', () => {
         lab_request_id: 'lr-1',
         request_uid: 'REQ-20260924-12345',
         test_type: 'URINALYSIS_-_ROUTINE',
+        patient_uid: 'PAT-000042',
       },
     });
   });
