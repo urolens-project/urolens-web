@@ -1,5 +1,6 @@
 import { FlaskConical, Clock, CheckCircle2, User, TestTube } from 'lucide-react';
 import type { PendingSpecimenItem } from '../types';
+import { formatTestType } from '../utils';
 
 interface PendingSpecimenListProps {
   specimens: PendingSpecimenItem[];
@@ -90,7 +91,7 @@ export function PendingSpecimenList({
                   </span>
                   <span className="flex items-center gap-1 text-xs text-slate-500">
                     <TestTube className="h-3 w-3" />
-                    {specimen.test_type}
+                    {formatTestType(specimen.test_type)}
                   </span>
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
