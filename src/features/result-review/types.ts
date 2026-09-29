@@ -12,6 +12,8 @@ export interface ManualOverrideItem {
 export interface PendingResultItem {
   result_id: string;
   specimen_id: string;
+  // Not sent by the API yet; the Sample ID column falls back to specimen_id until it is.
+  sample_uid?: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
@@ -103,6 +105,8 @@ export interface SupervisorStats {
 export interface ApprovedResultItem {
   result_id: string;
   specimen_id: string;
+  // Not sent by the API yet; the Sample ID column falls back to specimen_id until it is.
+  sample_uid?: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
@@ -121,6 +125,8 @@ export interface ApprovedTodayListResponse {
 export interface EscalatedResultItem {
   result_id: string;
   specimen_id: string;
+  // Not sent by the API yet; the Sample ID column falls back to specimen_id until it is.
+  sample_uid?: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
