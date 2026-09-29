@@ -17,3 +17,9 @@ export function getReceiveErrorMessage(error: ApiError): string {
   const code = error.response.data?.error?.code;
   return (code && SERVER_ERROR_MESSAGES[code]) ?? GENERIC_ERROR;
 }
+
+// The backend stores test_type as entered but hasn't shipped a separate
+// display label yet, so this is the frontend's own formatting for now.
+export function formatTestType(testType: string): string {
+  return testType.replace(/_/g, ' ');
+}

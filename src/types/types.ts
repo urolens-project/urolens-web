@@ -68,6 +68,8 @@ export interface SpecimenReceiveResponse {
   sample_uid: string | null;
   status: 'RECEIVED' | 'REJECTED';
   message: string;
+  // The parent lab request's patient UID, so Sample Labeling doesn't need a second lookup.
+  patient_uid: string | null;
 }
 
 export interface LabelPreviewData {

@@ -4,8 +4,9 @@ export interface LabRequestSearchResult {
   test_type: string;
   physician_name: string;
   patient_id: string;
-  // Not sent by the API yet; shown for the "label matches patient" check once it is.
-  patient_uid?: string;
+  // null only if the patient row is missing (shouldn't happen given the FK).
+  patient_uid: string | null;
+  patient_name: string | null;
 }
 
 // Router state passed from the Lab Request confirmation screen, so the specimen
@@ -22,5 +23,6 @@ export interface LabelHandoffState {
     lab_request_id: string;
     request_uid: string;
     test_type: string;
+    patient_uid: string | null;
   };
 }

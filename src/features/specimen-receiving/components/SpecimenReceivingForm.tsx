@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../../types/types';
 import type { ApiError } from '../../../types/domain';
 import type { LabRequestSearchResult, ReceiveHandoffState, LabelHandoffState } from '../types';
-import { getReceiveErrorMessage } from '../utils';
+import { getReceiveErrorMessage, formatTestType } from '../utils';
 import { specimenReceivingApi } from '../api/specimenReceivingApi';
 import { useLabRequestSearch } from '../hooks/useSpecimenReceiving';
 import { useMutation } from '@tanstack/react-query';
@@ -97,7 +97,7 @@ function LabRequestSearchPanel({
                 <FlaskConical className="h-3.5 w-3.5 text-emerald-600" />
                 <span className="font-mono font-bold text-slate-900">{req.request_uid}</span>
                 <span className="text-slate-300">|</span>
-                <span className="font-semibold text-slate-600">{req.test_type}</span>
+                <span className="font-semibold text-slate-600">{formatTestType(req.test_type)}</span>
               </div>
               <span className="text-xs font-medium text-slate-400">
                 Dr. {req.physician_name || 'Unspecified'}
@@ -401,7 +401,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="font-bold text-slate-400 uppercase tracking-wide text-xs">Test</span>
-            <span className="font-bold text-slate-700">{data.test}</span>
+            <span className="font-bold text-slate-700">{formatTestType(data.test)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="font-bold text-slate-400 uppercase tracking-wide text-xs">Status</span>
@@ -430,6 +430,7 @@ function SpecimenReceiptConfirmation({ data, onReset }: ConfirmationCardProps) {
                     lab_request_id: data.labRequestId,
                     request_uid: data.requestUid,
                     test_type: data.test,
+                    patient_uid: data.patient_uid,
                   },
                 };
                 navigate('/intake/label', { state: handoff });
@@ -608,7 +609,7 @@ export default function SpecimenReceivingForm() {
                     Test
                   </span>
                   <span className="text-slate-700 font-bold truncate max-w-40">
-                    {selectedRequest ? selectedRequest.test_type : 'N/A'}
+                    {selectedRequest ? formatTestType(selectedRequest.test_type) : 'N/A'}
                   </span>
                 </div>
                 {selectedRequest?.patient_uid && (
@@ -616,8 +617,13 @@ export default function SpecimenReceivingForm() {
                     <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wide">
                       Patient
                     </span>
-                    <span className="text-slate-700 font-mono font-bold truncate max-w-40">
-                      {selectedRequest.patient_uid}
+                    <span className="text-right">
+                      <span className="block text-slate-700 font-semibold truncate max-w-40">
+                        {selectedRequest.patient_name ?? 'N/A'}
+                      </span>
+                      <span className="block text-slate-500 font-mono text-xs truncate max-w-40">
+                        {selectedRequest.patient_uid}
+                      </span>
                     </span>
                   </div>
                 )}
