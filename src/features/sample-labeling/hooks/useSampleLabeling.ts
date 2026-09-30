@@ -6,6 +6,10 @@ export function useSpecimenSearch(query: string) {
     queryKey: ['specimens', 'search', query],
     queryFn: () => sampleLabelingApi.searchReceivedSpecimens(query),
     enabled: query.trim().length > 0,
+    // Same reasoning as usePatientSearch — a live search must not serve a
+    // 5-minute-old cached result for the same text after the underlying
+    // specimen was just received.
+    staleTime: 0,
   });
 }
 
@@ -17,7 +21,12 @@ export function usePrintLabel() {
 
 export function useConfirmAffixed() {
   return useMutation({
-    mutationFn: ({ specimenId, offlineOverride }: { specimenId: string; offlineOverride: boolean }) =>
-      sampleLabelingApi.confirmAffixed(specimenId, offlineOverride),
+    mutationFn: ({
+      specimenId,
+      offlineOverride,
+    }: {
+      specimenId: string;
+      offlineOverride: boolean;
+    }) => sampleLabelingApi.confirmAffixed(specimenId, offlineOverride),
   });
 }

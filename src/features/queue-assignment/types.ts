@@ -3,7 +3,7 @@
 export interface PendingSpecimenItem {
   specimen_id: string;
   sample_uid: string;
-  patient_uid: string;
+  patient_name: string;
   test_type: string;
   received_at: string;
   status: string;
