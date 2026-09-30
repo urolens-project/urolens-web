@@ -32,6 +32,7 @@ export interface LabRequestPayload {
   physician_name?: string; // Used as the fallback name string when manual override is toggled active
   test_type: string;
   clinical_notes?: string;
+  special_instructions?: string;
 }
 
 /**
@@ -49,6 +50,7 @@ export interface LabRequestResponse {
   physician_name: string | null;
   test_type: string;
   clinical_notes: string | null;
+  special_instructions: string | null;
   status: string;
   created_at: string;
 }
