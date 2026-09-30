@@ -16,8 +16,12 @@
 const snakeToCamelKey = (key: string): string =>
   key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 
+// Only inserts an underscore at a real lower-to-upper boundary, so a run of
+// capitals (an acronym like RBC, or ID in userID) stays together instead of
+// getting split letter-by-letter — the old /([A-Z])/g version turned RBC
+// into _r_b_c, userID into user_i_d, and Bacteria into _bacteria.
 const camelToSnakeKey = (key: string): string =>
-  key.replace(/([A-Z])/g, (c) => `_${c.toLowerCase()}`);
+  key.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object') return false;
