@@ -4,7 +4,9 @@ import type { SpecimenReceivePayload, SpecimenReceiveResponse } from '../../../t
 
 export const specimenReceivingApi = {
   searchLabRequests: (q: string) =>
-    apiClient.get<LabRequestSearchResult[]>('/specimens/search-request', { params: { q } }).then((r) => r.data),
+    apiClient
+      .get<LabRequestSearchResult[]>('/specimens/search-request', { params: { q } })
+      .then((r) => r.data),
 
   receiveSpecimen: (payload: SpecimenReceivePayload) =>
     apiClient.post<SpecimenReceiveResponse>('/specimens/receive', payload).then((r) => r.data),

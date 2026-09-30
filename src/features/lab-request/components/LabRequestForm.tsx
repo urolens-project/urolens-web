@@ -252,6 +252,10 @@ export default function LabRequestForm() {
                       test_type: confirmationData.test_type,
                       physician_name: confirmationData.physician_name ?? '',
                       patient_id: confirmationData.patient_id,
+                      // Search results are deliberately name-less (RA 10173); the
+                      // UID is already known from the patient just selected above.
+                      patient_uid: selectedPatient?.patient_uid ?? null,
+                      patient_name: null,
                     },
                   };
                   navigate('/intake/receive', { state: handoff });

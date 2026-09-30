@@ -147,6 +147,8 @@ describe('LabRequestForm submission', () => {
         test_type: 'URINALYSIS_-_ROUTINE',
         physician_name: 'dr.reyes',
         patient_id: 'p-1',
+        patient_uid: 'PAT-000042',
+        patient_name: null,
       },
     });
   });
