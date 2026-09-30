@@ -173,7 +173,7 @@ describe('QueueAssignmentDashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Confirm Assignment/i }));
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Specimen assigned successfully.');
+      expect(toast.success).toHaveBeenCalledWith('SAM-000001 assigned to Alice Med.');
     });
   });
 
