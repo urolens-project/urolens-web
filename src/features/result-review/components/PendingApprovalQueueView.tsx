@@ -124,7 +124,7 @@ export function PendingApprovalQueueView() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
-                        {formatSampleId(row.sample_uid, row.specimen_id)}
+                        {formatSampleId(row.sample_uid)}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-600">{row.medtech_name || '—'}</td>

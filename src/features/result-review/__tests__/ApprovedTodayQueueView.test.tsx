@@ -19,6 +19,7 @@ function makeItem(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     result_id: 'r-1',
     specimen_id: 'specimen-uuid-1234',
+    sample_uid: 'SMP-20260930-00001',
     patient_uid: 'PAT-000001',
     patient_age: 34,
     patient_sex: 'FEMALE',
@@ -54,6 +55,20 @@ describe('ApprovedTodayQueueView', () => {
 
     expect(await screen.findByText('PAT-000001')).toBeInTheDocument();
     expect(screen.getByText('medtech_juan')).toBeInTheDocument();
+    expect(screen.getByText('SMP-20260930-00001')).toBeInTheDocument();
+  });
+
+  it('shows a dash when the specimen has no sample UID yet', async () => {
+    vi.mocked(fetchApprovedToday).mockResolvedValue({
+      items: [makeItem({ sample_uid: null })],
+      total: 1,
+      page: 1,
+      page_size: 20,
+    });
+    renderView();
+
+    await screen.findByText('PAT-000001');
+    expect(screen.getByText('—')).toBeInTheDocument();
   });
 
   it('says so clearly when nothing has been approved yet today', async () => {
