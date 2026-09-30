@@ -65,13 +65,18 @@ export default function PatientLoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">UroLens Patient Portal</h1>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+              UroLens Patient Portal
+            </h1>
             <p className="text-sm text-slate-500 mt-1">Access your laboratory results</p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div>
-              <label htmlFor="patient-uid" className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label
+                htmlFor="patient-uid"
+                className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5"
+              >
                 Patient ID
               </label>
               <input
@@ -82,7 +87,7 @@ export default function PatientLoginPage() {
                   setPatientUid(e.target.value);
                   if (patientUidError) setPatientUidError('');
                 }}
-                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                className={`w-full h-11 px-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
                   patientUidError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
                 placeholder="Enter your Patient ID from the lab receipt"
@@ -95,7 +100,10 @@ export default function PatientLoginPage() {
             </div>
 
             <div>
-              <label htmlFor="patient-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label
+                htmlFor="patient-password"
+                className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5"
+              >
                 Password
               </label>
               <input
@@ -106,7 +114,7 @@ export default function PatientLoginPage() {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError('');
                 }}
-                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                className={`w-full h-11 px-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
                   passwordError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
                 placeholder="SURNAME + date of birth (e.g. DELACRUZ01011990)"
@@ -117,8 +125,8 @@ export default function PatientLoginPage() {
                 <p className="mt-1.5 text-xs text-red-500 font-semibold">{passwordError}</p>
               )}
               <p className="mt-2 text-xs text-slate-400">
-                Password format: last name (uppercase, no spaces) followed by date of birth as DDMMYYYY.
-                Example: <span className="font-mono">SANTOS05031990</span>
+                Password format: last name (uppercase, no spaces) followed by date of birth as
+                DDMMYYYY. Example: <span className="font-mono">SANTOS05031990</span>
               </p>
             </div>
 
@@ -131,12 +139,23 @@ export default function PatientLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 bg-emerald-700 text-white rounded-xl text-sm font-semibold hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting && (
                 <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                  />
                 </svg>
               )}
               {isSubmitting ? 'Verifying...' : 'View My Results'}

@@ -1,5 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Activity, AlertCircle, ClipboardList, Eye, EyeOff, Lock, ShieldCheck, User, Zap } from 'lucide-react';
+import {
+  Activity,
+  AlertCircle,
+  ClipboardList,
+  Eye,
+  EyeOff,
+  Lock,
+  ShieldCheck,
+  User,
+  Zap,
+} from 'lucide-react';
 import { useLogin } from '../hooks/useAuth';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
@@ -16,8 +26,8 @@ function getErrorMessage(code: string | undefined): string {
 }
 
 const features = [
-  { icon: Zap,           text: 'AI-assisted urinalysis and particle classification' },
-  { icon: ShieldCheck,   text: 'Role-gated access across all clinical roles'        },
+  { icon: Zap, text: 'AI-assisted urinalysis and particle classification' },
+  { icon: ShieldCheck, text: 'Role-gated access across all clinical roles' },
   { icon: ClipboardList, text: 'Supervisor approval workflows with full audit trail' },
 ];
 
@@ -36,8 +46,14 @@ export default function LoginForm() {
     let valid = true;
     setUsernameError('');
     setPasswordError('');
-    if (!username.trim()) { setUsernameError('Username is required.'); valid = false; }
-    if (!password)         { setPasswordError('Password is required.'); valid = false; }
+    if (!username.trim()) {
+      setUsernameError('Username is required.');
+      valid = false;
+    }
+    if (!password) {
+      setPasswordError('Password is required.');
+      valid = false;
+    }
     return valid;
   }
 
@@ -47,7 +63,8 @@ export default function LoginForm() {
     if (!validate()) return;
     loginMutation.mutate(
       { username: username.trim(), password },
-      { onError: (error: AxiosError<ApiError>) => {
+      {
+        onError: (error: AxiosError<ApiError>) => {
           const code = error.response?.data?.error?.code;
           setServerError(getErrorMessage(code));
         },
@@ -57,10 +74,8 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex">
-
       {/* ── Left brand panel ──────────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] relative flex-col justify-between p-12 bg-slate-900 overflow-hidden">
-
         {/* Background glow blobs */}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-emerald-950/60 via-slate-900 to-slate-900" />
         <div className="pointer-events-none absolute -top-32 -right-32 h-120 w-120 rounded-full bg-emerald-600/10 blur-[120px]" />
@@ -69,7 +84,10 @@ export default function LoginForm() {
         {/* Subtle grid overlay */}
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'repeating-linear-gradient(0deg,#fff 0px,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#fff 0px,#fff 1px,transparent 1px,transparent 40px)' }}
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(0deg,#fff 0px,#fff 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,#fff 0px,#fff 1px,transparent 1px,transparent 40px)',
+          }}
         />
 
         {/* Logo */}
@@ -78,9 +96,11 @@ export default function LoginForm() {
             <Activity className="h-5 w-5 text-white" />
           </div>
           <div>
-            <p className="text-white font-bold text-base tracking-tight leading-none">UroLens LIS</p>
+            <p className="text-white font-bold text-base tracking-tight leading-none">
+              UroLens LIS
+            </p>
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-400/80">
-              Laboratory Information System
+              AI-Assisted Diagnostic Support
             </p>
           </div>
         </div>
@@ -89,10 +109,13 @@ export default function LoginForm() {
         <div className="relative z-10 space-y-10">
           <div>
             <h2 className="text-[2.6rem] font-bold leading-[1.15] text-white tracking-tight">
-              Precision in<br />every diagnosis.
+              Precision in
+              <br />
+              every diagnosis.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400 max-w-xs">
-              A clinical-grade platform built for urology laboratory workflows — from specimen intake through result sign-off.
+              AI-assisted urinalysis with automated sediment detection and diagnostic support — from
+              specimen intake through result sign-off.
             </p>
           </div>
 
@@ -109,14 +132,19 @@ export default function LoginForm() {
         </div>
 
         {/* Footer */}
-        <p className="relative z-10 text-xs text-slate-600">
-          &copy; {new Date().getFullYear()} UroLens LIS &middot; All rights reserved
-        </p>
+        <div className="relative z-10 space-y-1">
+          <p className="text-[11px] text-slate-600 leading-relaxed max-w-xs">
+            UroLens: AI-Assisted Urinalysis for Automated Sediment Detection and Probabilistic
+            Diagnostic Support
+          </p>
+          <p className="text-xs text-slate-600">
+            &copy; {new Date().getFullYear()} UroLens LIS &middot; All rights reserved
+          </p>
+        </div>
       </div>
 
       {/* ── Right form panel ──────────────────────────────────────────────── */}
       <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12">
-
         {/* Mobile logo (hidden on lg+) */}
         <div className="lg:hidden flex items-center gap-2.5 mb-10">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600">
@@ -126,7 +154,6 @@ export default function LoginForm() {
         </div>
 
         <div className="w-full max-w-sm">
-
           {/* Form header */}
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
@@ -134,10 +161,12 @@ export default function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-
             {/* Username */}
             <div>
-              <label htmlFor="username" className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5">
+              <label
+                htmlFor="username"
+                className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5"
+              >
                 Username
               </label>
               <div className="relative">
@@ -148,7 +177,10 @@ export default function LoginForm() {
                   value={username}
                   autoComplete="username"
                   disabled={isSubmitting}
-                  onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(''); }}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (usernameError) setUsernameError('');
+                  }}
                   placeholder="Your registered username"
                   className={`w-full h-11 rounded-xl border pl-10 pr-4 text-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
                     usernameError
@@ -166,7 +198,10 @@ export default function LoginForm() {
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5">
+              <label
+                htmlFor="password"
+                className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5"
+              >
                 Password
               </label>
               <div className="relative">
@@ -177,7 +212,10 @@ export default function LoginForm() {
                   value={password}
                   autoComplete="current-password"
                   disabled={isSubmitting}
-                  onChange={(e) => { setPassword(e.target.value); if (passwordError) setPasswordError(''); }}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (passwordError) setPasswordError('');
+                  }}
                   placeholder="Your security password"
                   className={`w-full h-11 rounded-xl border pl-10 pr-10 text-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
                     passwordError
@@ -219,8 +257,19 @@ export default function LoginForm() {
               {isSubmitting ? (
                 <>
                   <svg className="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Verifying…
                 </>
