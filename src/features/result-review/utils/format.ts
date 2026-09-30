@@ -9,3 +9,9 @@ export function formatTimestamp(iso: string | null): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+
+// null is a real state (visual check not yet passed, or specimen not found),
+// not a missing-field placeholder — show a dash rather than a fabricated ID.
+export function formatSampleId(sampleUid: string | null): string {
+  return sampleUid ?? '—';
+}
