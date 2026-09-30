@@ -173,6 +173,21 @@ describe('SampleLabelingScreen additions', () => {
     printSpy.mockRestore();
   });
 
+  it('scopes the print area to the label card, not the on-screen captions around it', async () => {
+    renderScreen(handoff);
+    await screen.findByRole('button', { name: 'Change' });
+    fireEvent.click(screen.getByRole('button', { name: /Generate Label/i }));
+
+    await screen.findByText(/Label Preview — check this before printing/i);
+    const printArea = document.querySelector('.label-print-area');
+    expect(printArea).not.toBeNull();
+    // The card's own content is inside the print area...
+    expect(printArea).toHaveTextContent('Juan Dela Cruz');
+    // ...but the surrounding on-screen instructions are not.
+    expect(printArea).not.toHaveTextContent('Label Preview — check this before printing');
+    expect(printArea).not.toHaveTextContent(/Next: print this label/i);
+  });
+
   it('shows a readable message when the label cannot be printed yet', async () => {
     vi.mocked(sampleLabelingApi.printLabel).mockRejectedValueOnce({
       message: 'Request failed with status code 400',
