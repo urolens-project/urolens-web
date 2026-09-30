@@ -32,11 +32,7 @@ function makeQueryClient() {
 }
 
 function Wrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <QueryClientProvider client={makeQueryClient()}>
-      {children}
-    </QueryClientProvider>
-  );
+  return <QueryClientProvider client={makeQueryClient()}>{children}</QueryClientProvider>;
 }
 
 const mockWorkloads: MedTechWorkloadItem[] = [
@@ -48,7 +44,7 @@ const mockSpecimens: PendingSpecimenItem[] = [
   {
     specimen_id: 'spec-1',
     sample_uid: 'SAM-000001',
-    patient_uid: 'PAT-00001',
+    patient_name: 'PAT-00001',
     test_type: 'Urinalysis',
     received_at: '2026-05-20T10:00:00Z',
     status: 'LABELED',

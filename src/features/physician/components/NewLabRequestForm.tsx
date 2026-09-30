@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  AlertCircle, ArrowLeft, CheckCircle2, ChevronRight, ClipboardList,
-  Loader2, Search, User, X,
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  Loader2,
+  Search,
+  User,
+  X,
 } from 'lucide-react';
 import { useCreateLabRequest, usePatientSearch } from '../hooks/usePhysician';
 import type { LabRequestCreateResponse, PhysicianPatient } from '../types';
@@ -41,7 +48,10 @@ function ConfirmationCard({
         </div>
         <div>
           <h2 className="text-xl font-bold text-slate-900">Lab Request Submitted</h2>
-          <p className="mt-1 text-sm text-slate-500">Your request has been queued for specimen collection.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Your request has been queued for specimen collection. You'll be able to view the result
+            under My Results once it's ready.
+          </p>
         </div>
         <div className="rounded-xl border border-emerald-100 bg-white px-6 py-4 text-left space-y-3">
           <div className="flex items-center justify-between text-sm">
@@ -54,7 +64,9 @@ function ConfirmationCard({
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Test</span>
-            <span className="font-medium text-slate-900">{result.test_type.replace(/_/g, ' ')}</span>
+            <span className="font-medium text-slate-900">
+              {result.test_type.replace(/_/g, ' ')}
+            </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Status</span>
@@ -213,13 +225,16 @@ export function NewLabRequestForm() {
         <div>
           <h1 className="text-xl font-bold text-slate-900">New Lab Request</h1>
           <p className="mt-0.5 text-sm text-slate-500">
-            Search for a patient and specify the test you are requesting.
+            Enter the patient's ID and specify the test you are requesting.
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} noValidate className="rounded-2xl border border-slate-200 bg-white shadow-xs p-6 space-y-6">
-
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="rounded-2xl border border-slate-200 bg-white shadow-xs p-6 space-y-6"
+      >
         {/* Patient search */}
         <div ref={dropdownRef} className="relative">
           <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5">
@@ -240,13 +255,13 @@ export function NewLabRequestForm() {
                 setDropdownDismissed(false);
                 setErrors((p) => ({ ...p, patient: '' }));
               }}
-              placeholder="Search by patient name…"
+              placeholder="Search by Patient ID (e.g. PAT-000123)…"
               className={`w-full h-11 rounded-xl border pl-10 pr-10 text-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                 errors.patient
                   ? 'border-red-400 bg-red-50/40'
                   : selectedPatient
-                  ? 'border-emerald-200 bg-emerald-50/40'
-                  : 'border-slate-200 bg-slate-50/60 hover:border-slate-300 focus:bg-white'
+                    ? 'border-emerald-200 bg-emerald-50/40'
+                    : 'border-slate-200 bg-slate-50/60 hover:border-slate-300 focus:bg-white'
               }`}
             />
             {(query || selectedPatient) && (
@@ -276,9 +291,7 @@ export function NewLabRequestForm() {
                     <User className="h-4 w-4 text-slate-500" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {p.patient_uid}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-800">{p.patient_uid}</p>
                     <p className="text-xs text-slate-400">
                       DOB {p.date_of_birth} · {p.sex}
                     </p>
@@ -289,9 +302,14 @@ export function NewLabRequestForm() {
             </div>
           )}
 
-          {debouncedQuery.trim().length >= 2 && !isSearching && searchResults.length === 0 && !selectedPatient && (
-            <p className="mt-1.5 text-xs text-slate-500">No patients found matching "{debouncedQuery}".</p>
-          )}
+          {debouncedQuery.trim().length >= 2 &&
+            !isSearching &&
+            searchResults.length === 0 &&
+            !selectedPatient && (
+              <p className="mt-1.5 text-xs text-slate-500">
+                No patients found matching "{debouncedQuery}".
+              </p>
+            )}
 
           {errors.patient && (
             <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-500">
@@ -307,13 +325,18 @@ export function NewLabRequestForm() {
           </label>
           <select
             value={testType}
-            onChange={(e) => { setTestType(e.target.value); setErrors((p) => ({ ...p, testType: '' })); }}
+            onChange={(e) => {
+              setTestType(e.target.value);
+              setErrors((p) => ({ ...p, testType: '' }));
+            }}
             className={`w-full h-11 rounded-xl border px-3 text-sm bg-slate-50/60 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
               errors.testType ? 'border-red-400 bg-red-50/40' : 'border-slate-200'
             }`}
           >
             {TEST_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
           {errors.testType && (
@@ -326,7 +349,8 @@ export function NewLabRequestForm() {
         {/* Clinical notes */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-1.5">
-            Clinical Notes <span className="text-slate-300 font-normal normal-case">(optional)</span>
+            Clinical Notes{' '}
+            <span className="text-slate-300 font-normal normal-case">(optional)</span>
           </label>
           <textarea
             value={clinicalNotes}
