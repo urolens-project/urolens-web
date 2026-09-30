@@ -74,21 +74,31 @@ export interface SpecimenReceiveResponse {
 
 export interface LabelPreviewData {
   patient_name: string;
-  patient_uid: string;
-  sample_uid: string;
-  test_type: string;
+  patient_uid: string | null;
+  sample_uid: string | null;
+  test_type: string | null;
   date: string;
 }
 
 export interface PrintLabelResponse {
   success: boolean;
   label_id: string;
-  print_job_id: string;
+  // Generating a label no longer also creates a print job — always null now.
+  print_job_id: string | null;
+  label_count: number;
   preview: LabelPreviewData;
+}
+
+export interface PrintJobResponse {
+  success: boolean;
+  print_job_id: string;
+  label_id: string;
+  status: string;
 }
 
 export interface ConfirmAffixedResponse {
   success: boolean;
   message: string;
   updated_status: string;
+  offline_override_used: boolean;
 }
