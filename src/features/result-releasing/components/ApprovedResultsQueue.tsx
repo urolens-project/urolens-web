@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { CheckCircle, RefreshCw, Send, FlaskConical } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { CheckCircle, RefreshCw, Send, FlaskConical, Loader2 } from 'lucide-react';
 import { useApprovedResults, useReleaseResult } from '../hooks/useResultReleasing';
 import { ReleaseConfirmationModal } from './ReleaseConfirmationModal';
+import { Button } from '../../../components/ui/Button';
 import type { ApprovedResultItem, ReleaseMethod } from '../types';
+import { formatTestType } from '../utils';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('en-PH', {
@@ -15,13 +17,25 @@ function formatDate(iso: string): string {
 }
 
 export function ApprovedResultsQueue() {
-  const [cursor, setCursor] = useState<string | undefined>();
   const [selectedResult, setSelectedResult] = useState<ApprovedResultItem | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<ReleaseMethod | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data, isLoading, isFetching, isError, refetch } = useApprovedResults(20, cursor);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useApprovedResults();
   const releaseMutation = useReleaseResult();
+
+  // The infinite query already accumulates every page loaded so far —
+  // "Load more" adds to this list rather than replacing what's on screen.
+  const items = useMemo(() => data?.pages.flatMap((page) => page.data) ?? [], [data]);
 
   function handleOpenModal(result: ApprovedResultItem) {
     setSelectedResult(result);
@@ -58,18 +72,22 @@ export function ApprovedResultsQueue() {
             <div>
               <h1 className="text-xl font-bold text-slate-900">Approved Results</h1>
               <p className="mt-0.5 text-sm text-emerald-700">
-                {isLoading ? 'Loading…' : `${data?.data.length ?? 0} result${data?.data.length !== 1 ? 's' : ''} ready for release`}
+                {isLoading
+                  ? 'Loading…'
+                  : `${items.length} result${items.length !== 1 ? 's' : ''} ready for release`}
               </p>
             </div>
           </div>
-          <button
-            onClick={() => refetch()}
+          <Button
+            variant="secondary"
+            size="sm"
+            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
             disabled={isFetching}
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 h-9 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors disabled:opacity-60 shrink-0 cursor-pointer"
+            onClick={() => refetch()}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             {isFetching ? 'Refreshing…' : 'Refresh'}
-          </button>
+          </Button>
         </div>
 
         {isError && (
@@ -84,7 +102,10 @@ export function ApprovedResultsQueue() {
             <thead className="border-b border-slate-200 bg-slate-50">
               <tr>
                 {['Patient', 'Sample ID', 'Test Type', 'Approved At', 'Action'].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                  <th
+                    key={h}
+                    className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                  >
                     {h}
                   </th>
                 ))}
@@ -101,7 +122,7 @@ export function ApprovedResultsQueue() {
                     ))}
                   </tr>
                 ))
-              ) : data?.data.length === 0 ? (
+              ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
@@ -109,31 +130,34 @@ export function ApprovedResultsQueue() {
                         <FlaskConical className="h-7 w-7 text-slate-300" />
                       </div>
                       <p className="font-semibold text-slate-800">No approved results</p>
-                      <p className="text-xs text-slate-400">Approved results will appear here once the Supervisor approves them.</p>
+                      <p className="text-xs text-slate-400">
+                        Approved results will appear here once the Supervisor approves them.
+                      </p>
                     </div>
                   </td>
                 </tr>
               ) : (
-                (data?.data ?? []).map((row) => (
+                items.map((row) => (
                   <tr key={row.result_id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">{row.patient_uid}</p>
+                      <p className="font-semibold text-slate-800">{row.patient_uid ?? 'N/A'}</p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
                         {row.sample_uid ?? '—'}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{row.test_type ?? '—'}</td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{formatDate(row.approved_at)}</td>
+                    <td className="px-5 py-4 text-xs text-slate-500">
+                      {formatTestType(row.test_type)}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-slate-500">
+                      {formatDate(row.approved_at)}
+                    </td>
                     <td className="px-5 py-4">
-                      <button
-                        onClick={() => handleOpenModal(row)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 h-8 text-xs font-semibold text-white transition-colors cursor-pointer"
-                      >
+                      <Button variant="primary" size="sm" onClick={() => handleOpenModal(row)}>
                         <Send className="h-3 w-3" />
                         Release
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -143,14 +167,23 @@ export function ApprovedResultsQueue() {
         </div>
 
         {/* Pagination */}
-        {data?.pagination.has_more && (
+        {hasNextPage && (
           <div className="flex justify-end">
-            <button
-              onClick={() => setCursor(data.pagination.next_cursor ?? undefined)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 h-9 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
             >
-              Load more
-            </button>
+              {isFetchingNextPage ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading…
+                </>
+              ) : (
+                'Load more'
+              )}
+            </Button>
           </div>
         )}
       </div>
