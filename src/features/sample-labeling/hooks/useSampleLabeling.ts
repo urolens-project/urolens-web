@@ -13,6 +13,12 @@ export function useSpecimenSearch(query: string) {
   });
 }
 
+export function useGenerateLabel() {
+  return useMutation({
+    mutationFn: (specimenId: string) => sampleLabelingApi.generateLabel(specimenId),
+  });
+}
+
 export function usePrintLabel() {
   return useMutation({
     mutationFn: (specimenId: string) => sampleLabelingApi.printLabel(specimenId),
