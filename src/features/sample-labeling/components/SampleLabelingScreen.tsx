@@ -348,14 +348,17 @@ export default function SampleLabelingScreen() {
                 )}
 
                 {previewData && (
-                  <div className="label-print-area max-w-sm mx-auto animate-slideDown">
+                  <div className="max-w-sm mx-auto animate-slideDown">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-2">
                       Label Preview — check this before printing
                     </p>
 
                     {/* Label card — mimics a physical thermal label, so its type
-                        stays small on purpose regardless of the rest of the page */}
-                    <div className="bg-white border border-slate-300 rounded-xl shadow-md overflow-hidden">
+                        stays small on purpose regardless of the rest of the page.
+                        label-print-area is scoped to just this card, not the
+                        captions around it — those are on-screen instructions,
+                        not part of what should come out of the printer. */}
+                    <div className="label-print-area bg-white border border-slate-300 rounded-xl shadow-md overflow-hidden">
                       <div className="bg-[#005B4B] px-4 py-2 flex items-center justify-between">
                         <span className="text-white font-black text-xs tracking-wider uppercase">
                           UroLens
