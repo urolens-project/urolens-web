@@ -19,7 +19,6 @@ export function useAssignSpecimen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['queue', 'pending'] });
       queryClient.invalidateQueries({ queryKey: ['queue', 'workloads'] });
-      toast.success('Specimen assigned successfully.');
     },
     onError: (err: ApiError) => {
       const code = err.response?.data?.error?.code;

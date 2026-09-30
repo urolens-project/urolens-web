@@ -14,6 +14,12 @@ function workloadBadge(count: number): { label: string; className: string } {
   return { label: `${count} active`, className: 'bg-rose-100 text-rose-700' };
 }
 
+function workloadLevel(count: number): string {
+  if (count <= 3) return 'Light workload';
+  if (count <= 6) return 'Moderate workload';
+  return 'Heavy workload';
+}
+
 function barColor(count: number): string {
   if (count <= 3) return 'bg-emerald-500';
   if (count <= 6) return 'bg-amber-500';
@@ -87,6 +93,7 @@ export function MedTechWorkloadPanel({
                     {badge.label}
                   </span>
                 </div>
+                <p className="mt-1 text-xs text-slate-400">{workloadLevel(mt.active_count)}</p>
                 <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden max-w-48">
                   <div
                     className={`h-full rounded-full transition-all ${bar}`}
