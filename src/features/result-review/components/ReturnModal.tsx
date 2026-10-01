@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useReturnResult } from '../hooks/useResultReview';
+import { getReturnErrorMessage } from '../utils/errors';
 
 interface Props {
   resultId: string;
@@ -17,7 +18,11 @@ export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
 
   async function handleConfirm() {
     if (!reason.trim()) return;
-    await mutation.mutateAsync(reason.trim());
+    try {
+      await mutation.mutateAsync(reason.trim());
+    } catch {
+      return;
+    }
     onSuccess();
     onClose();
   }
@@ -44,7 +49,7 @@ export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
           />
         </div>
         {mutation.isError && (
-          <p className="text-xs text-red-600">Failed to return result. Please try again.</p>
+          <p className="text-xs text-red-600">{getReturnErrorMessage(mutation.error)}</p>
         )}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" size="sm" onClick={onClose} disabled={mutation.isPending}>
