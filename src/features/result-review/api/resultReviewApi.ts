@@ -46,7 +46,7 @@ export async function saveOverride(
   original_ai_value: number,
 ): Promise<OverrideResponse> {
   const { data } = await apiClient.post<OverrideResponse>(`/results/${resultId}/override`, {
-    parameter_name: parameter,
+    parameter,
     corrected_value,
     rationale,
     original_ai_value,
