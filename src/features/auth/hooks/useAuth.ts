@@ -2,17 +2,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/authApi';
 import { useAuthContext } from '../../../lib/auth/useAuthContext';
+import { roleToDashboard } from '../../../lib/auth/roleToDashboard';
+import type { UserRole } from '../../../types/enums';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
-
-const roleToDashboard: Record<string, string> = {
-  receptionist: '/dashboard/receptionist',
-  supervisor: '/dashboard/supervisor',
-  physician: '/dashboard/physician',
-  patient: '/dashboard/patient',
-  administrator: '/dashboard/administrator',
-  medtech: '/dashboard/medtech',
-};
 
 export function useLogin() {
   const { login } = useAuthContext();
@@ -25,7 +18,7 @@ export function useLogin() {
       // normalizes it for its own state, but this lookup needs the same
       // normalization, or it never matches and every login falls through
       // to the fallback dashboard regardless of actual role.
-      const normalizedRole = data.role.toLowerCase();
+      const normalizedRole = data.role.toLowerCase() as UserRole;
       login(data.access_token, data.role);
       const dashboard = roleToDashboard[normalizedRole] ?? '/dashboard/receptionist';
       navigate(dashboard, { replace: true });

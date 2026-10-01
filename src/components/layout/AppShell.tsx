@@ -3,12 +3,13 @@ import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { authApi } from '../../features/auth/api/authApi';
 import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
+import { SessionWarningModal } from './SessionWarningModal';
 
 export default function AppShell() {
   const { role, logout } = useAuthContext();
   const navigate = useNavigate();
 
-  useSessionTimeout();
+  const { isWarningVisible, dismissWarning } = useSessionTimeout();
 
   async function handleLogout() {
     const isPatient = role === 'patient';
@@ -31,7 +32,7 @@ export default function AppShell() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-bold text-slate-800">UroLens LIS</h1>
+              <h1 className="text-lg font-bold text-slate-800">UroLens</h1>
               {role && (
                 <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full capitalize">
                   {role}
@@ -50,6 +51,7 @@ export default function AppShell() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
+      <SessionWarningModal isVisible={isWarningVisible} onStaySignedIn={dismissWarning} />
     </div>
   );
 }

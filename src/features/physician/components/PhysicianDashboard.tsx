@@ -42,7 +42,11 @@ export function PhysicianDashboard() {
   const navigate = useNavigate();
 
   async function handleLogout() {
-    try { await authApi.logout(); } catch { /* ignore */ }
+    try {
+      await authApi.logout();
+    } catch {
+      /* ignore */
+    }
     logout();
     navigate('/login', { replace: true });
   }
@@ -57,7 +61,7 @@ export function PhysicianDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Physician Portal</h1>
-            <p className="text-sm text-slate-500 mt-0.5">UroLens Laboratory Information System</p>
+            <p className="text-sm text-slate-500 mt-0.5">UroLens AI-Assisted Urinalysis Platform</p>
           </div>
         </div>
         <button
@@ -79,7 +83,9 @@ export function PhysicianDashboard() {
               onClick={() => navigate(card.href)}
               className={`group text-left w-full rounded-2xl border bg-white p-6 shadow-xs transition-all cursor-pointer ${colors.card}`}
             >
-              <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border ${colors.iconBg} mb-4`}>
+              <div
+                className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border ${colors.iconBg} mb-4`}
+              >
                 <Icon className={`h-6 w-6 ${colors.icon}`} />
               </div>
               <h2 className="text-base font-bold text-slate-900">{card.title}</h2>
