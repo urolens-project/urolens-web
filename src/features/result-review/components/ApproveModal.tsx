@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useApproveResult } from '../hooks/useResultReview';
+import { getApproveErrorMessage } from '../utils/errors';
 
 interface Props {
   resultId: string;
@@ -16,7 +17,11 @@ export function ApproveModal({ resultId, open, onClose, onSuccess }: Props) {
   const mutation = useApproveResult(resultId);
 
   async function handleConfirm() {
-    await mutation.mutateAsync(notes.trim() || undefined);
+    try {
+      await mutation.mutateAsync(notes.trim() || undefined);
+    } catch {
+      return;
+    }
     onSuccess();
     onClose();
   }
@@ -43,7 +48,7 @@ export function ApproveModal({ resultId, open, onClose, onSuccess }: Props) {
           />
         </div>
         {mutation.isError && (
-          <p className="text-xs text-red-600">Failed to approve. Please try again.</p>
+          <p className="text-xs text-red-600">{getApproveErrorMessage(mutation.error)}</p>
         )}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" size="sm" onClick={onClose} disabled={mutation.isPending}>
