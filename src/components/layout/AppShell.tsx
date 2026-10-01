@@ -3,6 +3,7 @@ import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { authApi } from '../../features/auth/api/authApi';
 import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
+import { NotificationBell } from '../../features/notifications';
 
 export default function AppShell() {
   const { role, logout } = useAuthContext();
@@ -38,12 +39,15 @@ export default function AppShell() {
                 </span>
               )}
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </header>
