@@ -31,7 +31,7 @@ export interface PendingResultListResponse {
 
 export interface BoundingBox {
   id: string;
-  label: string;
+  particle_type: string;
   x: number;
   y: number;
   w: number;
