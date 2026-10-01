@@ -57,7 +57,7 @@ export default function SupervisorDashboard() {
   const statCards = [
     {
       label: 'Pending Approval',
-      value: stats?.pendingCount ?? 0,
+      value: stats?.pending_count ?? 0,
       icon: Clock,
       color: 'text-amber-600',
       bg: 'bg-amber-50/60',
@@ -67,7 +67,7 @@ export default function SupervisorDashboard() {
     },
     {
       label: 'Approved Today',
-      value: stats?.approvedToday ?? 0,
+      value: stats?.approved_today ?? 0,
       icon: CheckCircle2,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50/60',
@@ -77,7 +77,7 @@ export default function SupervisorDashboard() {
     },
     {
       label: 'Escalated Cases',
-      value: stats?.escalatedCount ?? 0,
+      value: stats?.escalated_count ?? 0,
       icon: AlertTriangle,
       color: 'text-rose-600',
       bg: 'bg-rose-50/60',

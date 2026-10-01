@@ -33,7 +33,7 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
             <StickyNote className="h-3.5 w-3.5 text-slate-500" />
           </div>
           <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
-            Supervisor Annotation
+            Annotation
           </span>
           {initialNotes && (
             <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
