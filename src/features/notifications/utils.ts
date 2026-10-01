@@ -25,7 +25,7 @@ export function getNotificationLink(
     case 'SAMPLE_ASSIGNED':
       return role === 'medtech' ? '/medtech/results' : null;
     case 'LAB_REQUEST_SUBMITTED':
-      return role === 'receptionist' ? '/intake/queue' : null;
+      return role === 'receptionist' ? '/intake/receive' : null;
     default:
       return null;
   }
