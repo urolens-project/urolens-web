@@ -13,9 +13,7 @@ export function useSessionTimeout() {
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isWarningVisible, setIsWarningVisible] = useState(false);
 
-  const timeoutMinutes = Number(
-    import.meta.env.VITE_SESSION_TIMEOUT_MINUTES ?? 30,
-  );
+  const timeoutMinutes = Number(import.meta.env.VITE_SESSION_TIMEOUT_MINUTES ?? 30);
   const timeoutMs = timeoutMinutes * 60 * 1000;
   const warningMs = WARNING_MINUTES * 60 * 1000;
 
@@ -79,6 +77,12 @@ export function useSessionTimeout() {
 
   return {
     isWarningVisible: isAuthenticated && isWarningVisible,
-    dismissWarning: () => setIsWarningVisible(false),
+    // Dismissing the warning counts as activity (UAC: dismissing it
+    // directly must cancel the expiration, not just hide the dialog) — so
+    // this has to reset the timer too, not only hide it.
+    dismissWarning: () => {
+      setIsWarningVisible(false);
+      resetTimer();
+    },
   };
 }
