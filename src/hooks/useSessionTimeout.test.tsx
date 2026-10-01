@@ -179,6 +179,54 @@ describe('useSessionTimeout', () => {
     expect(mockAuthApiLogout).not.toHaveBeenCalled();
   });
 
+  it('shows the warning 2 minutes before the timeout fires', () => {
+    const { result } = renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    act(() => {
+      vi.advanceTimersByTime(28 * 60 * 1000);
+    });
+
+    expect(result.current.isWarningVisible).toBe(true);
+  });
+
+  it('dismissWarning cancels the expiration, not just hides the dialog', async () => {
+    const { result } = renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    // Let the warning appear (28 min in, 2 min before the 30 min timeout).
+    act(() => {
+      vi.advanceTimersByTime(28 * 60 * 1000);
+    });
+    expect(result.current.isWarningVisible).toBe(true);
+
+    // Dismissing it must count as activity — the warning hides AND the
+    // clock restarts, not just the former.
+    act(() => {
+      result.current.dismissWarning();
+    });
+    expect(result.current.isWarningVisible).toBe(false);
+
+    // Advance past the original timeout instant (2 more minutes = the
+    // moment the un-reset timer would have fired at 30 min). If dismiss
+    // only hid the dialog, logout would already have fired here.
+    //
+    // Deliberately advanceTimersByTimeAsync (not advanceTimersByTime +
+    // runAllTimersAsync) — runAllTimersAsync drains every pending timer
+    // regardless of how far out it's scheduled, which would also fire the
+    // freshly-reset future timers and produce a false pass/fail either way.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2 * 60 * 1000);
+    });
+    expect(mockAuthApiLogout).not.toHaveBeenCalled();
+
+    // The timer only actually restarted (full 30 min from the dismiss),
+    // so it should now fire after the remaining time elapses.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(28 * 60 * 1000);
+    });
+    await vi.runAllTimersAsync();
+    expect(mockAuthApiLogout).toHaveBeenCalled();
+  });
+
   it('uses default timeout of 30 minutes when env var is not set', () => {
     const original = import.meta.env.VITE_SESSION_TIMEOUT_MINUTES;
     vi.stubEnv('VITE_SESSION_TIMEOUT_MINUTES', undefined as unknown as string);
