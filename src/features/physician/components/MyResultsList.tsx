@@ -151,11 +151,16 @@ export function MyResultsList() {
             ) : (
               (data?.items ?? []).map((row: PhysicianResultSummary) => {
                 const chip = STATUS_CHIP[row.status] ?? fallbackChip;
+                const isReleased = row.status === 'RELEASED';
                 return (
                   <tr
                     key={row.result_id}
-                    onClick={() => navigate(`/physician/results/${row.result_id}`)}
-                    className="cursor-pointer group hover:bg-emerald-50/30 transition-colors"
+                    onClick={isReleased ? () => navigate(`/physician/results/${row.result_id}`) : undefined}
+                    className={
+                      isReleased
+                        ? 'cursor-pointer group hover:bg-emerald-50/30 transition-colors'
+                        : 'opacity-70'
+                    }
                   >
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">
@@ -174,6 +179,9 @@ export function MyResultsList() {
                       <Badge variant={chip.variant} dot>
                         {chip.label}
                       </Badge>
+                      {!isReleased && (
+                        <p className="mt-1 text-[11px] text-slate-400">Not yet released</p>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
                       {formatDate(row.confirmed_at)}
