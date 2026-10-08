@@ -21,11 +21,13 @@ export function PatientInfoSection({ result }: Props) {
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-indigo-50 border-b border-indigo-100">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100">
-          <User className="h-3.5 w-3.5 text-indigo-600" />
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-emerald-50 border-b border-emerald-100">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+          <User className="h-3.5 w-3.5 text-emerald-600" />
         </div>
-        <h3 className="text-xs font-bold text-indigo-800 uppercase tracking-widest">Patient Information</h3>
+        <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">
+          Patient Information
+        </h3>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100">
         <Cell label="Patient ID" value={result.patient_uid} />

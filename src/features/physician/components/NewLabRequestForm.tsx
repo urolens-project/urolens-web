@@ -219,8 +219,8 @@ export function NewLabRequestForm() {
       </button>
 
       <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xs">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100">
-          <ClipboardList className="h-6 w-6 text-indigo-600" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">
+          <ClipboardList className="h-6 w-6 text-emerald-600" />
         </div>
         <div>
           <h1 className="text-xl font-bold text-slate-900">New Lab Request</h1>
@@ -256,7 +256,7 @@ export function NewLabRequestForm() {
                 setErrors((p) => ({ ...p, patient: '' }));
               }}
               placeholder="Search by Patient ID (e.g. PAT-000123)…"
-              className={`w-full h-11 rounded-xl border pl-10 pr-10 text-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+              className={`w-full h-11 rounded-xl border pl-10 pr-10 text-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
                 errors.patient
                   ? 'border-red-400 bg-red-50/40'
                   : selectedPatient
@@ -329,7 +329,7 @@ export function NewLabRequestForm() {
               setTestType(e.target.value);
               setErrors((p) => ({ ...p, testType: '' }));
             }}
-            className={`w-full h-11 rounded-xl border px-3 text-sm bg-slate-50/60 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition ${
+            className={`w-full h-11 rounded-xl border px-3 text-sm bg-slate-50/60 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
               errors.testType ? 'border-red-400 bg-red-50/40' : 'border-slate-200'
             }`}
           >
@@ -357,7 +357,7 @@ export function NewLabRequestForm() {
             onChange={(e) => setClinicalNotes(e.target.value)}
             rows={4}
             placeholder="Relevant clinical history, symptoms, or instructions for the medical technologist…"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/60 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-3 text-sm resize-none transition"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/60 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent px-4 py-3 text-sm resize-none transition"
           />
         </div>
 
@@ -371,7 +371,7 @@ export function NewLabRequestForm() {
         <button
           type="submit"
           disabled={mutation.isPending}
-          className="w-full h-11 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full h-11 rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
         >
           {mutation.isPending ? (
             <>

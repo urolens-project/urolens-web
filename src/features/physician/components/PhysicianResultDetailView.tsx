@@ -60,8 +60,8 @@ export function PhysicianResultDetailView() {
     data.status === 'APPROVED'
       ? 'Approved'
       : data.status === 'PENDING_SUPERVISOR_APPROVAL'
-      ? 'Under Supervisor Review'
-      : data.status.replace(/_/g, ' ');
+        ? 'Under Supervisor Review'
+        : data.status.replace(/_/g, ' ');
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -76,8 +76,8 @@ export function PhysicianResultDetailView() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100">
-            <FlaskConical className="h-6 w-6 text-indigo-600" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">
+            <FlaskConical className="h-6 w-6 text-emerald-600" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900">{data.patient_uid}</h1>
@@ -87,10 +87,16 @@ export function PhysicianResultDetailView() {
             </p>
           </div>
         </div>
-        <span className={`mt-1 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
-          data.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-        }`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${data.status === 'APPROVED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+        <span
+          className={`mt-1 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
+            data.status === 'APPROVED'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${data.status === 'APPROVED' ? 'bg-emerald-500' : 'bg-amber-500'}`}
+          />
           {statusLabel}
         </span>
       </div>
@@ -100,7 +106,18 @@ export function PhysicianResultDetailView() {
         {[
           { label: 'Sample ID', value: data.specimen_id.slice(0, 8).toUpperCase() },
           { label: 'Processed by', value: data.medtech_name ?? '—' },
-          { label: 'Confirmed At', value: data.confirmed_at ? new Date(data.confirmed_at).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—' },
+          {
+            label: 'Confirmed At',
+            value: data.confirmed_at
+              ? new Date(data.confirmed_at).toLocaleString('en-PH', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '—',
+          },
           { label: 'AI Model', value: data.model_version || '—' },
         ].map(({ label, value }) => (
           <div key={label} className="rounded-xl border border-slate-100 bg-white px-4 py-3">
@@ -140,7 +157,9 @@ export function PhysicianResultDetailView() {
           <div className="px-6 py-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-900">Supervisor Notes</h2>
           </div>
-          <p className="px-6 py-4 text-sm text-slate-700 whitespace-pre-wrap">{data.annotation_notes}</p>
+          <p className="px-6 py-4 text-sm text-slate-700 whitespace-pre-wrap">
+            {data.annotation_notes}
+          </p>
         </div>
       )}
 
