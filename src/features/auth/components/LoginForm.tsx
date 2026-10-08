@@ -98,7 +98,7 @@ export default function LoginForm() {
           <div>
             <p className="text-white font-bold text-base tracking-tight leading-none">UroLens</p>
             <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-emerald-400/80">
-              Laboratory System
+              AI-Assisted Urinalysis Platform
             </p>
           </div>
         </div>
