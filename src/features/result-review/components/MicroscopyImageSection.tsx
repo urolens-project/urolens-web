@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Microscope, ImageOff, Save } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { AnnotationCanvas } from './AnnotationCanvas';
 import { useSaveAnnotation } from '../hooks/useResultReview';
@@ -43,9 +44,9 @@ export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
             Microscopy Image
           </h3>
           {boxes.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
+            <Badge variant="success">
               {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
-            </span>
+            </Badge>
           )}
         </div>
         <div className="flex items-center gap-2">

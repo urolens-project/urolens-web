@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import { useSaveOverride } from '../hooks/useResultReview';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
@@ -144,9 +145,9 @@ function ParticleRow({
               {displayValue}
             </span>
             {hasOverride && (
-              <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              <Badge variant="warning" className="px-1.5 py-0.5 whitespace-nowrap">
                 edited
-              </span>
+              </Badge>
             )}
             {localSaved && (
               <span className="text-xs text-emerald-600 font-semibold animate-in fade-in duration-200">
@@ -285,9 +286,9 @@ export function AIFindingsSection({ result }: Props) {
               </p>
             </div>
             {overrideCount > 0 && (
-              <span className="ml-1 inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <Badge variant="warning" className="ml-1">
                 {overrideCount} Manual Edit{overrideCount !== 1 ? 's' : ''}
-              </span>
+              </Badge>
             )}
           </div>
         </div>

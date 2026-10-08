@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
+import { getResultStatusVariant } from '../../../lib/resultStatusBadge';
 import { Spinner } from '../../../components/ui/Spinner';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
@@ -17,14 +18,11 @@ import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
 import { ReturnModal } from './ReturnModal';
 
-const STATUS_BADGE: Record<
-  string,
-  { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }
-> = {
-  PENDING_SUPERVISOR_APPROVAL: { variant: 'warning', label: 'Pending Approval' },
-  APPROVED: { variant: 'success', label: 'Approved' },
-  RETURNED_FOR_CORRECTION: { variant: 'info', label: 'Returned' },
-  CRITICAL_ESCALATED: { variant: 'danger', label: 'Critical Escalated' },
+const STATUS_LABEL: Record<string, string> = {
+  PENDING_SUPERVISOR_APPROVAL: 'Pending Approval',
+  APPROVED: 'Approved',
+  RETURNED_FOR_CORRECTION: 'Returned',
+  CRITICAL_ESCALATED: 'Critical Escalated',
 };
 
 export function FullResultDetailView() {
@@ -94,7 +92,8 @@ export function FullResultDetailView() {
     );
   }
 
-  const statusInfo = STATUS_BADGE[data.status] ?? { variant: 'default', label: data.status };
+  const statusVariant = getResultStatusVariant(data.status);
+  const statusLabel = STATUS_LABEL[data.status] ?? data.status;
   const canAct = data.status === 'PENDING_SUPERVISOR_APPROVAL';
 
   const patientMeta = [
@@ -133,8 +132,8 @@ export function FullResultDetailView() {
               </div>
 
               <div className="flex flex-col items-end gap-1.5 shrink-0">
-                <Badge variant={statusInfo.variant} className="px-3 py-1 text-xs font-semibold">
-                  {statusInfo.label}
+                <Badge variant={statusVariant} className="px-3 py-1 text-xs font-semibold">
+                  {statusLabel}
                 </Badge>
                 <span className="text-[10px] text-emerald-200 font-mono tracking-wider">
                   Spec: {data.specimen_id.slice(0, 8).toUpperCase()}

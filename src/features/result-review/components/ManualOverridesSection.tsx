@@ -1,4 +1,5 @@
 import { PencilLine } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import type { FullResultDetail } from '../types';
 
 interface Props {
@@ -17,11 +18,7 @@ export function ManualOverridesSection({ result }: Props) {
         <h3 className="text-xs font-bold text-amber-800 uppercase tracking-widest">
           Manual Overrides
         </h3>
-        {manual_overrides.length > 0 && (
-          <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-700">
-            {manual_overrides.length}
-          </span>
-        )}
+        {manual_overrides.length > 0 && <Badge variant="warning">{manual_overrides.length}</Badge>}
       </div>
 
       <div className="p-5">
@@ -47,9 +44,13 @@ export function ManualOverridesSection({ result }: Props) {
                 </div>
                 <div className="flex items-center gap-2 text-xs mb-2">
                   <span className="text-slate-400">AI value:</span>
-                  <span className="line-through text-slate-400 font-mono">{override.original_ai_value}</span>
+                  <span className="line-through text-slate-400 font-mono">
+                    {override.original_ai_value}
+                  </span>
                   <span className="text-slate-400">→</span>
-                  <span className="font-bold text-slate-800 font-mono">{override.corrected_value}</span>
+                  <span className="font-bold text-slate-800 font-mono">
+                    {override.corrected_value}
+                  </span>
                 </div>
                 <p className="text-xs text-slate-600 bg-white/70 rounded-lg px-2.5 py-1.5 border border-amber-100">
                   <span className="font-medium text-amber-700">Rationale: </span>

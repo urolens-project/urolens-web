@@ -11,47 +11,17 @@ import {
 import { useMyResults } from '../hooks/usePhysician';
 import type { PhysicianResultSummary } from '../types';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
+import { getResultStatusVariant } from '../../../lib/resultStatusBadge';
 
 const PAGE_SIZE = 20;
 
-const STATUS_CHIP: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  APPROVED: {
-    label: 'Approved',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    dot: 'bg-emerald-500',
-  },
-  PENDING_SUPERVISOR_APPROVAL: {
-    label: 'Under Review',
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
-    dot: 'bg-amber-500',
-  },
-  PENDING_CONFIRM: {
-    label: 'Pending Confirm',
-    bg: 'bg-slate-100',
-    text: 'text-slate-600',
-    dot: 'bg-slate-400',
-  },
-  RETURNED_FOR_CORRECTION: {
-    label: 'Returned',
-    bg: 'bg-orange-50',
-    text: 'text-orange-700',
-    dot: 'bg-orange-500',
-  },
-  CRITICAL_ESCALATED: {
-    label: 'Escalated',
-    bg: 'bg-rose-50',
-    text: 'text-rose-700',
-    dot: 'bg-rose-500',
-  },
-};
-
-const fallbackChip = {
-  label: 'Unknown',
-  bg: 'bg-slate-100',
-  text: 'text-slate-500',
-  dot: 'bg-slate-300',
+const STATUS_LABEL: Record<string, string> = {
+  APPROVED: 'Approved',
+  PENDING_SUPERVISOR_APPROVAL: 'Under Review',
+  PENDING_CONFIRM: 'Pending Confirm',
+  RETURNED_FOR_CORRECTION: 'Returned',
+  CRITICAL_ESCALATED: 'Escalated',
 };
 
 function formatAge(age: number | null, sex: string | null): string {
@@ -176,7 +146,6 @@ export function MyResultsList() {
               </tr>
             ) : (
               (data?.items ?? []).map((row: PhysicianResultSummary) => {
-                const chip = STATUS_CHIP[row.status] ?? fallbackChip;
                 return (
                   <tr
                     key={row.result_id}
@@ -197,12 +166,9 @@ export function MyResultsList() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${chip.bg} ${chip.text} border border-transparent`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
-                        {chip.label}
-                      </span>
+                      <Badge variant={getResultStatusVariant(row.status)} dot>
+                        {STATUS_LABEL[row.status] ?? 'Unknown'}
+                      </Badge>
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
                       {formatDate(row.confirmed_at)}

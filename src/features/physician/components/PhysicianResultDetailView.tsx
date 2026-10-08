@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FlaskConical, Loader2 } from 'lucide-react';
 import { AIDisclaimer } from '../../../components/feedback/AIDisclaimer';
+import { Badge } from '../../../components/ui/Badge';
+import { getResultStatusVariant } from '../../../lib/resultStatusBadge';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useResultDetail } from '../hooks/usePhysician';
 
@@ -87,18 +89,9 @@ export function PhysicianResultDetailView() {
             </p>
           </div>
         </div>
-        <span
-          className={`mt-1 inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
-            data.status === 'APPROVED'
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-amber-50 text-amber-700 border-amber-200'
-          }`}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${data.status === 'APPROVED' ? 'bg-emerald-500' : 'bg-amber-500'}`}
-          />
+        <Badge variant={getResultStatusVariant(data.status)} dot className="mt-1">
           {statusLabel}
-        </span>
+        </Badge>
       </div>
 
       {/* Meta row */}

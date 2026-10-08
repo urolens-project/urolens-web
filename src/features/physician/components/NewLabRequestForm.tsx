@@ -11,6 +11,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import { useCreateLabRequest, usePatientSearch } from '../hooks/usePhysician';
 import type { LabRequestCreateResponse, PhysicianPatient } from '../types';
 import type { ApiError } from '../../../types/domain';
@@ -70,10 +71,9 @@ function ConfirmationCard({
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Status</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <Badge variant="warning" dot>
               Pending Sample Collection
-            </span>
+            </Badge>
           </div>
         </div>
         <button
