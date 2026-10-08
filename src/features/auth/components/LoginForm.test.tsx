@@ -83,7 +83,21 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(mockMutate).toHaveBeenCalledWith(
-      { username: 'testuser', password: 'testpass' },
+      { username: 'testuser', password: 'testpass', keep_signed_in: false },
+      expect.objectContaining({ onError: expect.any(Function) }),
+    );
+  });
+
+  it('sends keep_signed_in: true when the checkbox is checked', async () => {
+    render(<LoginForm />);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('Username'), 'testuser');
+    await user.type(screen.getByLabelText('Password'), 'testpass');
+    await user.click(screen.getByLabelText(/stay signed in/i));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      { username: 'testuser', password: 'testpass', keep_signed_in: true },
       expect.objectContaining({ onError: expect.any(Function) }),
     );
   });
@@ -102,15 +116,23 @@ describe('LoginForm', () => {
     await user.type(screen.getByLabelText('Username'), 'testuser');
     await user.type(screen.getByLabelText('Password'), 'testpass');
 
-    mockMutate.mockImplementation((_vars: unknown, options: { onError?: (error: unknown) => void }) => {
-      options.onError?.({
-        response: { data: { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid username or password.' } } },
-      });
-    });
+    mockMutate.mockImplementation(
+      (_vars: unknown, options: { onError?: (error: unknown) => void }) => {
+        options.onError?.({
+          response: {
+            data: {
+              error: { code: 'INVALID_CREDENTIALS', message: 'Invalid username or password.' },
+            },
+          },
+        });
+      },
+    );
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => {
-      expect(screen.getByText('Invalid username or password. Please try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Invalid username or password. Please try again.'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -120,15 +142,21 @@ describe('LoginForm', () => {
     await user.type(screen.getByLabelText('Username'), 'testuser');
     await user.type(screen.getByLabelText('Password'), 'testpass');
 
-    mockMutate.mockImplementation((_vars: unknown, options: { onError?: (error: unknown) => void }) => {
-      options.onError?.({
-        response: { data: { error: { code: 'ACCOUNT_LOCKED', message: 'Your account is locked.' } } },
-      });
-    });
+    mockMutate.mockImplementation(
+      (_vars: unknown, options: { onError?: (error: unknown) => void }) => {
+        options.onError?.({
+          response: {
+            data: { error: { code: 'ACCOUNT_LOCKED', message: 'Your account is locked.' } },
+          },
+        });
+      },
+    );
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => {
-      expect(screen.getByText('Your account has been locked. Please contact the administrator.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Your account has been locked. Please contact the administrator.'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -138,15 +166,21 @@ describe('LoginForm', () => {
     await user.type(screen.getByLabelText('Username'), 'testuser');
     await user.type(screen.getByLabelText('Password'), 'testpass');
 
-    mockMutate.mockImplementation((_vars: unknown, options: { onError?: (error: unknown) => void }) => {
-      options.onError?.({
-        response: { data: { error: { code: 'ACCOUNT_INACTIVE', message: 'Your account is inactive.' } } },
-      });
-    });
+    mockMutate.mockImplementation(
+      (_vars: unknown, options: { onError?: (error: unknown) => void }) => {
+        options.onError?.({
+          response: {
+            data: { error: { code: 'ACCOUNT_INACTIVE', message: 'Your account is inactive.' } },
+          },
+        });
+      },
+    );
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => {
-      expect(screen.getByText('Your account is inactive. Please contact the administrator.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Your account is inactive. Please contact the administrator.'),
+      ).toBeInTheDocument();
     });
   });
 
@@ -156,11 +190,13 @@ describe('LoginForm', () => {
     await user.type(screen.getByLabelText('Username'), 'testuser');
     await user.type(screen.getByLabelText('Password'), 'testpass');
 
-    mockMutate.mockImplementation((_vars: unknown, options: { onError?: (error: unknown) => void }) => {
-      options.onError?.({
-        response: { data: { error: { code: 'UNKNOWN_ERROR', message: 'Something happened.' } } },
-      });
-    });
+    mockMutate.mockImplementation(
+      (_vars: unknown, options: { onError?: (error: unknown) => void }) => {
+        options.onError?.({
+          response: { data: { error: { code: 'UNKNOWN_ERROR', message: 'Something happened.' } } },
+        });
+      },
+    );
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => {
@@ -174,9 +210,11 @@ describe('LoginForm', () => {
     await user.type(screen.getByLabelText('Username'), 'testuser');
     await user.type(screen.getByLabelText('Password'), 'testpass');
 
-    mockMutate.mockImplementation((_vars: unknown, options: { onError?: (error: unknown) => void }) => {
-      options.onError?.({});
-    });
+    mockMutate.mockImplementation(
+      (_vars: unknown, options: { onError?: (error: unknown) => void }) => {
+        options.onError?.({});
+      },
+    );
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => {
@@ -192,7 +230,7 @@ describe('LoginForm', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(mockMutate).toHaveBeenCalledWith(
-      { username: 'testuser', password: 'testpass' },
+      { username: 'testuser', password: 'testpass', keep_signed_in: false },
       expect.objectContaining({ onError: expect.any(Function) }),
     );
   });
