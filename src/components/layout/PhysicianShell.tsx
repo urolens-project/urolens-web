@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
-import { Modal } from '../ui/Modal';
+import { SessionWarningModal } from './SessionWarningModal';
 
 const navItems = [
   {
@@ -45,7 +45,6 @@ export default function PhysicianShell() {
 
   return (
     <div className="flex w-screen h-screen overflow-hidden bg-[#F4F6FB] text-slate-800 font-sans antialiased">
-
       <AnimatePresence initial={false}>
         {isSidebarOpen && (
           <motion.aside
@@ -61,8 +60,12 @@ export default function PhysicianShell() {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">UroLens LIS</h1>
-                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-indigo-600/80">Laboratory System</p>
+                  <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+                    UroLens
+                  </h1>
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-indigo-600/80">
+                    Clinical Platform
+                  </p>
                 </div>
               </div>
             </div>
@@ -75,7 +78,7 @@ export default function PhysicianShell() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900">Physician</p>
-                  <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens LIS</p>
+                  <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens</p>
                 </div>
               </div>
             </div>
@@ -90,16 +93,20 @@ export default function PhysicianShell() {
                 return (
                   <NavLink key={item.to} to={item.to} end={item.end} className="block no-underline">
                     {({ isActive }) => (
-                      <div className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
-                        isActive
-                          ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-xs'
-                          : 'text-slate-500 hover:bg-indigo-50/40'
-                      }`}>
+                      <div
+                        className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                          isActive
+                            ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-xs'
+                            : 'text-slate-500 hover:bg-indigo-50/40'
+                        }`}
+                      >
                         <Icon className="h-4 w-4 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs tracking-wide truncate">{item.label}</p>
                           {!isActive && (
-                            <p className="text-[10px] text-slate-400 truncate mt-0.5">{item.description}</p>
+                            <p className="text-[10px] text-slate-400 truncate mt-0.5">
+                              {item.description}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -157,20 +164,11 @@ export default function PhysicianShell() {
         </main>
       </div>
 
-      {/* SESSION TIMEOUT WARNING */}
-      <Modal open={isWarningVisible} onClose={dismissWarning} title="Session Expiring Soon" maxWidth="sm">
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any key to stay signed in.
-          </p>
-          <button
-            onClick={dismissWarning}
-            className="w-full h-10 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition cursor-pointer"
-          >
-            Stay Signed In
-          </button>
-        </div>
-      </Modal>
+      <SessionWarningModal
+        isVisible={isWarningVisible}
+        onStaySignedIn={dismissWarning}
+        accentClassName="bg-indigo-600 hover:bg-indigo-700"
+      />
     </div>
   );
 }
