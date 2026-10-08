@@ -27,12 +27,21 @@ function getColor(label: string) {
   return LABEL_COLOR[label] ?? '#94a3b8';
 }
 
+interface OtherReviewerBoxes {
+  ownerLabel: string;
+  boxes: BoundingBox[];
+}
+
 interface Props {
   imageUrl: string;
   boxes: BoundingBox[];
   onChange: (boxes: BoundingBox[]) => void;
   readOnly?: boolean;
   fullHeight?: boolean;
+  // Another reviewer's boxes on the same result — shown dimmed/dashed,
+  // never selectable or deletable, so each reviewer can only edit their
+  // own set while still seeing where the other one looked.
+  otherReviewerBoxes?: OtherReviewerBoxes[];
 }
 
 interface DrawState {
@@ -48,6 +57,7 @@ export function AnnotationCanvas({
   onChange,
   readOnly = false,
   fullHeight = false,
+  otherReviewerBoxes = [],
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<'view' | 'draw'>('view');
@@ -261,6 +271,35 @@ export function AnnotationCanvas({
               </g>
             );
           })}
+
+          {otherReviewerBoxes.map(({ ownerLabel, boxes: theirBoxes }) =>
+            theirBoxes.map((box) => (
+              <g key={`${ownerLabel}-${box.id}`} style={{ pointerEvents: 'none' }}>
+                <rect
+                  x={`${box.x}%`}
+                  y={`${box.y}%`}
+                  width={`${box.w}%`}
+                  height={`${box.h}%`}
+                  fill="none"
+                  stroke="#cbd5e1"
+                  strokeWidth="1.5"
+                  strokeDasharray="3 3"
+                  opacity={0.7}
+                />
+                <text
+                  x={`${box.x + 1}%`}
+                  y={`${box.y - 1}%`}
+                  fill="#cbd5e1"
+                  fontSize="8"
+                  fontWeight="600"
+                  dominantBaseline="auto"
+                  style={{ userSelect: 'none' }}
+                >
+                  {ownerLabel}: {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
+                </text>
+              </g>
+            )),
+          )}
 
           {previewBox && (
             <rect

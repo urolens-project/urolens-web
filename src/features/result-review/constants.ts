@@ -26,3 +26,14 @@ export const PARTICLE_LABEL_DISPLAY: Record<string, string> = {
   sperm_cells: 'Sperm Cells',
   trichomonas_vaginalis: 'Trichomonas vaginalis',
 };
+
+// Backend sends reviewer_role uppercase (matches the UserRole enum values
+// in the DB, e.g. "SUPERVISOR"); this is for display only.
+export const REVIEWER_ROLE_LABEL: Record<string, string> = {
+  SUPERVISOR: 'Supervisor',
+  MEDTECH: 'MedTech',
+};
+
+export function reviewerRoleLabel(role: string): string {
+  return REVIEWER_ROLE_LABEL[role.toUpperCase()] ?? role;
+}
