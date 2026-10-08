@@ -16,8 +16,10 @@ describe('ResultStatusChip', () => {
     render(<ResultStatusChip status="APPROVED" />);
     const chip = screen.getByText('Approved');
     expect(chip).toBeInTheDocument();
-    expect(chip.className).toContain('bg-blue-50');
-    expect(chip.className).toContain('text-blue-700');
+    // Success/emerald, matching every other APPROVED status chip in the app —
+    // this used to be blue here only, inconsistent with the rest.
+    expect(chip.className).toContain('bg-emerald-50');
+    expect(chip.className).toContain('text-emerald-700');
   });
 
   it('renders correct label and color for PENDING_SUPERVISOR_APPROVAL', () => {

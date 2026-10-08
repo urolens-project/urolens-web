@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Microscope, ImageOff, Save } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { AnnotationCanvas } from './AnnotationCanvas';
 import { useSaveAnnotation } from '../hooks/useResultReview';
@@ -39,17 +40,17 @@ export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
             <Microscope className="h-3.5 w-3.5 text-slate-500" />
           </div>
-          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">Microscopy Image</h3>
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">
+            Microscopy Image
+          </h3>
           {boxes.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
+            <Badge variant="success">
               {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
-            </span>
+            </Badge>
           )}
         </div>
         <div className="flex items-center gap-2">
-          {mutation.isError && (
-            <span className="text-xs text-red-600">Save failed.</span>
-          )}
+          {mutation.isError && <span className="text-xs text-red-600">Save failed.</span>}
           {isDirty && (
             <Button size="sm" onClick={handleSave} loading={mutation.isPending}>
               <Save className="h-3.5 w-3.5" />

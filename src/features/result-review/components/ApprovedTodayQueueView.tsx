@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { useApprovedToday } from '../hooks/useResultReview';
 import type { ApprovedResultItem } from '../types';
@@ -9,7 +10,12 @@ import { SkeletonRows } from './SkeletonRows';
 
 const PAGE_SIZE = 20;
 
-const today = new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+const today = new Date().toLocaleDateString('en-PH', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 export function ApprovedTodayQueueView() {
   const [page, setPage] = useState(1);
@@ -20,7 +26,6 @@ export function ApprovedTodayQueueView() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-
       {/* Breadcrumb */}
       <button
         onClick={() => navigate('/dashboard/supervisor')}
@@ -68,7 +73,10 @@ export function ApprovedTodayQueueView() {
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               {['Patient', 'Sample ID', 'MedTech', 'Approved At'].map((h) => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <th
+                  key={h}
+                  className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                >
                   {h}
                 </th>
               ))}
@@ -85,7 +93,9 @@ export function ApprovedTodayQueueView() {
                       <CheckCircle2 className="h-7 w-7 text-slate-300" />
                     </div>
                     <p className="font-semibold text-slate-800">No approvals yet today</p>
-                    <p className="text-xs text-slate-400">Results you approve today will appear here.</p>
+                    <p className="text-xs text-slate-400">
+                      Results you approve today will appear here.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -100,7 +110,9 @@ export function ApprovedTodayQueueView() {
                     <p className="font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">
                       {row.patient_uid || '—'}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{formatAge(row.patient_age, row.patient_sex)}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {formatAge(row.patient_age, row.patient_sex)}
+                    </p>
                   </td>
                   <td className="px-5 py-4">
                     <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
@@ -109,10 +121,9 @@ export function ApprovedTodayQueueView() {
                   </td>
                   <td className="px-5 py-4 text-slate-600">{row.medtech_name || '—'}</td>
                   <td className="px-5 py-4">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <Badge variant="success" dot>
                       {formatTimestamp(row.approved_at)}
-                    </span>
+                    </Badge>
                   </td>
                 </tr>
               ))
@@ -128,10 +139,20 @@ export function ApprovedTodayQueueView() {
             Page {page} of {totalPages} &middot; {data.total} total
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
-            <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

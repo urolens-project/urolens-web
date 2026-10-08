@@ -52,7 +52,7 @@ describe('MedTechWorkloadPanel', () => {
     );
 
     const badge = screen.getByText('2 active');
-    expect(badge.className).toContain('bg-emerald-100');
+    expect(badge.className).toContain('bg-emerald-50');
     expect(badge.className).toContain('text-emerald-700');
   });
 
@@ -67,7 +67,7 @@ describe('MedTechWorkloadPanel', () => {
     );
 
     const badge = screen.getByText('5 active');
-    expect(badge.className).toContain('bg-amber-100');
+    expect(badge.className).toContain('bg-amber-50');
     expect(badge.className).toContain('text-amber-700');
   });
 
@@ -82,8 +82,10 @@ describe('MedTechWorkloadPanel', () => {
     );
 
     const badge = screen.getByText('8 active');
-    expect(badge.className).toContain('bg-rose-100');
-    expect(badge.className).toContain('text-rose-700');
+    // Badge's "danger" variant is red, not rose — matches every other
+    // danger/error badge in the app now instead of a one-off rose shade.
+    expect(badge.className).toContain('bg-red-50');
+    expect(badge.className).toContain('text-red-700');
   });
 
   it('highlights the selected MedTech', () => {
@@ -142,9 +144,7 @@ describe('MedTechWorkloadPanel', () => {
       />,
     );
 
-    expect(
-      screen.getByText('No active Medical Technologists available.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('No active Medical Technologists available.')).toBeInTheDocument();
   });
 
   it('shows loading skeletons when isLoading is true', () => {
