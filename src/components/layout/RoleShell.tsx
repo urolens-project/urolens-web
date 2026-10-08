@@ -8,6 +8,7 @@ import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 import { UserRole } from '../../types/enums';
 import { SessionWarningModal } from './SessionWarningModal';
+import { NotificationBell } from '../../features/notifications';
 
 export interface RoleShellNavItem {
   to: string;
@@ -180,6 +181,7 @@ export default function RoleShell({
                 <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">{title}</h1>
               </div>
             </div>
+            <NotificationBell />
           </div>
         </header>
 

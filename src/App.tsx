@@ -1,24 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import {
-  AlertOctagon,
-  Barcode,
-  CheckSquare,
-  ClipboardCheck,
-  ClipboardList,
-  FileText,
-  FlaskConical,
-  LayoutDashboard,
-  Send,
-  UserPlus,
-} from 'lucide-react';
 import { queryClient } from './lib/queryClient';
 import { AuthProvider } from './lib/auth/authContext';
 import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
+import { ROLE_SHELL_CONFIG } from './lib/roleShellConfig';
 
-import RoleShell, { type RoleShellNavItem } from './components/layout/RoleShell';
+import RoleShell from './components/layout/RoleShell';
+import NotificationsShell from './components/layout/NotificationsShell';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -27,6 +17,7 @@ import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
+import { NotificationsPage } from './features/notifications';
 
 import {
   PendingApprovalQueueView,
@@ -46,133 +37,6 @@ import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
 import AdminDashboard from './routes/admin.routes';
-
-const receptionistNavItems: RoleShellNavItem[] = [
-  {
-    to: '/intake/register',
-    label: 'Register Patient',
-    description: 'New patient account registration',
-    icon: UserPlus,
-  },
-  {
-    to: '/intake/request',
-    label: 'Lab Requests',
-    description: 'Clinical laboratory requests',
-    icon: FileText,
-  },
-  {
-    to: '/intake/receive',
-    label: 'Specimen Intake',
-    description: 'Specimen receiving & validation',
-    icon: FlaskConical,
-  },
-  {
-    to: '/intake/label',
-    label: 'Sample Labeling',
-    description: 'Barcode label printing & affixing',
-    icon: Barcode,
-  },
-  {
-    to: '/intake/queue',
-    label: 'Queue Assignment',
-    description: 'Specimen to MedTech queue assignment',
-    icon: ClipboardList,
-  },
-  {
-    to: '/receptionist/results/approved',
-    label: 'Release Results',
-    description: 'Release approved results to patients',
-    icon: Send,
-  },
-];
-
-const medtechNavItems: RoleShellNavItem[] = [
-  {
-    to: '/medtech/results',
-    label: 'Pending Confirmations',
-    description: 'Results awaiting your confirmation',
-    icon: ClipboardCheck,
-    end: true,
-  },
-];
-
-const supervisorNavItems: RoleShellNavItem[] = [
-  {
-    to: '/dashboard/supervisor',
-    label: 'Dashboard',
-    description: 'Supervisor overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-  {
-    to: '/supervisor/results',
-    label: 'Lab Results Queue',
-    description: 'Pending result review queue',
-    icon: ClipboardList,
-    end: true,
-  },
-  {
-    to: '/supervisor/results/approved',
-    label: 'Approved Results',
-    description: 'Reviewed and approved results',
-    icon: CheckSquare,
-  },
-  {
-    to: '/supervisor/results/escalated',
-    label: 'Escalated Results',
-    description: 'Results flagged for further review',
-    icon: AlertOctagon,
-  },
-];
-
-const physicianNavItems: RoleShellNavItem[] = [
-  {
-    to: '/dashboard/physician',
-    label: 'Dashboard',
-    description: 'Physician portal overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-  {
-    to: '/physician/lab-request/new',
-    label: 'New Lab Request',
-    description: 'Submit a specimen collection request',
-    icon: ClipboardList,
-    end: true,
-  },
-  {
-    to: '/physician/results',
-    label: "My Patients' Results",
-    description: 'Retrieve results for your patients',
-    icon: ClipboardCheck,
-  },
-];
-
-const patientNavItems: RoleShellNavItem[] = [
-  {
-    to: '/dashboard/patient',
-    label: 'Dashboard',
-    description: 'Patient portal overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-  {
-    to: '/dashboard/patient/results',
-    label: 'My Results',
-    description: 'View your lab test results',
-    icon: FileText,
-  },
-];
-
-const administratorNavItems: RoleShellNavItem[] = [
-  {
-    to: '/dashboard/administrator',
-    label: 'Dashboard',
-    description: 'System administration overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-];
 
 const Unauthorized = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -200,9 +64,7 @@ export default function App() {
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
                   <RoleShell
-                    navItems={receptionistNavItems}
-                    navSectionLabel="Main Operations"
-                    workspaceLabel="Intake Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
                     title="Reception Management Node"
                   />
                 </RequireRole>
@@ -221,9 +83,7 @@ export default function App() {
               element={
                 <RequireRole roles={[UserRole.MEDTECH]}>
                   <RoleShell
-                    navItems={medtechNavItems}
-                    navSectionLabel="MedTech Workspace"
-                    workspaceLabel="Processing Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.MEDTECH]}
                     title="Specimen Processing Console"
                   />
                 </RequireRole>
@@ -242,9 +102,7 @@ export default function App() {
               element={
                 <RequireRole roles={[UserRole.SUPERVISOR]}>
                   <RoleShell
-                    navItems={supervisorNavItems}
-                    navSectionLabel="Supervisor Workspace"
-                    workspaceLabel="Supervisor Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.SUPERVISOR]}
                     title="Laboratory Review Console"
                   />
                 </RequireRole>
@@ -262,9 +120,7 @@ export default function App() {
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
                   <RoleShell
-                    navItems={physicianNavItems}
-                    navSectionLabel="Physician Workspace"
-                    workspaceLabel="Physician Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.PHYSICIAN]}
                     title="Clinical Request Portal"
                   />
                 </RequireRole>
@@ -280,12 +136,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
-                  <RoleShell
-                    navItems={patientNavItems}
-                    navSectionLabel="Patient Workspace"
-                    workspaceLabel="Patient Workspace"
-                    title="My Results Portal"
-                  />
+                  <RoleShell {...ROLE_SHELL_CONFIG[UserRole.PATIENT]} title="My Results Portal" />
                 </RequireRole>
               }
             >
@@ -302,9 +153,7 @@ export default function App() {
               element={
                 <RequireRole roles={[UserRole.ADMINISTRATOR]}>
                   <RoleShell
-                    navItems={administratorNavItems}
-                    navSectionLabel="Admin Workspace"
-                    workspaceLabel="Admin Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.ADMINISTRATOR]}
                     title="System Administration"
                   />
                 </RequireRole>
@@ -313,14 +162,27 @@ export default function App() {
               <Route path="/dashboard/administrator" element={<AdminDashboard />} />
             </Route>
 
+            {/* 7.5 NOTIFICATIONS — shared by every role, one route rather than
+                repeated per-role (see NotificationsShell for why: React
+                Router breaks same-path ties by registration order, so a
+                literal "/notifications" path duplicated inside each of the
+                blocks above would only ever honor the first one's guard). */}
+            <Route
+              element={
+                <RequireRole roles={Object.values(UserRole)}>
+                  <NotificationsShell />
+                </RequireRole>
+              }
+            >
+              <Route path="/notifications" element={<NotificationsPage />} />
+            </Route>
+
             {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
                   <RoleShell
-                    navItems={receptionistNavItems}
-                    navSectionLabel="Main Operations"
-                    workspaceLabel="Intake Workspace"
+                    {...ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
                     title="Reception Management Node"
                   />
                 </RequireRole>

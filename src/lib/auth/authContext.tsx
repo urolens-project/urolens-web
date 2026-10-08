@@ -1,6 +1,7 @@
 import { createContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react';
 import type { UserRole } from '../../types/enums';
 import { setTokenGetter, setOnUnauthorized } from '../apiClient';
+import { queryClient } from '../queryClient';
 
 // Staff-only session metadata from the login/refresh response — stays all
 // null for a patient session, since the patient portal has no refresh
@@ -57,6 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setRole(null);
     setSession(EMPTY_SESSION);
+    // Every cached query (notifications especially — see notificationKeys)
+    // is scoped to whoever was logged in. Without this, the next person to
+    // log in on the same tab (a shared front-desk machine, say) can see the
+    // previous user's cached data flash on screen before it refetches —
+    // real exposure for role-restricted data like notifications.
+    queryClient.clear();
   }, []);
 
   useEffect(() => {
