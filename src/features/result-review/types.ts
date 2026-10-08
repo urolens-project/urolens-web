@@ -38,6 +38,17 @@ export interface BoundingBox {
   h: number;
 }
 
+// One reviewer's annotation on a result. A MedTech's and a Supervisor's
+// annotations are independent — this is one entry in FullResultDetail's
+// `annotations` list, not the whole thing.
+export interface AnnotationItem {
+  reviewed_by: string;
+  reviewer_role: string;
+  annotation_notes: string | null;
+  spatial_annotations: BoundingBox[] | null;
+  updated_at: string;
+}
+
 export interface FullResultDetail {
   result_id: string;
   specimen_id: string;
@@ -56,8 +67,7 @@ export interface FullResultDetail {
   smart_diagnosis: SmartDiagnosisAttached | null;
   smart_diagnosis_unavailable: boolean;
   status: string;
-  annotation_notes: string | null;
-  spatial_annotations: BoundingBox[] | null;
+  annotations: AnnotationItem[];
 }
 
 export interface AnnotationResponse {
