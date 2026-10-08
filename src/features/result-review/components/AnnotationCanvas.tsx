@@ -1,26 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { Trash2 } from 'lucide-react';
+import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../constants';
 import type { BoundingBox } from '../types';
-
-const LABELS = [
-  'leukocytes',
-  'erythrocytes',
-  'epithelial_cells',
-  'casts',
-  'bacteria',
-  'crystals',
-  'mucus_threads',
-] as const;
-
-const LABEL_DISPLAY: Record<string, string> = {
-  leukocytes: 'Leukocytes (WBC)',
-  erythrocytes: 'Erythrocytes (RBC)',
-  epithelial_cells: 'Epithelial Cells',
-  casts: 'Casts',
-  bacteria: 'Bacteria',
-  crystals: 'Crystals',
-  mucus_threads: 'Mucus Threads',
-};
 
 function generateBoxId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -33,14 +14,22 @@ const LABEL_COLOR: Record<string, string> = {
   leukocytes: '#60a5fa',
   erythrocytes: '#f87171',
   epithelial_cells: '#34d399',
-  casts: '#fbbf24',
+  urinary_casts: '#fbbf24',
   bacteria: '#a78bfa',
   crystals: '#22d3ee',
   mucus_threads: '#fb923c',
+  yeast: '#eab308',
+  sperm_cells: '#ec4899',
+  trichomonas_vaginalis: '#8b5cf6',
 };
 
 function getColor(label: string) {
   return LABEL_COLOR[label] ?? '#94a3b8';
+}
+
+interface OtherReviewerBoxes {
+  ownerLabel: string;
+  boxes: BoundingBox[];
 }
 
 interface Props {
@@ -49,6 +38,10 @@ interface Props {
   onChange: (boxes: BoundingBox[]) => void;
   readOnly?: boolean;
   fullHeight?: boolean;
+  // Another reviewer's boxes on the same result — shown dimmed/dashed,
+  // never selectable or deletable, so each reviewer can only edit their
+  // own set while still seeing where the other one looked.
+  otherReviewerBoxes?: OtherReviewerBoxes[];
 }
 
 interface DrawState {
@@ -58,7 +51,14 @@ interface DrawState {
   currentY: number;
 }
 
-export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, fullHeight = false }: Props) {
+export function AnnotationCanvas({
+  imageUrl,
+  boxes,
+  onChange,
+  readOnly = false,
+  fullHeight = false,
+  otherReviewerBoxes = [],
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<'view' | 'draw'>('view');
   const [selectedLabel, setSelectedLabel] = useState<string>('leukocytes');
@@ -86,7 +86,7 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
   function handleMouseMove(e: React.MouseEvent) {
     if (!drawing) return;
     const { px, py } = toPercent(e.clientX, e.clientY);
-    setDrawing((d) => d ? { ...d, currentX: px, currentY: py } : null);
+    setDrawing((d) => (d ? { ...d, currentX: px, currentY: py } : null));
   }
 
   function handleMouseUp() {
@@ -98,8 +98,11 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
     if (w > 1 && h > 1) {
       const newBox: BoundingBox = {
         id: generateBoxId(),
-        label: selectedLabel,
-        x, y, w, h,
+        particle_type: selectedLabel,
+        x,
+        y,
+        w,
+        h,
       };
       onChange([...boxes, newBox]);
     }
@@ -130,7 +133,9 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
   return (
     <div className={fullHeight ? 'flex flex-col h-full' : 'space-y-2'}>
       {!readOnly && (
-        <div className={`flex items-center gap-2 flex-wrap ${fullHeight ? 'px-4 py-3 border-b border-slate-700 shrink-0' : ''}`}>
+        <div
+          className={`flex items-center gap-2 flex-wrap ${fullHeight ? 'px-4 py-3 border-b border-slate-700 shrink-0' : ''}`}
+        >
           <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
             <button
               onClick={() => setMode('view')}
@@ -152,15 +157,20 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
               onChange={(e) => setSelectedLabel(e.target.value)}
               className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
             >
-              {LABELS.map((l) => (
-                <option key={l} value={l}>{LABEL_DISPLAY[l]}</option>
+              {PARTICLE_LABELS.map((l) => (
+                <option key={l} value={l}>
+                  {PARTICLE_LABEL_DISPLAY[l]}
+                </option>
               ))}
             </select>
           )}
 
           {boxes.length > 0 && mode === 'view' && (
             <button
-              onClick={() => { onChange([]); setSelectedId(null); }}
+              onClick={() => {
+                onChange([]);
+                setSelectedId(null);
+              }}
               className="ml-auto flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs text-red-600 hover:bg-red-100 transition-colors"
             >
               <Trash2 className="h-3 w-3" />
@@ -198,10 +208,14 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
           style={{ pointerEvents: mode === 'view' ? 'auto' : 'none' }}
         >
           {boxes.map((box) => {
-            const color = getColor(box.label);
+            const color = getColor(box.particle_type);
             const isSelected = selectedId === box.id;
             return (
-              <g key={box.id} onClick={(e) => handleBoxClick(e, box.id)} style={{ cursor: 'pointer' }}>
+              <g
+                key={box.id}
+                onClick={(e) => handleBoxClick(e, box.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 <rect
                   x={`${box.x}%`}
                   y={`${box.y}%`}
@@ -229,19 +243,17 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
                   dominantBaseline="auto"
                   style={{ pointerEvents: 'none', userSelect: 'none' }}
                 >
-                  {LABEL_DISPLAY[box.label] ?? box.label}
+                  {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
                 </text>
                 {isSelected && !readOnly && (
                   <g
-                    onClick={(e) => { e.stopPropagation(); deleteBox(box.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteBox(box.id);
+                    }}
                     style={{ cursor: 'pointer' }}
                   >
-                    <circle
-                      cx={`${box.x + box.w}%`}
-                      cy={`${box.y}%`}
-                      r="8"
-                      fill="#ef4444"
-                    />
+                    <circle cx={`${box.x + box.w}%`} cy={`${box.y}%`} r="8" fill="#ef4444" />
                     <text
                       x={`${box.x + box.w}%`}
                       y={`${box.y}%`}
@@ -259,6 +271,35 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
               </g>
             );
           })}
+
+          {otherReviewerBoxes.map(({ ownerLabel, boxes: theirBoxes }) =>
+            theirBoxes.map((box) => (
+              <g key={`${ownerLabel}-${box.id}`} style={{ pointerEvents: 'none' }}>
+                <rect
+                  x={`${box.x}%`}
+                  y={`${box.y}%`}
+                  width={`${box.w}%`}
+                  height={`${box.h}%`}
+                  fill="none"
+                  stroke="#cbd5e1"
+                  strokeWidth="1.5"
+                  strokeDasharray="3 3"
+                  opacity={0.7}
+                />
+                <text
+                  x={`${box.x + 1}%`}
+                  y={`${box.y - 1}%`}
+                  fill="#cbd5e1"
+                  fontSize="8"
+                  fontWeight="600"
+                  dominantBaseline="auto"
+                  style={{ userSelect: 'none' }}
+                >
+                  {ownerLabel}: {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
+                </text>
+              </g>
+            )),
+          )}
 
           {previewBox && (
             <rect
@@ -279,7 +320,9 @@ export function AnnotationCanvas({ imageUrl, boxes, onChange, readOnly = false, 
         <p className="text-xs text-slate-400">Click a box to select it, then × to delete.</p>
       )}
       {!readOnly && mode === 'draw' && (
-        <p className="text-xs text-slate-400">Click and drag on the image to draw a bounding box.</p>
+        <p className="text-xs text-slate-400">
+          Click and drag on the image to draw a bounding box.
+        </p>
       )}
     </div>
   );
