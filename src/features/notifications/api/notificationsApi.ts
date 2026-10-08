@@ -1,8 +1,27 @@
 import apiClient from '../../../lib/apiClient';
-import type { NotificationItem } from '../types';
+import type { NotificationItem, UnreadCountResponse } from '../types';
 
-export async function fetchNotifications(): Promise<NotificationItem[]> {
-  const { data } = await apiClient.get<NotificationItem[]>('/notifications');
+export interface FetchNotificationsParams {
+  unreadOnly?: boolean;
+  before?: string;
+  limit?: number;
+}
+
+export async function fetchNotifications(
+  params: FetchNotificationsParams = {},
+): Promise<NotificationItem[]> {
+  const { data } = await apiClient.get<NotificationItem[]>('/notifications', {
+    params: {
+      unread_only: params.unreadOnly || undefined,
+      before: params.before,
+      limit: params.limit,
+    },
+  });
+  return data;
+}
+
+export async function fetchUnreadCount(): Promise<UnreadCountResponse> {
+  const { data } = await apiClient.get<UnreadCountResponse>('/notifications/unread-count');
   return data;
 }
 

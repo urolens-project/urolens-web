@@ -13,7 +13,8 @@ import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
-  useNotifications,
+  useNotificationsPage,
+  useUnreadCount,
 } from '../hooks/useNotifications';
 import { formatNotificationTime, getNotificationLink } from '../utils';
 import type { NotificationItem } from '../types';
@@ -59,15 +60,22 @@ export function NotificationsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>('all');
 
-  const { data: notifications, isLoading } = useNotifications();
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useNotificationsPage(filter === 'unread');
+  const { data: unreadCount = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
-  const unreadCount = notifications?.filter((n) => !n.is_read).length ?? 0;
-  const visible = useMemo(
-    () => (notifications ?? []).filter((n) => filter === 'all' || !n.is_read),
-    [notifications, filter],
-  );
+  // unreadOnly is already applied server-side (useNotificationsPage), so
+  // every page loaded for the Unread tab only ever contains unread items —
+  // no client-side re-filtering needed, and switching tabs can't miss
+  // anything older than what's currently loaded.
+  const visible = useMemo(() => data?.pages.flat() ?? [], [data]);
   const grouped = useMemo(() => groupByDate(visible), [visible]);
 
   function handleItemClick(item: NotificationItem) {
@@ -81,10 +89,7 @@ export function NotificationsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Your {notifications && notifications.length >= 50 ? '50 most recent' : ''}{' '}
-            notifications, newest first.
-          </p>
+          <p className="text-sm text-slate-500 mt-0.5">Your notifications, newest first.</p>
         </div>
         {unreadCount > 0 && (
           <button
@@ -174,6 +179,20 @@ export function NotificationsPage() {
           ))
         )}
       </div>
+
+      {hasNextPage && (
+        <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer transition-colors"
+          >
+            {isFetchingNextPage && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isFetchingNextPage ? 'Loading…' : 'Load more'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
