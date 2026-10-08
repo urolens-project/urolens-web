@@ -12,17 +12,21 @@ import { useMyResults } from '../hooks/usePhysician';
 import type { PhysicianResultSummary } from '../types';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
-import { getResultStatusVariant } from '../../../lib/resultStatusBadge';
 
 const PAGE_SIZE = 20;
 
-const STATUS_LABEL: Record<string, string> = {
-  APPROVED: 'Approved',
-  PENDING_SUPERVISOR_APPROVAL: 'Under Review',
-  PENDING_CONFIRM: 'Pending Confirm',
-  RETURNED_FOR_CORRECTION: 'Returned',
-  CRITICAL_ESCALATED: 'Escalated',
+// The backend masks every pre-release workflow state (PENDING_CONFIRM,
+// PENDING_SUPERVISOR_APPROVAL, RETURNED_FOR_CORRECTION, CRITICAL_ESCALATED,
+// etc.) down to a single "PENDING" placeholder for the physician view — a
+// physician sees released/not-released, not lab-internal review stages.
+// Only RELEASED and PENDING are ever actually sent; see
+// physician_result_service.py's _PENDING_PLACEHOLDER_STATUS.
+const STATUS_CHIP: Record<string, { label: string; variant: 'success' | 'warning' }> = {
+  RELEASED: { label: 'Released', variant: 'success' },
+  PENDING: { label: 'Pending', variant: 'warning' },
 };
+
+const fallbackChip = { label: 'Unknown', variant: 'default' as const };
 
 function formatAge(age: number | null, sex: string | null): string {
   const parts: string[] = [];
@@ -146,11 +150,19 @@ export function MyResultsList() {
               </tr>
             ) : (
               (data?.items ?? []).map((row: PhysicianResultSummary) => {
+                const chip = STATUS_CHIP[row.status] ?? fallbackChip;
+                const isReleased = row.status === 'RELEASED';
                 return (
                   <tr
                     key={row.result_id}
-                    onClick={() => navigate(`/physician/results/${row.result_id}`)}
-                    className="cursor-pointer group hover:bg-emerald-50/30 transition-colors"
+                    onClick={
+                      isReleased ? () => navigate(`/physician/results/${row.result_id}`) : undefined
+                    }
+                    className={
+                      isReleased
+                        ? 'cursor-pointer group hover:bg-emerald-50/30 transition-colors'
+                        : 'opacity-70'
+                    }
                   >
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">
@@ -166,9 +178,12 @@ export function MyResultsList() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <Badge variant={getResultStatusVariant(row.status)} dot>
-                        {STATUS_LABEL[row.status] ?? 'Unknown'}
+                      <Badge variant={chip.variant} dot>
+                        {chip.label}
                       </Badge>
+                      {!isReleased && (
+                        <p className="mt-1 text-[11px] text-slate-400">Not yet released</p>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
                       {formatDate(row.confirmed_at)}
