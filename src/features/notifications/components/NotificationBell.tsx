@@ -6,6 +6,7 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
+  useUnreadCount,
 } from '../hooks/useNotifications';
 import { formatNotificationTime, getNotificationLink } from '../utils';
 import type { NotificationItem } from '../types';
@@ -17,10 +18,9 @@ export function NotificationBell() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   const { data: notifications, isLoading } = useNotifications();
+  const { data: unreadCount = 0 } = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-
-  const unreadCount = notifications?.filter((n) => !n.is_read).length ?? 0;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
