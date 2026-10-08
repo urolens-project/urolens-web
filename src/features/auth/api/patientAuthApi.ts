@@ -1,5 +1,5 @@
 import apiClient from '../../../lib/apiClient';
-import type { LoginResponse } from '../types';
+import type { PatientLoginResponse } from '../types';
 
 export interface PatientLoginRequest {
   patient_uid: string;
@@ -7,9 +7,8 @@ export interface PatientLoginRequest {
 }
 
 export const patientAuthApi = {
-  login: (data: PatientLoginRequest): Promise<LoginResponse> =>
-    apiClient.post<LoginResponse>('/auth/patient-login', data).then((res) => res.data),
+  login: (data: PatientLoginRequest): Promise<PatientLoginResponse> =>
+    apiClient.post<PatientLoginResponse>('/auth/patient-login', data).then((res) => res.data),
 
-  logout: (): Promise<void> =>
-    apiClient.post('/auth/patient-logout').then(() => undefined),
+  logout: (): Promise<void> => apiClient.post('/auth/patient-logout').then(() => undefined),
 };
