@@ -1,84 +1,112 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Activity,
-  ClipboardList,
-  ClipboardCheck,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Settings,
-} from 'lucide-react';
+import { Activity, LogOut, Menu, Settings, type LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
+import { authApi } from '../../features/auth/api/authApi';
+import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 import { NotificationBell } from '../../features/notifications';
 import { SessionWarningModal } from './SessionWarningModal';
+import { UserRole } from '../../types/enums';
 
-const navItems = [
-  {
-    to: '/dashboard/physician',
-    label: 'Dashboard',
-    description: 'Physician portal overview',
-    icon: LayoutDashboard,
-    end: true,
-  },
-  {
-    to: '/physician/lab-request/new',
-    label: 'New Lab Request',
-    description: 'Submit a specimen collection request',
-    icon: ClipboardList,
-    end: true,
-  },
-  {
-    to: '/physician/results',
-    label: "My Patients' Results",
-    description: 'Retrieve results for your patients',
-    icon: ClipboardCheck,
-    end: false,
-  },
-];
+export interface RoleShellNavItem {
+  to: string;
+  label: string;
+  description?: string;
+  icon: LucideIcon;
+  end?: boolean;
+}
 
-export default function PhysicianShell() {
+interface RoleShellProps {
+  navItems: RoleShellNavItem[];
+  navSectionLabel: string;
+  workspaceLabel: string;
+  title: string;
+}
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.RECEPTIONIST]: 'Receptionist',
+  [UserRole.MEDTECH]: 'MedTech',
+  [UserRole.SUPERVISOR]: 'Supervisor',
+  [UserRole.PHYSICIAN]: 'Physician',
+  [UserRole.PATIENT]: 'Patient',
+  [UserRole.ADMINISTRATOR]: 'Administrator',
+};
+
+const ROLE_INITIALS: Record<UserRole, string> = {
+  [UserRole.RECEPTIONIST]: 'RE',
+  [UserRole.MEDTECH]: 'MT',
+  [UserRole.SUPERVISOR]: 'SU',
+  [UserRole.PHYSICIAN]: 'PH',
+  [UserRole.PATIENT]: 'PA',
+  [UserRole.ADMINISTRATOR]: 'AD',
+};
+
+export default function RoleShell({
+  navItems,
+  navSectionLabel,
+  workspaceLabel,
+  title,
+}: RoleShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout: performLogout } = useAuthContext();
+  const { role, logout } = useAuthContext();
+  const navigate = useNavigate();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
 
+  const roleLabel = role ? ROLE_LABELS[role] : 'User';
+  const initials = role ? ROLE_INITIALS[role] : '??';
+
+  async function handleLogout() {
+    const isPatient = role === UserRole.PATIENT;
+    try {
+      if (isPatient) {
+        await patientAuthApi.logout();
+      } else {
+        await authApi.logout();
+      }
+    } catch {
+      /* ignore network errors on logout */
+    }
+    logout();
+    navigate(isPatient ? '/patient/login' : '/login', { replace: true });
+  }
+
   return (
-    <div className="flex w-screen h-screen overflow-hidden bg-[#F4F6FB] text-slate-800 font-sans antialiased">
+    <div className="flex w-screen h-screen overflow-hidden bg-[#F4F7F5] text-slate-800 font-sans antialiased">
       <AnimatePresence initial={false}>
         {isSidebarOpen && (
           <motion.aside
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 288, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="relative shrink-0 flex-col border-r border-indigo-100 bg-white flex"
+            className="relative shrink-0 flex-col border-r border-emerald-100 bg-white flex"
           >
             {/* LOGO */}
-            <div className="px-6 h-20 border-b border-indigo-50/60 flex items-center">
+            <div className="px-6 h-20 border-b border-emerald-50/60 flex items-center">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 shadow-xs">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 shadow-xs">
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-none">
                     UroLens
                   </h1>
-                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-indigo-600/80">
-                    Clinical Platform
+                  <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">
+                    Laboratory System
                   </p>
                 </div>
               </div>
             </div>
 
             {/* PROFILE */}
-            <div className="px-6 py-5 border-b border-indigo-50/60 bg-indigo-50/20">
+            <div className="px-6 py-5 border-b border-emerald-50/60 bg-emerald-50/20">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold text-xs">
-                  PH
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-semibold text-xs">
+                  {initials}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900">Physician</p>
+                  <p className="text-xs font-bold text-slate-900">{roleLabel}</p>
                   <p className="text-[10px] text-slate-400 mt-1 truncate">UroLens</p>
                 </div>
               </div>
@@ -86,8 +114,8 @@ export default function PhysicianShell() {
 
             {/* NAV */}
             <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-              <div className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-indigo-700/60">
-                Physician Workspace
+              <div className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-emerald-700/60">
+                {navSectionLabel}
               </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -97,14 +125,14 @@ export default function PhysicianShell() {
                       <div
                         className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
                           isActive
-                            ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-xs'
-                            : 'text-slate-500 hover:bg-indigo-50/40'
+                            ? 'bg-emerald-50 text-emerald-700 font-semibold shadow-xs'
+                            : 'text-slate-500 hover:bg-emerald-50/40'
                         }`}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs tracking-wide truncate">{item.label}</p>
-                          {!isActive && (
+                          {item.description && !isActive && (
                             <p className="text-[10px] text-slate-400 truncate mt-0.5">
                               {item.description}
                             </p>
@@ -118,13 +146,13 @@ export default function PhysicianShell() {
             </nav>
 
             {/* FOOTER */}
-            <div className="border-t border-indigo-50/60 p-4 flex items-center gap-2 bg-indigo-50/10">
+            <div className="border-t border-emerald-50/60 p-4 flex items-center gap-2 bg-emerald-50/10">
               <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 h-9 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors">
                 <Settings className="h-3.5 w-3.5 text-slate-400" />
                 Settings
               </button>
               <button
-                onClick={performLogout}
+                onClick={handleLogout}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:border-red-200 cursor-pointer transition-colors"
                 aria-label="Logout"
               >
@@ -147,12 +175,10 @@ export default function PhysicianShell() {
                 <Menu className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                  Physician Workspace
+                <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  {workspaceLabel}
                 </span>
-                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">
-                  Clinical Request Portal
-                </h1>
+                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">{title}</h1>
               </div>
             </div>
             <NotificationBell />
@@ -166,11 +192,7 @@ export default function PhysicianShell() {
         </main>
       </div>
 
-      <SessionWarningModal
-        isVisible={isWarningVisible}
-        onStaySignedIn={dismissWarning}
-        accentClassName="bg-indigo-600 hover:bg-indigo-700"
-      />
+      <SessionWarningModal isVisible={isWarningVisible} onStaySignedIn={dismissWarning} />
     </div>
   );
 }
