@@ -11,7 +11,16 @@ export async function fetchMedtechPending(
   return data;
 }
 
-export async function confirmResult(resultId: string): Promise<ConfirmResultResponse> {
-  const { data } = await apiClient.post<ConfirmResultResponse>(`/results/${resultId}/confirm`);
+export async function confirmResult(
+  resultId: string,
+  interpretationNotes?: string,
+): Promise<ConfirmResultResponse> {
+  const body = interpretationNotes?.trim()
+    ? { interpretation_notes: interpretationNotes.trim() }
+    : undefined;
+  const { data } = await apiClient.post<ConfirmResultResponse>(
+    `/results/${resultId}/confirm`,
+    body,
+  );
   return data;
 }

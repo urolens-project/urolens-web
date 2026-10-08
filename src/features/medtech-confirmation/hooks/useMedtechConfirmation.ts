@@ -17,7 +17,7 @@ export function useMedtechPending(page: number, pageSize: number) {
 export function useConfirmResult(resultId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => confirmResult(resultId),
+    mutationFn: (interpretationNotes?: string) => confirmResult(resultId, interpretationNotes),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['medtech', 'pending'] });

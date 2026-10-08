@@ -5,8 +5,10 @@ import { ArrowLeft, CheckCircle, FlaskConical, RotateCcw } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
+import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../../result-review/hooks/useResultReview';
+import { reviewerRoleLabel } from '../../result-review/constants';
 import type { BoundingBox } from '../../result-review/types';
 import { AIFindingsSection } from '../../result-review/components/AIFindingsSection';
 import { AnnotationInputControl } from '../../result-review/components/AnnotationInputControl';
@@ -24,11 +26,16 @@ export function ResultConfirmationDetailView() {
   const navigate = useNavigate();
   const location = useLocation();
   const returnReason = (location.state as LocationState | null)?.returnReason;
+  const { role } = useAuthContext();
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const confirmMutation = useConfirmResult(resultId ?? '');
   const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
   const [confirmError, setConfirmError] = useState('');
+  // The MedTech's own interpretation for the patient — distinct from the
+  // internal AnnotationInputControl notes below, which are reviewer-to-
+  // reviewer communication, not patient-facing.
+  const [interpretationNotes, setInterpretationNotes] = useState('');
 
   // Tracks the latest drawn boxes so we can flush them before confirming —
   // same pattern as the Supervisor's FullResultDetailView.
@@ -55,6 +62,9 @@ export function ResultConfirmationDetailView() {
   const isReturned = data.status === 'RETURNED_FOR_CORRECTION';
   const canConfirm = data.status === 'PENDING_CONFIRM' || isReturned;
 
+  const myAnnotation = data.annotations.find((a) => a.reviewer_role.toLowerCase() === role);
+  const otherAnnotations = data.annotations.filter((a) => a.reviewer_role.toLowerCase() !== role);
+
   const patientMeta = [
     data.patient_age != null ? `${data.patient_age} yrs` : null,
     data.patient_sex ? data.patient_sex.charAt(0) + data.patient_sex.slice(1).toLowerCase() : null,
@@ -65,12 +75,12 @@ export function ResultConfirmationDetailView() {
     // Flush any drawn-but-unsaved annotation boxes first, so confirming
     // never silently discards a mark the MedTech just made.
     if (data && pendingBoxesRef.current !== null) {
-      const saved = JSON.stringify(data.spatial_annotations ?? []);
+      const saved = JSON.stringify(myAnnotation?.spatial_annotations ?? []);
       const pending = JSON.stringify(pendingBoxesRef.current);
       if (saved !== pending) {
         try {
           await saveAnnotationMutation.mutateAsync({
-            notes: data.annotation_notes ?? '',
+            notes: myAnnotation?.annotation_notes ?? '',
             boxes: pendingBoxesRef.current,
           });
         } catch {
@@ -80,7 +90,7 @@ export function ResultConfirmationDetailView() {
       }
     }
     try {
-      await confirmMutation.mutateAsync();
+      await confirmMutation.mutateAsync(interpretationNotes.trim() || undefined);
       toast.success(isReturned ? 'Result re-submitted for supervisor approval.' : 'Result confirmed.');
       navigate('/medtech/results');
     } catch {
@@ -149,9 +159,16 @@ export function ResultConfirmationDetailView() {
           <div className="lg:col-span-2 flex flex-col gap-5">
             <MicroscopyImageSection
               result={data}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
               onBoxesChange={(boxes) => { pendingBoxesRef.current = boxes; }}
             />
-            <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
+            <AnnotationInputControl
+              resultId={resultId}
+              myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+            />
           </div>
 
           <div className="space-y-4">
@@ -161,7 +178,22 @@ export function ResultConfirmationDetailView() {
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">MedTech Action</p>
                 </div>
-                <div className="p-4 space-y-2.5">
+                <div className="p-4 space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                      Interpretation notes{' '}
+                      <span className="text-slate-300 font-normal normal-case">
+                        (optional — shown to the patient)
+                      </span>
+                    </label>
+                    <textarea
+                      value={interpretationNotes}
+                      onChange={(e) => setInterpretationNotes(e.target.value)}
+                      placeholder="Plain-language summary for the patient's result, e.g. findings within normal range…"
+                      rows={3}
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                    />
+                  </div>
                   <Button
                     onClick={handleConfirm}
                     loading={confirmMutation.isPending}
