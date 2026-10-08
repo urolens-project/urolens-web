@@ -4,8 +4,10 @@ import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Spinner';
+import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
+import { reviewerRoleLabel } from '../constants';
 import type { BoundingBox } from '../types';
 import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
@@ -17,7 +19,10 @@ import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
 import { ReturnModal } from './ReturnModal';
 
-const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }> = {
+const STATUS_BADGE: Record<
+  string,
+  { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }
+> = {
   PENDING_SUPERVISOR_APPROVAL: { variant: 'warning', label: 'Pending Approval' },
   APPROVED: { variant: 'success', label: 'Approved' },
   RETURNED_FOR_CORRECTION: { variant: 'info', label: 'Returned' },
@@ -27,6 +32,7 @@ const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' |
 export function FullResultDetailView() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
+  const { role } = useAuthContext();
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
@@ -38,13 +44,17 @@ export function FullResultDetailView() {
   const [returnOpen, setReturnOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
 
+  const myAnnotation = data?.annotations.find((a) => a.reviewer_role.toLowerCase() === role);
+  const otherAnnotations =
+    data?.annotations.filter((a) => a.reviewer_role.toLowerCase() !== role) ?? [];
+
   async function flushBoxesIfDirty() {
     if (!data || pendingBoxesRef.current === null) return;
-    const saved = JSON.stringify(data.spatial_annotations ?? []);
+    const saved = JSON.stringify(myAnnotation?.spatial_annotations ?? []);
     const pending = JSON.stringify(pendingBoxesRef.current);
     if (saved === pending) return;
     await saveAnnotationMutation.mutateAsync({
-      notes: data.annotation_notes ?? '',
+      notes: myAnnotation?.annotation_notes ?? '',
       boxes: pendingBoxesRef.current,
     });
   }
@@ -59,9 +69,15 @@ export function FullResultDetailView() {
     openAction();
   }
 
-  async function openApprove()  { await withFlushedBoxes(() => setApproveOpen(true)); }
-  async function openReturn()   { await withFlushedBoxes(() => setReturnOpen(true)); }
-  async function openEscalate() { await withFlushedBoxes(() => setEscalateOpen(true)); }
+  async function openApprove() {
+    await withFlushedBoxes(() => setApproveOpen(true));
+  }
+  async function openReturn() {
+    await withFlushedBoxes(() => setReturnOpen(true));
+  }
+  async function openEscalate() {
+    await withFlushedBoxes(() => setEscalateOpen(true));
+  }
 
   function handleActionSuccess() {
     navigate('/supervisor/results');
@@ -91,12 +107,13 @@ export function FullResultDetailView() {
   const patientMeta = [
     data.patient_age != null ? `${data.patient_age} yrs` : null,
     data.patient_sex ? data.patient_sex.charAt(0) + data.patient_sex.slice(1).toLowerCase() : null,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
-
         {/* ── Gradient Header Banner ── */}
         <div className="rounded-2xl overflow-hidden shadow-sm border border-violet-200/60">
           <div className="bg-linear-to-r from-violet-700 via-indigo-600 to-indigo-500 px-6 py-5">
@@ -152,14 +169,22 @@ export function FullResultDetailView() {
 
         {/* ── Main Content Grid: image-first ── */}
         <div className="grid gap-5 lg:grid-cols-3">
-
           {/* Left col (2/3): microscopy canvas — primary review artifact */}
           <div className="lg:col-span-2 flex flex-col gap-5">
             <MicroscopyImageSection
               result={data}
-              onBoxesChange={(boxes) => { pendingBoxesRef.current = boxes; }}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+              onBoxesChange={(boxes) => {
+                pendingBoxesRef.current = boxes;
+              }}
             />
-            <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
+            <AnnotationInputControl
+              resultId={resultId}
+              myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+            />
           </div>
 
           {/* Right col (1/3): data sections + actions */}
@@ -207,15 +232,33 @@ export function FullResultDetailView() {
             <AIFindingsSection result={data} />
             <MedTechConfirmationSection result={data} />
             <ManualOverridesSection result={data} />
-            <SmartDiagnosisPanel data={data.smart_diagnosis} unavailable={data.smart_diagnosis_unavailable} />
+            <SmartDiagnosisPanel
+              data={data.smart_diagnosis}
+              unavailable={data.smart_diagnosis_unavailable}
+            />
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      <ApproveModal resultId={resultId} open={approveOpen} onClose={() => setApproveOpen(false)} onSuccess={handleActionSuccess} />
-      <ReturnModal resultId={resultId} open={returnOpen} onClose={() => setReturnOpen(false)} onSuccess={handleActionSuccess} />
-      <EscalateModal resultId={resultId} open={escalateOpen} onClose={() => setEscalateOpen(false)} onSuccess={handleActionSuccess} />
+      <ApproveModal
+        resultId={resultId}
+        open={approveOpen}
+        onClose={() => setApproveOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
+      <ReturnModal
+        resultId={resultId}
+        open={returnOpen}
+        onClose={() => setReturnOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
+      <EscalateModal
+        resultId={resultId}
+        open={escalateOpen}
+        onClose={() => setEscalateOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
     </div>
   );
 }
