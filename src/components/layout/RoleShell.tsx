@@ -6,8 +6,8 @@ import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { authApi } from '../../features/auth/api/authApi';
 import { patientAuthApi } from '../../features/auth/api/patientAuthApi';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
-import { Modal } from '../ui/Modal';
 import { UserRole } from '../../types/enums';
+import { SessionWarningModal } from './SessionWarningModal';
 
 export interface RoleShellNavItem {
   to: string;
@@ -92,7 +92,7 @@ export default function RoleShell({
                     UroLens
                   </h1>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">
-                    Laboratory System
+                    Clinical Platform
                   </p>
                 </div>
               </div>
@@ -190,26 +190,7 @@ export default function RoleShell({
         </main>
       </div>
 
-      {/* SESSION TIMEOUT WARNING */}
-      <Modal
-        open={isWarningVisible}
-        onClose={dismissWarning}
-        title="Session Expiring Soon"
-        maxWidth="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Your session will expire in 2 minutes due to inactivity. Move your mouse or press any
-            key to stay signed in.
-          </p>
-          <button
-            onClick={dismissWarning}
-            className="w-full h-10 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition cursor-pointer"
-          >
-            Stay Signed In
-          </button>
-        </div>
-      </Modal>
+      <SessionWarningModal isVisible={isWarningVisible} onStaySignedIn={dismissWarning} />
     </div>
   );
 }
