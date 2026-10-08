@@ -8,6 +8,7 @@ import {
 import { useAuthContext } from '../../lib/auth/useAuthContext';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 import { Modal } from '../ui/Modal';
+import { NotificationBell } from '../../features/notifications';
 
 const navItems = [
   {
@@ -146,6 +147,7 @@ export default function DashboardShell() {
                 <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">Reception Management Node</h1>
               </div>
             </div>
+            <NotificationBell />
           </div>
         </header>
 
