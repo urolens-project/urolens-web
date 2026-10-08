@@ -35,9 +35,7 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
           <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
             Supervisor Annotation
           </span>
-          {initialNotes && (
-            <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
-          )}
+          {initialNotes && <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />}
         </div>
         {expanded ? (
           <ChevronUp className="h-4 w-4 text-slate-400" />
@@ -53,7 +51,7 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add internal annotation or review notes for this result…"
             rows={4}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">{notes.length} chars</span>
