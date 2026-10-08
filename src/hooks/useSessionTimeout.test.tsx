@@ -2,25 +2,46 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-const mockLogout = vi.fn();
-const mockAuthApiLogout = vi.fn();
-const mockNavigate = vi.fn();
+const {
+  mockLogout,
+  mockAuthApiLogout,
+  mockAuthApiRefresh,
+  mockUpdateSession,
+  mockNavigate,
+  mockIsAuthenticated,
+} = vi.hoisted(() => ({
+  mockLogout: vi.fn(),
+  mockAuthApiLogout: vi.fn(),
+  mockAuthApiRefresh: vi.fn(),
+  mockUpdateSession: vi.fn(),
+  mockNavigate: vi.fn(),
+  mockIsAuthenticated: vi.fn(() => true),
+}));
 
-const mockIsAuthenticated = vi.fn(() => true);
+let mockRole = 'receptionist';
+let mockSession: {
+  expiresAt: string | null;
+  sessionExpiresAt: string | null;
+  idleTimeoutMinutes: number | null;
+  idleWarningSeconds: number | null;
+};
 
 vi.mock('../lib/auth/useAuthContext', () => ({
   useAuthContext: () => ({
     isAuthenticated: mockIsAuthenticated(),
     logout: mockLogout,
     token: mockIsAuthenticated() ? 'fake-token' : null,
-    role: 'receptionist',
+    role: mockRole,
     login: vi.fn(),
+    session: mockSession,
+    updateSession: mockUpdateSession,
   }),
 }));
 
 vi.mock('../features/auth/api/authApi', () => ({
   authApi: {
-    logout: () => mockAuthApiLogout(),
+    logout: (reason?: string) => mockAuthApiLogout(reason),
+    refresh: () => mockAuthApiRefresh(),
   },
 }));
 
@@ -46,6 +67,21 @@ describe('useSessionTimeout', () => {
     vi.useFakeTimers();
     mockIsAuthenticated.mockReturnValue(true);
     mockAuthApiLogout.mockResolvedValue(undefined);
+    mockAuthApiRefresh.mockResolvedValue({
+      access_token: 'new-token',
+      token_type: 'bearer',
+      expires_at: '2026-10-08T02:00:00Z',
+      session_expires_at: '2026-10-08T08:00:00Z',
+      idle_timeout_minutes: 30,
+      idle_warning_seconds: 120,
+    });
+    mockSession = {
+      expiresAt: null,
+      sessionExpiresAt: null,
+      idleTimeoutMinutes: null,
+      idleWarningSeconds: null,
+    };
+    mockRole = 'receptionist';
   });
 
   afterEach(() => {
@@ -244,5 +280,75 @@ describe('useSessionTimeout', () => {
     });
 
     vi.stubEnv('VITE_SESSION_TIMEOUT_MINUTES', original as unknown as string);
+  });
+
+  it("uses the server-provided idle timeout for a MedTech's 60-minute allowance", async () => {
+    mockRole = 'medtech';
+    mockSession = {
+      expiresAt: null,
+      sessionExpiresAt: null,
+      idleTimeoutMinutes: 60,
+      idleWarningSeconds: 120,
+    };
+    const { result } = renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    // Not yet at the 58-minute warning mark for a 60-minute allowance.
+    act(() => {
+      vi.advanceTimersByTime(50 * 60 * 1000);
+    });
+    expect(result.current.isWarningVisible).toBe(false);
+
+    act(() => {
+      vi.advanceTimersByTime(8 * 60 * 1000);
+    });
+    expect(result.current.isWarningVisible).toBe(true);
+  });
+
+  it('sends reason=INACTIVITY on the idle-timeout logout call', async () => {
+    renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    act(() => {
+      vi.advanceTimersByTime(31 * 60 * 1000);
+    });
+    await vi.runAllTimersAsync();
+
+    expect(mockAuthApiLogout).toHaveBeenCalledWith('INACTIVITY');
+  });
+
+  it('silently refreshes the token shortly before it expires', async () => {
+    mockSession = {
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      sessionExpiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+      idleTimeoutMinutes: 30,
+      idleWarningSeconds: 120,
+    };
+    renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    // Refreshes 1 minute before expiry — expires in 5 min, so due at 4 min.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4 * 60 * 1000);
+    });
+
+    expect(mockAuthApiRefresh).toHaveBeenCalled();
+    expect(mockUpdateSession).toHaveBeenCalledWith(
+      expect.objectContaining({ expiresAt: '2026-10-08T02:00:00Z' }),
+    );
+  });
+
+  it('does not schedule a refresh for the patient portal', async () => {
+    mockRole = 'patient';
+    mockSession = {
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      sessionExpiresAt: null,
+      idleTimeoutMinutes: null,
+      idleWarningSeconds: null,
+    };
+    renderHook(() => useSessionTimeout(), { wrapper: createWrapper() });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10 * 60 * 1000);
+    });
+
+    expect(mockAuthApiRefresh).not.toHaveBeenCalled();
   });
 });
