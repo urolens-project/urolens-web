@@ -5,8 +5,10 @@ import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'l
 import { Badge } from '../../../components/ui/Badge';
 import { getResultStatusVariant } from '../../../lib/resultStatusBadge';
 import { Spinner } from '../../../components/ui/Spinner';
+import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
+import { reviewerRoleLabel } from '../constants';
 import type { BoundingBox } from '../types';
 import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
@@ -28,6 +30,7 @@ const STATUS_LABEL: Record<string, string> = {
 export function FullResultDetailView() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
+  const { role } = useAuthContext();
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
@@ -39,13 +42,17 @@ export function FullResultDetailView() {
   const [returnOpen, setReturnOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
 
+  const myAnnotation = data?.annotations.find((a) => a.reviewer_role.toLowerCase() === role);
+  const otherAnnotations =
+    data?.annotations.filter((a) => a.reviewer_role.toLowerCase() !== role) ?? [];
+
   async function flushBoxesIfDirty() {
     if (!data || pendingBoxesRef.current === null) return;
-    const saved = JSON.stringify(data.spatial_annotations ?? []);
+    const saved = JSON.stringify(myAnnotation?.spatial_annotations ?? []);
     const pending = JSON.stringify(pendingBoxesRef.current);
     if (saved === pending) return;
     await saveAnnotationMutation.mutateAsync({
-      notes: data.annotation_notes ?? '',
+      notes: myAnnotation?.annotation_notes ?? '',
       boxes: pendingBoxesRef.current,
     });
   }
@@ -165,11 +172,18 @@ export function FullResultDetailView() {
           <div className="lg:col-span-2 flex flex-col gap-5">
             <MicroscopyImageSection
               result={data}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
               onBoxesChange={(boxes) => {
                 pendingBoxesRef.current = boxes;
               }}
             />
-            <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
+            <AnnotationInputControl
+              resultId={resultId}
+              myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+            />
           </div>
 
           {/* Right col (1/3): data sections + actions */}

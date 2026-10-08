@@ -4,15 +4,27 @@ import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { AnnotationCanvas } from './AnnotationCanvas';
 import { useSaveAnnotation } from '../hooks/useResultReview';
-import type { BoundingBox, FullResultDetail } from '../types';
+import { reviewerRoleLabel } from '../constants';
+import type { AnnotationItem, BoundingBox, FullResultDetail } from '../types';
 
 interface Props {
   result: FullResultDetail;
+  // This viewer's own annotation entry (editable) — undefined if they
+  // haven't left one yet on this result.
+  myAnnotation: AnnotationItem | undefined;
+  // Every other reviewer's entry — shown read-only, attributed by role.
+  otherAnnotations: AnnotationItem[];
   onBoxesChange?: (boxes: BoundingBox[]) => void;
 }
 
-export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
-  const [boxes, setBoxes] = useState<BoundingBox[]>(result.spatial_annotations ?? []);
+export function MicroscopyImageSection({
+  result,
+  myAnnotation,
+  otherAnnotations,
+  onBoxesChange,
+}: Props) {
+  const initialBoxes = myAnnotation?.spatial_annotations ?? [];
+  const [boxes, setBoxes] = useState<BoundingBox[]>(initialBoxes);
   const [saved, setSaved] = useState(false);
   const mutation = useSaveAnnotation(result.result_id);
 
@@ -23,14 +35,20 @@ export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
 
   async function handleSave() {
     await mutation.mutateAsync({
-      notes: result.annotation_notes ?? '',
+      notes: myAnnotation?.annotation_notes ?? '',
       boxes,
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
 
-  const isDirty = JSON.stringify(boxes) !== JSON.stringify(result.spatial_annotations ?? []);
+  const isDirty = JSON.stringify(boxes) !== JSON.stringify(initialBoxes);
+  const otherReviewerBoxes = otherAnnotations
+    .filter((a) => (a.spatial_annotations?.length ?? 0) > 0)
+    .map((a) => ({
+      ownerLabel: reviewerRoleLabel(a.reviewer_role),
+      boxes: a.spatial_annotations ?? [],
+    }));
 
   return (
     <div className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-160">
@@ -67,6 +85,7 @@ export function MicroscopyImageSection({ result, onBoxesChange }: Props) {
             imageUrl={result.image_url}
             boxes={boxes}
             onChange={handleBoxesChange}
+            otherReviewerBoxes={otherReviewerBoxes}
             fullHeight
           />
         ) : (

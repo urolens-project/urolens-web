@@ -2,14 +2,36 @@ import { useState } from 'react';
 import { StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { useSaveAnnotation } from '../hooks/useResultReview';
+import { reviewerRoleLabel } from '../constants';
+import type { AnnotationItem } from '../types';
 
 interface Props {
   resultId: string;
-  initialNotes: string | null;
+  myRoleLabel: string;
+  myAnnotation: AnnotationItem | undefined;
+  otherAnnotations: AnnotationItem[];
 }
 
-export function AnnotationInputControl({ resultId, initialNotes }: Props) {
-  const [expanded, setExpanded] = useState(!!initialNotes);
+function OtherAnnotationCard({ annotation }: { annotation: AnnotationItem }) {
+  if (!annotation.annotation_notes) return null;
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+        {reviewerRoleLabel(annotation.reviewer_role)} Annotation
+      </p>
+      <p className="text-sm text-slate-700 whitespace-pre-wrap">{annotation.annotation_notes}</p>
+    </div>
+  );
+}
+
+export function AnnotationInputControl({
+  resultId,
+  myRoleLabel,
+  myAnnotation,
+  otherAnnotations,
+}: Props) {
+  const initialNotes = myAnnotation?.annotation_notes ?? null;
+  const [expanded, setExpanded] = useState(!!initialNotes || otherAnnotations.length > 0);
   const [notes, setNotes] = useState(initialNotes ?? '');
   const [saved, setSaved] = useState(false);
 
@@ -33,9 +55,11 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
             <StickyNote className="h-3.5 w-3.5 text-slate-500" />
           </div>
           <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
-            Supervisor Annotation
+            Annotations
           </span>
-          {initialNotes && <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />}
+          {(initialNotes || otherAnnotations.some((a) => a.annotation_notes)) && (
+            <span className="inline-flex h-2 w-2 rounded-full bg-amber-400" />
+          )}
         </div>
         {expanded ? (
           <ChevronUp className="h-4 w-4 text-slate-400" />
@@ -45,28 +69,37 @@ export function AnnotationInputControl({ resultId, initialNotes }: Props) {
       </button>
 
       {expanded && (
-        <div className="p-5 space-y-3">
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add internal annotation or review notes for this result…"
-            rows={4}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400">{notes.length} chars</span>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              loading={mutation.isPending}
-              disabled={!notes.trim()}
-            >
-              {saved ? 'Saved!' : 'Save Note'}
-            </Button>
+        <div className="p-5 space-y-4">
+          {otherAnnotations.map((a) => (
+            <OtherAnnotationCard key={a.reviewed_by} annotation={a} />
+          ))}
+
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {myRoleLabel} Annotation (yours)
+            </p>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add internal annotation or review notes for this result…"
+              rows={4}
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400">{notes.length} chars</span>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                loading={mutation.isPending}
+                disabled={!notes.trim()}
+              >
+                {saved ? 'Saved!' : 'Save Note'}
+              </Button>
+            </div>
+            {mutation.isError && (
+              <p className="text-xs text-red-600">Failed to save annotation. Please try again.</p>
+            )}
           </div>
-          {mutation.isError && (
-            <p className="text-xs text-red-600">Failed to save annotation. Please try again.</p>
-          )}
         </div>
       )}
     </div>

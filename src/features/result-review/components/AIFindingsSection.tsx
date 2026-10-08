@@ -2,24 +2,17 @@ import { useState } from 'react';
 import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { useSaveOverride } from '../hooks/useResultReview';
+import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../constants';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
 interface Props {
   result: FullResultDetail;
 }
 
-const PARTICLE_CLASSES: { key: string; label: string }[] = [
-  { key: 'erythrocytes', label: 'Erythrocytes (RBC)' },
-  { key: 'leukocytes', label: 'Leukocytes (WBC)' },
-  { key: 'epithelial_cells', label: 'Epithelial Cells' },
-  { key: 'urinary_casts', label: 'Urinary Casts' },
-  { key: 'crystals', label: 'Crystals' },
-  { key: 'mucus_threads', label: 'Mucus Threads' },
-  { key: 'bacteria', label: 'Bacteria' },
-  { key: 'yeast', label: 'Yeast' },
-  { key: 'sperm_cells', label: 'Sperm Cells' },
-  { key: 'trichomonas_vaginalis', label: 'Trichomonas vaginalis' },
-];
+const PARTICLE_CLASSES: { key: string; label: string }[] = PARTICLE_LABELS.map((key) => ({
+  key,
+  label: PARTICLE_LABEL_DISPLAY[key],
+}));
 
 function getEffectiveValue(key: string, overrides: ManualOverrideItem[]): string | null {
   const matches = overrides.filter((o) => o.parameter_name === key);
@@ -262,7 +255,13 @@ function GenericFindingsCard({
 }
 
 export function AIFindingsSection({ result }: Props) {
-  const counts = result.particle_classes ?? {};
+  // The AI-detected baseline for the "was" value and for the override
+  // request's original_ai_value must come from ai_findings, not
+  // particle_classes — the latter already has overrides folded in (settled
+  // at confirm time, and kept in sync on every subsequent override), so a
+  // second correction would otherwise show the *previous* correction as if
+  // it were the original AI detection.
+  const counts = result.ai_findings ?? {};
   const overrides = result.manual_overrides ?? [];
 
   const overriddenKeys = new Set(overrides.map((o) => o.parameter_name));
