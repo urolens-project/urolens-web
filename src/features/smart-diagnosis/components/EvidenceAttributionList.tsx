@@ -21,7 +21,7 @@ export function EvidenceAttributionList({ evidence }: Props) {
 
   return (
     <div className="space-y-1.5">
-      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
         Evidence Attribution
       </p>
       <div className="flex flex-wrap gap-1.5">

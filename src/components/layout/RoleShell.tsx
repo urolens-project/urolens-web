@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, LogOut, Menu, Settings, type LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../lib/auth/useAuthContext';
@@ -20,9 +20,10 @@ export interface RoleShellNavItem {
 
 interface RoleShellProps {
   navItems: RoleShellNavItem[];
-  navSectionLabel: string;
-  workspaceLabel: string;
-  title: string;
+  /** Overrides the header title for a page that isn't one of navItems
+   * (e.g. the shared Notifications page) — otherwise it's computed from
+   * whichever nav item matches the current route. */
+  title?: string;
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -43,19 +44,24 @@ const ROLE_INITIALS: Record<UserRole, string> = {
   [UserRole.ADMINISTRATOR]: 'AD',
 };
 
-export default function RoleShell({
-  navItems,
-  navSectionLabel,
-  workspaceLabel,
-  title,
-}: RoleShellProps) {
+export default function RoleShell({ navItems, title }: RoleShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { role, logout } = useAuthContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
 
   const roleLabel = role ? ROLE_LABELS[role] : 'User';
   const initials = role ? ROLE_INITIALS[role] : '??';
+
+  // The header shows whichever page is actually open, not a fixed title.
+  // Longest-prefix match so a detail route under a nav item (e.g. a
+  // result's own page) still resolves to that item, not the fallback.
+  const currentPage =
+    [...navItems]
+      .sort((a, b) => b.to.length - a.to.length)
+      .find((item) => location.pathname.startsWith(item.to)) ?? navItems[0];
+  const headerTitle = title ?? currentPage.label;
 
   async function handleLogout() {
     const isPatient = role === UserRole.PATIENT;
@@ -114,8 +120,8 @@ export default function RoleShell({
 
             {/* NAV */}
             <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-              <div className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-emerald-700/60">
-                {navSectionLabel}
+              <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">
+                Menu
               </div>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -175,10 +181,12 @@ export default function RoleShell({
                 <Menu className="h-4 w-4" />
               </button>
               <div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
-                  {workspaceLabel}
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  {roleLabel}
                 </span>
-                <h1 className="text-lg font-black text-slate-900 tracking-tight mt-1.5">{title}</h1>
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight mt-1.5">
+                  {headerTitle}
+                </h1>
               </div>
             </div>
             <NotificationBell />

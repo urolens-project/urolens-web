@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ConsentCapture } from './ConsentCapture';
 import { useCreatePatient } from '../hooks/usePatientRegistration';
+import { Input, Button } from '../../../components/ui';
 import type { PatientCreateRequest, PatientResponse, ConsentData, PatientSex } from '../types';
 import type { ApiError } from '../../../types/domain';
 
@@ -244,83 +245,49 @@ export function PatientRegistrationForm() {
         <div className="p-8 space-y-6">
           {/* NAME ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="first_name">
-                First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="first_name"
-                type="text"
-                name="first_name"
-                value={formData.first_name}
-                onChange={handleInputChange}
-                placeholder="Juan"
-                className={`w-full h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
-                  fieldErrors.first_name ? 'border-red-300' : 'border-slate-200'
-                }`}
-              />
-              {fieldErrors.first_name && (
-                <p className="text-xs text-red-500 font-medium">{fieldErrors.first_name}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="middle_name">
-                Middle Name
-              </label>
-              <input
-                id="middle_name"
-                type="text"
-                name="middle_name"
-                value={formData.middle_name}
-                onChange={handleInputChange}
-                placeholder="Santos (optional)"
-                className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="last_name">
-                Last Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="last_name"
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleInputChange}
-                placeholder="Dela Cruz"
-                className={`w-full h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
-                  fieldErrors.last_name ? 'border-red-300' : 'border-slate-200'
-                }`}
-              />
-              {fieldErrors.last_name && (
-                <p className="text-xs text-red-500 font-medium">{fieldErrors.last_name}</p>
-              )}
-            </div>
+            <Input
+              id="first_name"
+              name="first_name"
+              label="First Name"
+              required
+              value={formData.first_name}
+              onChange={handleInputChange}
+              placeholder="Juan"
+              error={fieldErrors.first_name}
+            />
+            <Input
+              id="middle_name"
+              name="middle_name"
+              label="Middle Name"
+              value={formData.middle_name}
+              onChange={handleInputChange}
+              placeholder="Santos (optional)"
+            />
+            <Input
+              id="last_name"
+              name="last_name"
+              label="Last Name"
+              required
+              value={formData.last_name}
+              onChange={handleInputChange}
+              placeholder="Dela Cruz"
+              error={fieldErrors.last_name}
+            />
           </div>
 
           {/* DOB + SEX ROW */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700" htmlFor="date_of_birth">
-                Date of Birth <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="date_of_birth"
-                type="date"
-                name="date_of_birth"
-                max={maxBirthDate}
-                value={formData.date_of_birth}
-                onChange={handleInputChange}
-                className={`w-full h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
-                  fieldErrors.date_of_birth ? 'border-red-300' : 'border-slate-200'
-                }`}
-              />
-              {fieldErrors.date_of_birth && (
-                <p className="text-xs text-red-500 font-medium">{fieldErrors.date_of_birth}</p>
-              )}
-            </div>
+            <Input
+              id="date_of_birth"
+              name="date_of_birth"
+              type="date"
+              label="Date of Birth"
+              required
+              max={maxBirthDate}
+              value={formData.date_of_birth}
+              onChange={handleInputChange}
+              error={fieldErrors.date_of_birth}
+            />
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700" htmlFor="sex">
@@ -331,7 +298,7 @@ export function PatientRegistrationForm() {
                 name="sex"
                 value={formData.sex}
                 onChange={handleInputChange}
-                className={`w-full h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
+                className={`w-full h-11 rounded-xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
                   fieldErrors.sex ? 'border-red-300' : 'border-slate-200'
                 }`}
               >
@@ -347,20 +314,14 @@ export function PatientRegistrationForm() {
           </div>
 
           {/* CONTACT */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700" htmlFor="contact_no">
-              Contact Number
-            </label>
-            <input
-              id="contact_no"
-              type="text"
-              name="contact_no"
-              value={formData.contact_no}
-              onChange={handleInputChange}
-              placeholder="09XXXXXXXXX"
-              className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
-            />
-          </div>
+          <Input
+            id="contact_no"
+            name="contact_no"
+            label="Contact Number"
+            value={formData.contact_no}
+            onChange={handleInputChange}
+            placeholder="09XXXXXXXXX"
+          />
 
           {/* ADDRESS */}
           <div className="space-y-2">
@@ -374,12 +335,12 @@ export function PatientRegistrationForm() {
               onChange={handleInputChange}
               placeholder="Street, Barangay, City, Province"
               rows={3}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 resize-none"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 resize-none"
             />
           </div>
 
           {/* WALK-IN TOGGLE */}
-          <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-slate-50">
             <div>
               <p className="text-sm font-semibold text-slate-700">Walk-in Patient</p>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -404,13 +365,13 @@ export function PatientRegistrationForm() {
           </div>
 
           {duplicateError && (
-            <div className="p-4 rounded-2xl border border-red-200 bg-red-50">
+            <div className="p-4 rounded-xl border border-red-200 bg-red-50">
               <p className="text-sm font-medium text-red-600">{duplicateError}</p>
             </div>
           )}
 
           {genericError && (
-            <div className="p-4 rounded-2xl border border-red-200 bg-red-50">
+            <div className="p-4 rounded-xl border border-red-200 bg-red-50">
               <p className="text-sm font-medium text-red-600">{genericError}</p>
             </div>
           )}
@@ -420,14 +381,10 @@ export function PatientRegistrationForm() {
       <ConsentCapture value={consent} onChange={setConsent} showErrors={showConsentErrors} />
 
       <div className="flex justify-end">
-        <button
-          type="submit"
-          disabled={createPatient.isPending}
-          className="h-12 px-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
-        >
+        <Button type="submit" variant="primary" size="lg" disabled={createPatient.isPending}>
           {createPatient.isPending ? 'Registering Patient...' : 'Register Patient'}
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
     </form>
   );

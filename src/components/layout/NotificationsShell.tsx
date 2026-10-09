@@ -16,9 +16,9 @@ import RoleShell from './RoleShell';
  */
 export default function NotificationsShell() {
   const { role } = useAuthContext();
-  const config = role ? ROLE_SHELL_CONFIG[role] : null;
+  const navItems = role ? ROLE_SHELL_CONFIG[role] : null;
 
-  if (!config) return null;
+  if (!navItems) return null;
 
-  return <RoleShell {...config} title="Notifications" />;
+  return <RoleShell navItems={navItems} title="Notifications" />;
 }

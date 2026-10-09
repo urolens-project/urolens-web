@@ -63,10 +63,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
-                    title="Reception Management Node"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]} />
                 </RequireRole>
               }
             >
@@ -82,10 +79,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.MEDTECH]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.MEDTECH]}
-                    title="Specimen Processing Console"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.MEDTECH]} />
                 </RequireRole>
               }
             >
@@ -101,10 +95,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.SUPERVISOR]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.SUPERVISOR]}
-                    title="Laboratory Review Console"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.SUPERVISOR]} />
                 </RequireRole>
               }
             >
@@ -119,10 +110,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.PHYSICIAN]}
-                    title="Clinical Request Portal"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.PHYSICIAN]} />
                 </RequireRole>
               }
             >
@@ -136,7 +124,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
-                  <RoleShell {...ROLE_SHELL_CONFIG[UserRole.PATIENT]} title="My Results Portal" />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.PATIENT]} />
                 </RequireRole>
               }
             >
@@ -152,10 +140,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.ADMINISTRATOR]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.ADMINISTRATOR]}
-                    title="System Administration"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.ADMINISTRATOR]} />
                 </RequireRole>
               }
             >
@@ -181,10 +166,7 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
-                  <RoleShell
-                    {...ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
-                    title="Reception Management Node"
-                  />
+                  <RoleShell navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]} />
                 </RequireRole>
               }
               path="/intake"

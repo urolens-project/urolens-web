@@ -57,7 +57,7 @@ function PanelHeader({
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
           <Brain className="h-4 w-4" />
         </div>
-        <h3 className="text-sm font-black text-slate-900">Smart Diagnosis Result</h3>
+        <h3 className="text-sm font-bold text-slate-900">Smart Diagnosis Result</h3>
       </div>
       <span className="text-[10px] font-mono text-slate-400">
         v{engineVersion}

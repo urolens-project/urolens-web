@@ -104,7 +104,7 @@ export default function PatientLoginPage() {
                   setPatientUid(e.target.value);
                   if (patientUidError) setPatientUidError('');
                 }}
-                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                className={`w-full h-11 px-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
                   patientUidError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
                 placeholder="Enter your Patient ID from the lab receipt"
@@ -131,7 +131,7 @@ export default function PatientLoginPage() {
                   setPassword(e.target.value);
                   if (passwordError) setPasswordError('');
                 }}
-                className={`w-full h-11 px-3.5 border rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
+                className={`w-full h-11 px-3.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition ${
                   passwordError ? 'border-red-400 bg-red-50/30' : 'border-slate-200'
                 }`}
                 placeholder="SURNAME + date of birth (e.g. DELACRUZ01011990)"
@@ -156,7 +156,7 @@ export default function PatientLoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 bg-emerald-700 text-white rounded-xl text-xs font-bold hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 bg-emerald-700 text-white rounded-xl text-sm font-semibold hover:bg-emerald-800 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting && (
                 <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">

@@ -10,7 +10,7 @@ interface PendingSpecimenListProps {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString('en-GB', {
+  return new Date(iso).toLocaleString('en-PH', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

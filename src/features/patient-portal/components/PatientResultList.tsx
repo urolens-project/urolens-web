@@ -9,7 +9,7 @@ interface PatientResultListProps {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return 'Not yet released';
-  return new Date(dateStr).toLocaleDateString('en-US', {
+  return new Date(dateStr).toLocaleDateString('en-PH', {
     month: 'short',
     day: '2-digit',
     year: 'numeric',

@@ -6,6 +6,7 @@ import { PendingSpecimenList } from './PendingSpecimenList';
 import { AssignmentConfirmationModal } from './AssignmentConfirmationModal';
 import { usePendingSpecimens, useMedTechWorkloads } from '../hooks/useQueueWorkloads';
 import { useAssignSpecimen } from '../hooks/useAssignSpecimen';
+import { Button } from '../../../components/ui';
 
 interface QueueAssignmentDashboardProps {
   // Specimen just labeled; selected once it shows up in the pending list.
@@ -62,9 +63,7 @@ export function QueueAssignmentDashboard({
       { specimen_id: selectedSpecimen.specimen_id, medtech_id: selectedMedTech.user_id },
       {
         onSuccess: () => {
-          toast.success(
-            `${selectedSpecimen.sample_uid} assigned to ${selectedMedTech.full_name}.`,
-          );
+          toast.success(`${selectedSpecimen.sample_uid} assigned to ${selectedMedTech.full_name}.`);
           setModalOpen(false);
           setSelectedSpecimenId(null);
           setSelectedMedTechId(null);
@@ -84,13 +83,15 @@ export function QueueAssignmentDashboard({
         <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-3" />
         <p className="text-sm font-semibold text-red-700">Failed to load queue data</p>
         <p className="text-xs text-red-500 mt-1">Please check your connection and try again.</p>
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-4 border-red-200 text-red-600 hover:bg-red-50"
           onClick={handleReload}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-4 h-9 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Try again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -102,17 +103,15 @@ export function QueueAssignmentDashboard({
         <div className="flex items-center justify-between">
           <p className="text-xs text-slate-400">
             {specimens !== undefined && (
-              <>{specimens.length} specimen{specimens.length !== 1 ? 's' : ''} pending</>
+              <>
+                {specimens.length} specimen{specimens.length !== 1 ? 's' : ''} pending
+              </>
             )}
           </p>
-          <button
-            onClick={handleReload}
-            disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 h-9 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
-          >
+          <Button variant="secondary" size="sm" disabled={isRefreshing} onClick={handleReload}>
             <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing…' : 'Refresh'}
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -131,15 +130,10 @@ export function QueueAssignmentDashboard({
         </div>
 
         <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleOpenModal}
-            disabled={!canAssign}
-            className="h-12 px-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
-          >
+          <Button variant="primary" size="lg" disabled={!canAssign} onClick={handleOpenModal}>
             Assign Specimen
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
 
