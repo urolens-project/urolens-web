@@ -30,6 +30,10 @@ export interface AuthState {
   // Called after a silent token refresh succeeds, to update the stored
   // expiry/idle-timeout values without touching token/role.
   updateSession: (session: Partial<SessionMeta>) => void;
+  // Called after a silent token refresh succeeds, to swap in the new
+  // access token so subsequent requests stop using the one that's about
+  // to expire.
+  updateToken: (token: string) => void;
   logout: () => void;
 }
 
@@ -55,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateSession = useCallback((patch: Partial<SessionMeta>) => {
     setSession((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const updateToken = useCallback((newToken: string) => {
+    setToken(newToken);
   }, []);
 
   const logout = useCallback(() => {
@@ -84,9 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       login,
       updateSession,
+      updateToken,
       logout,
     }),
-    [token, role, userId, session, login, updateSession, logout],
+    [token, role, userId, session, login, updateSession, updateToken, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
