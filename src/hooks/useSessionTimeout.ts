@@ -19,7 +19,7 @@ const REFRESH_BUFFER_MS = 60_000;
 const REFRESH_RETRY_DELAYS_MS = [5_000, 15_000];
 
 export function useSessionTimeout() {
-  const { isAuthenticated, role, session, logout, updateSession } = useAuthContext();
+  const { isAuthenticated, role, session, logout, updateSession, updateToken } = useAuthContext();
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -99,6 +99,7 @@ export function useSessionTimeout() {
         authApi
           .refresh()
           .then((data) => {
+            updateToken(data.access_token);
             updateSession({
               expiresAt: data.expires_at,
               sessionExpiresAt: data.session_expires_at,
@@ -118,7 +119,7 @@ export function useSessionTimeout() {
           });
       }, delay);
     },
-    [isPatient, clearRefreshTimer, updateSession],
+    [isPatient, clearRefreshTimer, updateSession, updateToken],
   );
 
   useEffect(() => {

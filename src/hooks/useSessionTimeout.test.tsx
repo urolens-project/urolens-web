@@ -7,6 +7,7 @@ const {
   mockAuthApiLogout,
   mockAuthApiRefresh,
   mockUpdateSession,
+  mockUpdateToken,
   mockNavigate,
   mockIsAuthenticated,
 } = vi.hoisted(() => ({
@@ -14,6 +15,7 @@ const {
   mockAuthApiLogout: vi.fn(),
   mockAuthApiRefresh: vi.fn(),
   mockUpdateSession: vi.fn(),
+  mockUpdateToken: vi.fn(),
   mockNavigate: vi.fn(),
   mockIsAuthenticated: vi.fn(() => true),
 }));
@@ -35,6 +37,7 @@ vi.mock('../lib/auth/useAuthContext', () => ({
     login: vi.fn(),
     session: mockSession,
     updateSession: mockUpdateSession,
+    updateToken: mockUpdateToken,
   }),
 }));
 
@@ -330,6 +333,7 @@ describe('useSessionTimeout', () => {
     });
 
     expect(mockAuthApiRefresh).toHaveBeenCalled();
+    expect(mockUpdateToken).toHaveBeenCalledWith('new-token');
     expect(mockUpdateSession).toHaveBeenCalledWith(
       expect.objectContaining({ expiresAt: '2026-10-08T02:00:00Z' }),
     );
