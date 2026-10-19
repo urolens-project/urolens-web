@@ -45,9 +45,9 @@ export function FullResultDetailView() {
   const [escalateOpen, setEscalateOpen] = useState(false);
 
   // Matched by reviewed_by (the reviewer's user id), not reviewer_role —
-  // two users can share a role (e.g. two supervisors), and matching by
-  // role alone would let one's edits overwrite the other's annotation
-  // under the wrong attribution.
+  // two users can share a role (e.g. two MedTechs), and matching by role
+  // alone would let one's edits overwrite the other's annotation under
+  // the wrong attribution.
   const myAnnotation = data?.annotations.find((a) => a.reviewed_by === userId);
   const otherAnnotations = data?.annotations.filter((a) => a.reviewed_by !== userId) ?? [];
 
