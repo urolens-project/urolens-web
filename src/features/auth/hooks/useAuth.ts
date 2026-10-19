@@ -26,7 +26,7 @@ export function useLogin() {
       // normalization, or it never matches and every login falls through
       // to the fallback dashboard regardless of actual role.
       const normalizedRole = data.role.toLowerCase();
-      login(data.access_token, data.role);
+      login(data.access_token, data.role, data.user_id);
       const dashboard = roleToDashboard[normalizedRole] ?? '/dashboard/receptionist';
       navigate(dashboard, { replace: true });
     },
