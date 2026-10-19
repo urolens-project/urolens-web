@@ -75,8 +75,8 @@ export function PhysicianResultDetailView() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-xs">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100">
-            <FlaskConical className="h-6 w-6 text-indigo-600" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">
+            <FlaskConical className="h-6 w-6 text-emerald-600" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900">{data.patient_uid}</h1>

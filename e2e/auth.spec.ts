@@ -53,7 +53,7 @@ test.describe('Authentication E2E', () => {
 
   test('login with valid credentials redirects to dashboard', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.getByRole('heading', { name: 'UroLens LIS' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
 
     await page.fill('#username', 'receptionist');
     await page.fill('#password', 'password');
@@ -81,7 +81,9 @@ test.describe('Authentication E2E', () => {
     await page.fill('#password', 'password');
     await page.click('button[type="submit"]');
 
-    await expect(page.getByText('Your account has been locked. Please contact the administrator.')).toBeVisible();
+    await expect(
+      page.getByText('Your account has been locked. Please contact the administrator.'),
+    ).toBeVisible();
   });
 
   test('login with inactive account shows inactive message', async ({ page }) => {
@@ -91,7 +93,9 @@ test.describe('Authentication E2E', () => {
     await page.fill('#password', 'password');
     await page.click('button[type="submit"]');
 
-    await expect(page.getByText('Your account is inactive. Please contact the administrator.')).toBeVisible();
+    await expect(
+      page.getByText('Your account is inactive. Please contact the administrator.'),
+    ).toBeVisible();
   });
 
   test('empty fields show validation errors', async ({ page }) => {
@@ -111,7 +115,7 @@ test.describe('Authentication E2E', () => {
 
     await page.click('text=Logout');
     await expect(page).toHaveURL('/login');
-    await expect(page.getByRole('heading', { name: 'UroLens LIS' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   });
 
   test('session timeout redirects to login with timeout banner', async ({ page }) => {
@@ -131,10 +135,12 @@ test.describe('Authentication E2E', () => {
   test('unauthenticated user accessing dashboard is redirected to login', async ({ page }) => {
     await page.goto('/dashboard/receptionist');
     await expect(page).toHaveURL('/login');
-    await expect(page.getByRole('heading', { name: 'UroLens LIS' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   });
 
-  test('already authenticated user is redirected to dashboard on login visit by router', async ({ page }) => {
+  test('already authenticated user is redirected to dashboard on login visit by router', async ({
+    page,
+  }) => {
     await page.goto('/login');
     await page.fill('#username', 'receptionist');
     await page.fill('#password', 'password');
@@ -148,5 +154,4 @@ test.describe('Authentication E2E', () => {
     await expect(page).toHaveURL('/login');
     await expect(page.getByRole('heading', { name: 'Receptionist Dashboard' })).toBeVisible();
   });
-
 });

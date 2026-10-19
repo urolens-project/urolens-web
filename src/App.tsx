@@ -5,12 +5,10 @@ import { queryClient } from './lib/queryClient';
 import { AuthProvider } from './lib/auth/authContext';
 import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
+import { ROLE_SHELL_CONFIG } from './lib/roleShellConfig';
 
-import AppShell from './components/layout/AppShell';
-import DashboardShell from './components/layout/DashboardShell';
-import SupervisorShell from './components/layout/SupervisorShell';
-import PhysicianShell from './components/layout/PhysicianShell';
 import NotificationsShell from './components/layout/NotificationsShell';
+import RoleShell from './components/layout/RoleShell';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -62,7 +60,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
-                  <DashboardShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
+                    navSectionLabel="Main Operations"
+                    workspaceLabel="Intake Workspace"
+                    title="Reception Management Node"
+                  />
                 </RequireRole>
               }
             >
@@ -78,7 +81,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.MEDTECH]}>
-                  <AppShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.MEDTECH]}
+                    navSectionLabel="MedTech Workspace"
+                    workspaceLabel="Processing Workspace"
+                    title="Specimen Processing Console"
+                  />
                 </RequireRole>
               }
             >
@@ -89,7 +97,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.SUPERVISOR]}>
-                  <SupervisorShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.SUPERVISOR]}
+                    navSectionLabel="Supervisor Workspace"
+                    workspaceLabel="Supervisor Workspace"
+                    title="Laboratory Review Console"
+                  />
                 </RequireRole>
               }
             >
@@ -104,7 +117,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
-                  <PhysicianShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.PHYSICIAN]}
+                    navSectionLabel="Physician Workspace"
+                    workspaceLabel="Physician Workspace"
+                    title="Clinical Request Portal"
+                  />
                 </RequireRole>
               }
             >
@@ -118,7 +136,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
-                  <AppShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.PATIENT]}
+                    navSectionLabel="Patient Workspace"
+                    workspaceLabel="Patient Workspace"
+                    title="My Results Portal"
+                  />
                 </RequireRole>
               }
             >
@@ -134,7 +157,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.ADMINISTRATOR]}>
-                  <AppShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.ADMINISTRATOR]}
+                    navSectionLabel="Admin Workspace"
+                    workspaceLabel="Admin Workspace"
+                    title="System Administration"
+                  />
                 </RequireRole>
               }
             >
@@ -160,7 +188,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
-                  <DashboardShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
+                    navSectionLabel="Main Operations"
+                    workspaceLabel="Intake Workspace"
+                    title="Reception Management Node"
+                  />
                 </RequireRole>
               }
               path="/intake"

@@ -118,8 +118,8 @@ export function FullResultDetailView() {
     <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
         {/* ── Gradient Header Banner ── */}
-        <div className="rounded-2xl overflow-hidden shadow-sm border border-violet-200/60">
-          <div className="bg-linear-to-r from-violet-700 via-indigo-600 to-indigo-500 px-6 py-5">
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-emerald-200/60">
+          <div className="bg-linear-to-r from-emerald-700 via-emerald-600 to-emerald-500 px-6 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <button
@@ -131,11 +131,11 @@ export function FullResultDetailView() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h1 className="text-xl font-bold text-white tracking-tight">Result Review</h1>
-                    <span className="inline-flex items-center rounded-lg bg-white/15 px-2.5 py-0.5 text-[10px] font-mono text-violet-100 tracking-widest border border-white/10">
+                    <span className="inline-flex items-center rounded-lg bg-white/15 px-2.5 py-0.5 text-[10px] font-mono text-emerald-100 tracking-widest border border-white/10">
                       {data.result_id.slice(0, 8).toUpperCase()}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-violet-100 truncate">
+                  <p className="mt-1 text-sm text-emerald-100 truncate">
                     {data.patient_uid}
                     {patientMeta ? ` · ${patientMeta}` : ''}
                   </p>
@@ -146,7 +146,7 @@ export function FullResultDetailView() {
                 <Badge variant={statusInfo.variant} className="px-3 py-1 text-xs font-semibold">
                   {statusInfo.label}
                 </Badge>
-                <span className="text-[10px] text-violet-200 font-mono tracking-wider">
+                <span className="text-[10px] text-emerald-200 font-mono tracking-wider">
                   Spec: {data.specimen_id.slice(0, 8).toUpperCase()}
                 </span>
               </div>
@@ -154,14 +154,14 @@ export function FullResultDetailView() {
           </div>
 
           {/* Sub-bar: model version + supervisor label */}
-          <div className="bg-indigo-950/90 px-6 py-2 flex items-center justify-between">
+          <div className="bg-emerald-950/90 px-6 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-indigo-300" />
-              <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+              <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
                 Supervisor Review Workspace
               </span>
             </div>
-            <span className="text-[10px] text-indigo-400 font-mono">
+            <span className="text-[10px] text-emerald-400 font-mono">
               Model v{data.model_version || '—'}
             </span>
           </div>
