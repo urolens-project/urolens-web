@@ -53,9 +53,7 @@ export function PatientResultList({ results }: PatientResultListProps) {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-slate-800">
-                      {result.test_type}
-                    </span>
+                    <span className="text-sm font-semibold text-slate-800">{result.test_type}</span>
                     <ResultStatusChip status={result.status} />
                   </div>
                   <div className="mt-1 text-xs text-slate-500">
@@ -81,12 +79,7 @@ export function PatientResultList({ results }: PatientResultListProps) {
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-slate-800">
-                    {result.test_type}
-                  </span>
-                  <ResultStatusChip status={result.status} />
-                </div>
+                <span className="text-sm font-semibold text-slate-800">{result.test_type}</span>
                 <div className="mt-1 text-xs text-slate-500">Not yet released</div>
               </div>
             </div>
