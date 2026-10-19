@@ -264,16 +264,16 @@ export function AIFindingsSection({ result }: Props) {
     <div className="space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-blue-100 bg-blue-50">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-emerald-100 bg-emerald-50">
           <div className="flex items-center gap-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100">
-              <Bot className="h-3.5 w-3.5 text-blue-600" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+              <Bot className="h-3.5 w-3.5 text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-xs font-bold text-blue-800 uppercase tracking-widest">
+              <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">
                 AI Particle Counts
               </h3>
-              <p className="text-[10px] text-blue-400 uppercase tracking-widest mt-0.5">
+              <p className="text-[10px] text-emerald-400 uppercase tracking-widest mt-0.5">
                 Hover any row to correct
               </p>
             </div>

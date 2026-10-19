@@ -1,7 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ClipboardList, ClipboardCheck, Activity } from 'lucide-react';
-import { useAuthContext } from '../../../lib/auth/useAuthContext';
-import { authApi } from '../../auth/api/authApi';
+import { ClipboardList, ClipboardCheck } from 'lucide-react';
 
 const navCards = [
   {
@@ -38,40 +36,10 @@ const colorMap: Record<string, { card: string; icon: string; iconBg: string; act
 };
 
 export function PhysicianDashboard() {
-  const { logout } = useAuthContext();
   const navigate = useNavigate();
-
-  async function handleLogout() {
-    try {
-      await authApi.logout();
-    } catch {
-      /* ignore */
-    }
-    logout();
-    navigate('/login', { replace: true });
-  }
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200">
-            <Activity className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Physician Portal</h1>
-            <p className="text-sm text-slate-500 mt-0.5">UroLens AI-Assisted Urinalysis Platform</p>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition cursor-pointer"
-        >
-          Sign Out
-        </button>
-      </div>
-
       {/* Nav cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {navCards.map((card) => {

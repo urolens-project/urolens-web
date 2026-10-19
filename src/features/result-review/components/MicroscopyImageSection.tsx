@@ -61,7 +61,7 @@ export function MicroscopyImageSection({
             Microscopy Image
           </h3>
           {boxes.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
+            <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
               {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
             </span>
           )}
