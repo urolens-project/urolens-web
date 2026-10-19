@@ -93,7 +93,7 @@ export default function RoleShell({
                     UroLens
                   </h1>
                   <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-emerald-600/80">
-                    Laboratory System
+                    AI-Assisted Urinalysis
                   </p>
                 </div>
               </div>
