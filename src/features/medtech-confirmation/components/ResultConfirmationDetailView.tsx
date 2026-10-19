@@ -12,7 +12,6 @@ import { reviewerRoleLabel } from '../../result-review/constants';
 import type { BoundingBox } from '../../result-review/types';
 import { AIFindingsSection } from '../../result-review/components/AIFindingsSection';
 import { AnnotationInputControl } from '../../result-review/components/AnnotationInputControl';
-import { ManualOverridesSection } from '../../result-review/components/ManualOverridesSection';
 import { MicroscopyImageSection } from '../../result-review/components/MicroscopyImageSection';
 import { PatientInfoSection } from '../../result-review/components/PatientInfoSection';
 import { useConfirmResult } from '../hooks/useMedtechConfirmation';
@@ -68,7 +67,9 @@ export function ResultConfirmationDetailView() {
   const patientMeta = [
     data.patient_age != null ? `${data.patient_age} yrs` : null,
     data.patient_sex ? data.patient_sex.charAt(0) + data.patient_sex.slice(1).toLowerCase() : null,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   async function handleConfirm() {
     setConfirmError('');
@@ -91,7 +92,9 @@ export function ResultConfirmationDetailView() {
     }
     try {
       await confirmMutation.mutateAsync(interpretationNotes.trim() || undefined);
-      toast.success(isReturned ? 'Result re-submitted for supervisor approval.' : 'Result confirmed.');
+      toast.success(
+        isReturned ? 'Result re-submitted for supervisor approval.' : 'Result confirmed.',
+      );
       navigate('/medtech/results');
     } catch {
       setConfirmError('Failed to confirm. Please try again.');
@@ -125,7 +128,10 @@ export function ResultConfirmationDetailView() {
                   </p>
                 </div>
               </div>
-              <Badge variant={isReturned ? 'warning' : 'default'} className="px-3 py-1 text-xs font-semibold shrink-0">
+              <Badge
+                variant={isReturned ? 'warning' : 'default'}
+                className="px-3 py-1 text-xs font-semibold shrink-0"
+              >
                 {isReturned ? 'Returned for Correction' : 'Pending Confirmation'}
               </Badge>
             </div>
@@ -137,7 +143,9 @@ export function ResultConfirmationDetailView() {
                 MedTech Confirmation Workspace
               </span>
             </div>
-            <span className="text-[10px] text-sky-400 font-mono">Model v{data.model_version || '—'}</span>
+            <span className="text-[10px] text-sky-400 font-mono">
+              Model v{data.model_version || '—'}
+            </span>
           </div>
         </div>
 
@@ -145,9 +153,12 @@ export function ResultConfirmationDetailView() {
           <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
             <RotateCcw className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-amber-800">Returned by the Supervisor for correction</p>
+              <p className="text-sm font-semibold text-amber-800">
+                Returned by the Supervisor for correction
+              </p>
               <p className="mt-0.5 text-sm text-amber-700">
-                {returnReason || 'Review the AI findings below, correct any values, then re-confirm.'}
+                {returnReason ||
+                  'Review the AI findings below, correct any values, then re-confirm.'}
               </p>
             </div>
           </div>
@@ -155,13 +166,18 @@ export function ResultConfirmationDetailView() {
 
         <PatientInfoSection result={data} />
 
-        <div className="grid gap-5 lg:grid-cols-3">
-          <div className="lg:col-span-2 flex flex-col gap-5">
+        {/* items-start + sticky on the left column: the image and
+            annotation controls stay in view while the right column's data
+            sections scroll past. */}
+        <div className="grid gap-5 lg:grid-cols-3 items-start">
+          <div className="lg:col-span-2 flex flex-col gap-5 lg:sticky lg:top-6">
             <MicroscopyImageSection
               result={data}
               myAnnotation={myAnnotation}
               otherAnnotations={otherAnnotations}
-              onBoxesChange={(boxes) => { pendingBoxesRef.current = boxes; }}
+              onBoxesChange={(boxes) => {
+                pendingBoxesRef.current = boxes;
+              }}
             />
             <AnnotationInputControl
               resultId={resultId}
@@ -176,7 +192,9 @@ export function ResultConfirmationDetailView() {
               <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                 <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/60 flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">MedTech Action</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    MedTech Action
+                  </p>
                 </div>
                 <div className="p-4 space-y-3">
                   <div>
@@ -203,19 +221,24 @@ export function ResultConfirmationDetailView() {
                     <CheckCircle className="h-4 w-4 shrink-0" />
                     {isReturned ? 'Re-confirm & Submit' : 'Confirm Result'}
                   </Button>
-                  {confirmError && <p className="text-xs text-red-600 text-center">{confirmError}</p>}
+                  {confirmError && (
+                    <p className="text-xs text-red-600 text-center">{confirmError}</p>
+                  )}
                 </div>
                 <div className="px-5 pb-4">
                   <p className="text-[10px] text-slate-400 text-center leading-relaxed">
-                    Correct any AI findings below before confirming — this sends the result to the Supervisor for approval.
+                    Correct any AI findings below before confirming — this sends the result to the
+                    Supervisor for approval.
                   </p>
                 </div>
               </div>
             )}
 
             <AIFindingsSection result={data} />
-            <ManualOverridesSection result={data} />
-            <SmartDiagnosisPanel data={data.smart_diagnosis} unavailable={data.smart_diagnosis_unavailable} />
+            <SmartDiagnosisPanel
+              data={data.smart_diagnosis}
+              unavailable={data.smart_diagnosis_unavailable}
+            />
           </div>
         </div>
       </div>
