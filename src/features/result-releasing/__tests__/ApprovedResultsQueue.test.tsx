@@ -16,15 +16,33 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const pageOne = {
   data: [
-    { result_id: 'r-1', patient_uid: 'PAT-000001', sample_uid: 'SMP-1', test_type: 'URINALYSIS_-_ROUTINE', approved_at: '2026-09-28T09:00:00Z' },
-    { result_id: 'r-2', patient_uid: 'PAT-000002', sample_uid: 'SMP-2', test_type: 'URINALYSIS', approved_at: '2026-09-28T08:00:00Z' },
+    {
+      result_id: 'r-1',
+      patient_uid: 'PAT-000001',
+      sample_uid: 'SMP-1',
+      test_type: 'URINALYSIS_-_ROUTINE',
+      approved_at: '2026-09-28T09:00:00Z',
+    },
+    {
+      result_id: 'r-2',
+      patient_uid: 'PAT-000002',
+      sample_uid: 'SMP-2',
+      test_type: 'URINALYSIS',
+      approved_at: '2026-09-28T08:00:00Z',
+    },
   ],
   pagination: { next_cursor: '2026-09-28T08:00:00Z', has_more: true },
 };
 
 const pageTwo = {
   data: [
-    { result_id: 'r-3', patient_uid: 'PAT-000003', sample_uid: 'SMP-3', test_type: 'URINALYSIS', approved_at: '2026-09-27T08:00:00Z' },
+    {
+      result_id: 'r-3',
+      patient_uid: 'PAT-000003',
+      sample_uid: 'SMP-3',
+      test_type: 'URINALYSIS',
+      approved_at: '2026-09-27T08:00:00Z',
+    },
   ],
   pagination: { next_cursor: null, has_more: false },
 };
@@ -108,7 +126,9 @@ describe('ApprovedResultsQueue', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Refresh/i }));
 
-    await waitFor(() => expect(resultReleasingApi.getApproved).toHaveBeenLastCalledWith(20, undefined));
+    await waitFor(() =>
+      expect(resultReleasingApi.getApproved).toHaveBeenLastCalledWith(20, undefined),
+    );
     expect(screen.queryByText('PAT-000003')).not.toBeInTheDocument();
   });
 
@@ -128,5 +148,17 @@ describe('ApprovedResultsQueue', () => {
     renderQueue();
 
     expect(await screen.findByText(/Failed to load approved results/i)).toBeInTheDocument();
+  });
+
+  it('renders loading-skeleton bars with an actual width, not a width-less `w-${n}` class', () => {
+    // getApproved never resolves, so the component stays in its loading state.
+    vi.mocked(resultReleasingApi.getApproved).mockReturnValue(new Promise(() => {}));
+    const { container } = renderQueue();
+
+    const bars = container.querySelectorAll('tbody tr.animate-pulse div.h-3');
+    expect(bars.length).toBeGreaterThan(0);
+    for (const bar of bars) {
+      expect((bar as HTMLElement).style.width).not.toBe('');
+    }
   });
 });
