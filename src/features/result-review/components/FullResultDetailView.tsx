@@ -32,7 +32,7 @@ const STATUS_BADGE: Record<
 export function FullResultDetailView() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
-  const { role } = useAuthContext();
+  const { role, userId } = useAuthContext();
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
@@ -44,9 +44,12 @@ export function FullResultDetailView() {
   const [returnOpen, setReturnOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
 
-  const myAnnotation = data?.annotations.find((a) => a.reviewer_role.toLowerCase() === role);
-  const otherAnnotations =
-    data?.annotations.filter((a) => a.reviewer_role.toLowerCase() !== role) ?? [];
+  // Matched by reviewed_by (the reviewer's user id), not reviewer_role —
+  // two users can share a role (e.g. two supervisors), and matching by
+  // role alone would let one's edits overwrite the other's annotation
+  // under the wrong attribution.
+  const myAnnotation = data?.annotations.find((a) => a.reviewed_by === userId);
+  const otherAnnotations = data?.annotations.filter((a) => a.reviewed_by !== userId) ?? [];
 
   async function flushBoxesIfDirty() {
     if (!data || pendingBoxesRef.current === null) return;
