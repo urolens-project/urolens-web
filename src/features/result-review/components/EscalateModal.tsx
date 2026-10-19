@@ -4,6 +4,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useEscalateResult } from '../hooks/useResultReview';
 import { ESCALATION_PATH_LABELS, type EscalationPath } from '../types';
+import { getEscalateErrorMessage } from '../utils/errors';
 
 const PATHS: EscalationPath[] = ['NOTIFY_PHYSICIAN', 'FLAG_SENIOR_REVIEW', 'MARK_CRITICAL'];
 
@@ -26,7 +27,11 @@ export function EscalateModal({ resultId, open, onClose, onSuccess }: Props) {
   const mutation = useEscalateResult(resultId);
 
   async function handleConfirm() {
-    await mutation.mutateAsync({ escalationPath: path, escalationNote: note.trim() || undefined });
+    try {
+      await mutation.mutateAsync({ escalationPath: path, escalationNote: note.trim() || undefined });
+    } catch {
+      return;
+    }
     onSuccess();
     onClose();
   }
@@ -83,7 +88,7 @@ export function EscalateModal({ resultId, open, onClose, onSuccess }: Props) {
         </div>
 
         {mutation.isError && (
-          <p className="text-xs text-red-600">Failed to escalate. Please try again.</p>
+          <p className="text-xs text-red-600">{getEscalateErrorMessage(mutation.error)}</p>
         )}
 
         <div className="flex justify-end gap-2 pt-1">

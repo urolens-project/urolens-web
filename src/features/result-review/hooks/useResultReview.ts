@@ -11,7 +11,13 @@ import {
   saveAnnotation,
   saveOverride,
 } from '../api/resultReviewApi';
-import type { BoundingBox } from '../types';
+import type {
+  ApproveResponse,
+  BoundingBox,
+  EscalateResponse,
+  ReturnResponse,
+} from '../types';
+import type { ApiError } from '../../../types/domain';
 
 export const resultReviewKeys = {
   pending: (page: number, pageSize: number) => ['results', 'pending', page, pageSize] as const,
@@ -87,11 +93,15 @@ export function useSaveOverride(resultId: string) {
 
 export function useApproveResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<ApproveResponse, ApiError, string | undefined>({
     mutationFn: (notes?: string) => approveResult(resultId, notes),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      // The result now belongs in Approved Today — without this, a
+      // Supervisor navigating straight there could see it missing for up
+      // to staleTime.
+      qc.invalidateQueries({ queryKey: ['results', 'approved-today'] });
       toast.success('Result approved and released.');
     },
   });
@@ -99,7 +109,7 @@ export function useApproveResult(resultId: string) {
 
 export function useReturnResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<ReturnResponse, ApiError, string>({
     mutationFn: (reason: string) => returnResult(resultId, reason),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
@@ -111,17 +121,19 @@ export function useReturnResult(resultId: string) {
 
 export function useEscalateResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      escalationPath,
-      escalationNote,
-    }: {
-      escalationPath: string;
-      escalationNote?: string;
-    }) => escalateResult(resultId, escalationPath, escalationNote),
+  return useMutation<
+    EscalateResponse,
+    ApiError,
+    { escalationPath: string; escalationNote?: string }
+  >({
+    mutationFn: ({ escalationPath, escalationNote }: { escalationPath: string; escalationNote?: string }) =>
+      escalateResult(resultId, escalationPath, escalationNote),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      // The result now belongs in the Escalated queue — same staleness
+      // concern as the approve case above.
+      qc.invalidateQueries({ queryKey: ['results', 'escalated'] });
       toast.success('Result escalated.');
     },
   });
