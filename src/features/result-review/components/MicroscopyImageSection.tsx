@@ -22,7 +22,23 @@ export function MicroscopyImageSection({
   otherAnnotations,
   onBoxesChange,
 }: Props) {
-  const initialBoxes = myAnnotation?.spatial_annotations ?? [];
+  // If this reviewer has never saved an annotation on this result, seed the
+  // canvas from the AI's own detected boxes — a draft to edit and confirm,
+  // not a permanent read-only layer (see AnnotationInputControl/other-
+  // reviewer boxes for the pattern that *is* read-only). Once saved, this
+  // reviewer's own spatial_annotations always wins, even if empty — an
+  // explicit "I cleared everything" must never be re-seeded from AI again.
+  const isAiSeeded = !myAnnotation;
+  const initialBoxes = myAnnotation
+    ? (myAnnotation.spatial_annotations ?? [])
+    : result.ai_detections.map((d): BoundingBox => ({
+        id: d.id,
+        particle_type: d.particle_type,
+        x: d.x,
+        y: d.y,
+        w: d.w,
+        h: d.h,
+      }));
   const [boxes, setBoxes] = useState<BoundingBox[]>(initialBoxes);
   const [saved, setSaved] = useState(false);
   const mutation = useSaveAnnotation(result.result_id);
@@ -42,6 +58,11 @@ export function MicroscopyImageSection({
   }
 
   const isDirty = JSON.stringify(boxes) !== JSON.stringify(initialBoxes);
+  // AI-seeded boxes haven't been touched yet still need an explicit save to
+  // become this reviewer's own annotation — isDirty alone would never be
+  // true if the reviewer agrees with the AI's boxes as-is.
+  const canSave = isDirty || (isAiSeeded && boxes.length > 0);
+  const showAiSuggestedBadge = isAiSeeded && !isDirty && boxes.length > 0;
   const otherReviewerBoxes = otherAnnotations
     .filter((a) => (a.spatial_annotations?.length ?? 0) > 0)
     .map((a) => ({
@@ -60,18 +81,25 @@ export function MicroscopyImageSection({
           <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">
             Microscopy Image
           </h3>
-          {boxes.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
-              {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
+          {showAiSuggestedBadge ? (
+            <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-600">
+              {boxes.length} AI-suggested box{boxes.length !== 1 ? 'es' : ''} — edit and save to
+              confirm
             </span>
+          ) : (
+            boxes.length > 0 && (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-600">
+                {boxes.length} box{boxes.length !== 1 ? 'es' : ''}
+              </span>
+            )
           )}
         </div>
         <div className="flex items-center gap-2">
           {mutation.isError && <span className="text-xs text-red-600">Save failed.</span>}
-          {isDirty && (
+          {canSave && (
             <Button size="sm" onClick={handleSave} loading={mutation.isPending}>
               <Save className="h-3.5 w-3.5" />
-              {saved ? 'Saved!' : 'Save boxes'}
+              {saved ? 'Saved!' : isAiSeeded ? 'Confirm boxes' : 'Save boxes'}
             </Button>
           )}
         </div>
