@@ -13,7 +13,6 @@ import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
 import { ApproveModal } from './ApproveModal';
 import { EscalateModal } from './EscalateModal';
-import { ManualOverridesSection } from './ManualOverridesSection';
 import { MedTechConfirmationSection } from './MedTechConfirmationSection';
 import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
@@ -171,9 +170,13 @@ export function FullResultDetailView() {
         <PatientInfoSection result={data} />
 
         {/* ── Main Content Grid: image-first ── */}
-        <div className="grid gap-5 lg:grid-cols-3">
+        {/* items-start + sticky on the left column: the image and
+            annotation controls stay in view while the right column's data
+            sections scroll past, instead of the whole page scrolling as
+            one unit and losing the image off-screen. */}
+        <div className="grid gap-5 lg:grid-cols-3 items-start">
           {/* Left col (2/3): microscopy canvas — primary review artifact */}
-          <div className="lg:col-span-2 flex flex-col gap-5">
+          <div className="lg:col-span-2 flex flex-col gap-5 lg:sticky lg:top-6">
             <MicroscopyImageSection
               result={data}
               myAnnotation={myAnnotation}
@@ -234,7 +237,6 @@ export function FullResultDetailView() {
 
             <AIFindingsSection result={data} />
             <MedTechConfirmationSection result={data} />
-            <ManualOverridesSection result={data} />
             <SmartDiagnosisPanel
               data={data.smart_diagnosis}
               unavailable={data.smart_diagnosis_unavailable}
