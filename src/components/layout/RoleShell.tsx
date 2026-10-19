@@ -50,7 +50,7 @@ export default function RoleShell({
   title,
 }: RoleShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { role, logout } = useAuthContext();
+  const { role, logout, session } = useAuthContext();
   const navigate = useNavigate();
   const { isWarningVisible, dismissWarning } = useSessionTimeout();
 
@@ -192,7 +192,11 @@ export default function RoleShell({
         </main>
       </div>
 
-      <SessionWarningModal isVisible={isWarningVisible} onStaySignedIn={dismissWarning} />
+      <SessionWarningModal
+        isVisible={isWarningVisible}
+        onStaySignedIn={dismissWarning}
+        warningSeconds={session.idleWarningSeconds ?? undefined}
+      />
     </div>
   );
 }
