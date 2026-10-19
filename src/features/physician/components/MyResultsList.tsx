@@ -11,48 +11,22 @@ import {
 import { useMyResults } from '../hooks/usePhysician';
 import type { PhysicianResultSummary } from '../types';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
 
 const PAGE_SIZE = 20;
 
-const STATUS_CHIP: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  APPROVED: {
-    label: 'Approved',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-700',
-    dot: 'bg-emerald-500',
-  },
-  PENDING_SUPERVISOR_APPROVAL: {
-    label: 'Under Review',
-    bg: 'bg-amber-50',
-    text: 'text-amber-700',
-    dot: 'bg-amber-500',
-  },
-  PENDING_CONFIRM: {
-    label: 'Pending Confirm',
-    bg: 'bg-slate-100',
-    text: 'text-slate-600',
-    dot: 'bg-slate-400',
-  },
-  RETURNED_FOR_CORRECTION: {
-    label: 'Returned',
-    bg: 'bg-orange-50',
-    text: 'text-orange-700',
-    dot: 'bg-orange-500',
-  },
-  CRITICAL_ESCALATED: {
-    label: 'Escalated',
-    bg: 'bg-rose-50',
-    text: 'text-rose-700',
-    dot: 'bg-rose-500',
-  },
+// The backend masks every pre-release workflow state (PENDING_CONFIRM,
+// PENDING_SUPERVISOR_APPROVAL, RETURNED_FOR_CORRECTION, CRITICAL_ESCALATED,
+// etc.) down to a single "PENDING" placeholder for the physician view — a
+// physician sees released/not-released, not lab-internal review stages.
+// Only RELEASED and PENDING are ever actually sent; see
+// physician_result_service.py's _PENDING_PLACEHOLDER_STATUS.
+const STATUS_CHIP: Record<string, { label: string; variant: 'success' | 'warning' }> = {
+  RELEASED: { label: 'Released', variant: 'success' },
+  PENDING: { label: 'Pending', variant: 'warning' },
 };
 
-const fallbackChip = {
-  label: 'Unknown',
-  bg: 'bg-slate-100',
-  text: 'text-slate-500',
-  dot: 'bg-slate-300',
-};
+const fallbackChip = { label: 'Unknown', variant: 'default' as const };
 
 function formatAge(age: number | null, sex: string | null): string {
   const parts: string[] = [];
@@ -177,11 +151,16 @@ export function MyResultsList() {
             ) : (
               (data?.items ?? []).map((row: PhysicianResultSummary) => {
                 const chip = STATUS_CHIP[row.status] ?? fallbackChip;
+                const isReleased = row.status === 'RELEASED';
                 return (
                   <tr
                     key={row.result_id}
-                    onClick={() => navigate(`/physician/results/${row.result_id}`)}
-                    className="cursor-pointer group hover:bg-emerald-50/30 transition-colors"
+                    onClick={isReleased ? () => navigate(`/physician/results/${row.result_id}`) : undefined}
+                    className={
+                      isReleased
+                        ? 'cursor-pointer group hover:bg-emerald-50/30 transition-colors'
+                        : 'opacity-70'
+                    }
                   >
                     <td className="px-5 py-4">
                       <p className="font-semibold text-slate-800 group-hover:text-emerald-700 transition-colors">
@@ -197,12 +176,12 @@ export function MyResultsList() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${chip.bg} ${chip.text} border border-transparent`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${chip.dot}`} />
+                      <Badge variant={chip.variant} dot>
                         {chip.label}
-                      </span>
+                      </Badge>
+                      {!isReleased && (
+                        <p className="mt-1 text-[11px] text-slate-400">Not yet released</p>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-xs text-slate-500">
                       {formatDate(row.confirmed_at)}
