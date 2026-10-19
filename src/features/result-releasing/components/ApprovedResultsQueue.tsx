@@ -115,9 +115,12 @@ export function ApprovedResultsQueue() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
+                    {/* Explicit pixel widths, not a `w-${n}` template literal —
+                        Tailwind can't generate a class from a runtime value,
+                        so these rendered with no width at all before. */}
                     {[180, 100, 120, 140, 80].map((w, j) => (
                       <td key={j} className="px-5 py-4">
-                        <div className={`h-3 bg-slate-100 rounded-md w-${w}`} />
+                        <div className="h-3 bg-slate-100 rounded-md" style={{ width: `${w}px` }} />
                       </td>
                     ))}
                   </tr>
