@@ -1,0 +1,28 @@
+// The canonical particle types the AI engine classifies, matching the
+// backend's PARTICLE_LABELS (schemas/patient_portal.py) exactly — keep
+// both lists in sync.
+export const PARTICLE_LABELS = [
+  'erythrocytes',
+  'leukocytes',
+  'epithelial_cells',
+  'urinary_casts',
+  'crystals',
+  'mucus_threads',
+  'bacteria',
+  'yeast',
+  'sperm_cells',
+  'trichomonas_vaginalis',
+] as const;
+
+export const PARTICLE_LABEL_DISPLAY: Record<string, string> = {
+  erythrocytes: 'Erythrocytes (RBC)',
+  leukocytes: 'Leukocytes (WBC)',
+  epithelial_cells: 'Epithelial Cells',
+  urinary_casts: 'Urinary Casts',
+  crystals: 'Crystals',
+  mucus_threads: 'Mucus Threads',
+  bacteria: 'Bacteria',
+  yeast: 'Yeast',
+  sperm_cells: 'Sperm Cells',
+  trichomonas_vaginalis: 'Trichomonas vaginalis',
+};
