@@ -11,6 +11,7 @@ const roleToDashboard: Record<string, string> = {
   physician: '/dashboard/physician',
   patient: '/dashboard/patient',
   administrator: '/dashboard/administrator',
+  medtech: '/dashboard/medtech',
 };
 
 export function useLogin() {
@@ -20,8 +21,13 @@ export function useLogin() {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (data) => {
+      // Backend sends the role uppercase (e.g. "PHYSICIAN") — authContext
+      // normalizes it for its own state, but this lookup needs the same
+      // normalization, or it never matches and every login falls through
+      // to the fallback dashboard regardless of actual role.
+      const normalizedRole = data.role.toLowerCase();
       login(data.access_token, data.role);
-      const dashboard = roleToDashboard[data.role] ?? '/dashboard/receptionist';
+      const dashboard = roleToDashboard[normalizedRole] ?? '/dashboard/receptionist';
       navigate(dashboard, { replace: true });
     },
     onError: (error: AxiosError<ApiError>) => {
