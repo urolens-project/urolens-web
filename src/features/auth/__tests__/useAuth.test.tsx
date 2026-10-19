@@ -54,6 +54,10 @@ describe('useLogin', () => {
         access_token: 'token',
         token_type: 'bearer',
         role: backendRole as unknown as UserRole,
+        expires_at: '2026-10-08T01:00:00Z',
+        session_expires_at: '2026-10-08T08:00:00Z',
+        idle_timeout_minutes: 30,
+        idle_warning_seconds: 120,
       });
 
       const { result } = renderHook(() => useLogin(), { wrapper: makeWrapper() });
