@@ -1,15 +1,8 @@
 import { useSearchParams, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuthContext } from '../lib/auth/useAuthContext';
+import { roleToDashboard } from '../lib/auth/roleToDashboard';
 import LoginForm from '../features/auth/components/LoginForm';
-
-const roleToDashboard: Record<string, string> = {
-  receptionist: '/dashboard/receptionist',
-  supervisor: '/dashboard/supervisor',
-  physician: '/dashboard/physician',
-  patient: '/dashboard/patient',
-  administrator: '/dashboard/administrator',
-};
 
 export default function LoginPage() {
   const { isAuthenticated, role } = useAuthContext();

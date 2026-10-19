@@ -35,6 +35,7 @@ export default function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [serverError, setServerError] = useState('');
@@ -62,7 +63,7 @@ export default function LoginForm() {
     setServerError('');
     if (!validate()) return;
     loginMutation.mutate(
-      { username: username.trim(), password },
+      { username: username.trim(), password, keep_signed_in: keepSignedIn },
       {
         onError: (error: AxiosError<ApiError>) => {
           const code = error.response?.data?.error?.code;
@@ -231,6 +232,18 @@ export default function LoginForm() {
                 </p>
               )}
             </div>
+
+            {/* Keep signed in */}
+            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={keepSignedIn}
+                onChange={(e) => setKeepSignedIn(e.target.checked)}
+                disabled={isSubmitting}
+                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              Stay signed in for this shift
+            </label>
 
             {/* Server error */}
             {serverError && (
