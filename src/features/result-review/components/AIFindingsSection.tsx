@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Bot, Pencil, Check, X, Loader2, Flag, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSaveOverride } from '../hooks/useResultReview';
 import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../constants';
+import { getSaveOverrideErrorMessage } from '../utils/errors';
+import type { ApiError } from '../../../types/domain';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
 interface Props {
@@ -105,8 +107,8 @@ function ParticleRow({
       setLocalSaved(true);
       setEditing(false);
       setTimeout(() => setLocalSaved(false), 2500);
-    } catch {
-      setError('Failed to save. Please try again.');
+    } catch (err) {
+      setError(getSaveOverrideErrorMessage(err as ApiError));
     }
   }
 

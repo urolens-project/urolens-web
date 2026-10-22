@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { confirmResult, fetchMedtechPending } from '../api/medtechConfirmationApi';
 import { resultReviewKeys } from '../../result-review/hooks/useResultReview';
+import type { ConfirmResultResponse } from '../types';
+import type { ApiError } from '../../../types/domain';
 
 export const medtechConfirmationKeys = {
   pending: (page: number, pageSize: number) => ['medtech', 'pending', page, pageSize] as const,
@@ -16,7 +18,7 @@ export function useMedtechPending(page: number, pageSize: number) {
 
 export function useConfirmResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<ConfirmResultResponse, ApiError, string | undefined>({
     mutationFn: (interpretationNotes?: string) => confirmResult(resultId, interpretationNotes),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });

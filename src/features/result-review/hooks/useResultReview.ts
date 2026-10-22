@@ -12,9 +12,11 @@ import {
   saveOverride,
 } from '../api/resultReviewApi';
 import type {
+  AnnotationResponse,
   ApproveResponse,
   BoundingBox,
   EscalateResponse,
+  OverrideResponse,
   ReturnResponse,
 } from '../types';
 import type { ApiError } from '../../../types/domain';
@@ -62,7 +64,7 @@ export function useFullResult(resultId: string) {
 
 export function useSaveAnnotation(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<AnnotationResponse, ApiError, { notes: string; boxes?: BoundingBox[] }>({
     mutationFn: ({ notes, boxes }: { notes: string; boxes?: BoundingBox[] }) =>
       saveAnnotation(resultId, notes, boxes),
     onSuccess: () => {
@@ -73,7 +75,11 @@ export function useSaveAnnotation(resultId: string) {
 
 export function useSaveOverride(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<
+    OverrideResponse,
+    ApiError,
+    { parameter: string; corrected_value: number; rationale: string; original_ai_value: number }
+  >({
     mutationFn: ({
       parameter,
       corrected_value,
@@ -126,8 +132,13 @@ export function useEscalateResult(resultId: string) {
     ApiError,
     { escalationPath: string; escalationNote?: string }
   >({
-    mutationFn: ({ escalationPath, escalationNote }: { escalationPath: string; escalationNote?: string }) =>
-      escalateResult(resultId, escalationPath, escalationNote),
+    mutationFn: ({
+      escalationPath,
+      escalationNote,
+    }: {
+      escalationPath: string;
+      escalationNote?: string;
+    }) => escalateResult(resultId, escalationPath, escalationNote),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
