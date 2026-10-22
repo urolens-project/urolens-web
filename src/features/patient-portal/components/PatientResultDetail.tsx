@@ -20,7 +20,11 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-export function PatientResultDetail({ result, onDownloadPdf, isDownloading = false }: PatientResultDetailProps) {
+export function PatientResultDetail({
+  result,
+  onDownloadPdf,
+  isDownloading = false,
+}: PatientResultDetailProps) {
   const navigate = useNavigate();
   const isReleased = result.status === 'RELEASED';
 
@@ -56,23 +60,28 @@ export function PatientResultDetail({ result, onDownloadPdf, isDownloading = fal
         </div>
       </div>
 
-      {/* Analyzed By */}
-      {result.analyzed_by && (
-        <div
-          className="rounded-xl border border-slate-200 bg-white p-6"
-          aria-label="Analyzed by"
-        >
-          <h2 className="text-base font-bold text-slate-800 mb-3">Analyzed by</h2>
-          <p className="text-sm font-semibold text-slate-700">{result.analyzed_by}</p>
-          <p className="text-xs text-slate-400 mt-1">Medical Technologist</p>
+      {/* Requested by / Analyzed by */}
+      {(result.requesting_physician || result.analyzed_by) && (
+        <div className="rounded-xl border border-slate-200 bg-white p-6 flex flex-wrap gap-6">
+          {result.requesting_physician && (
+            <div aria-label="Requested by">
+              <h2 className="text-base font-bold text-slate-800 mb-3">Requested by</h2>
+              <p className="text-sm font-semibold text-slate-700">{result.requesting_physician}</p>
+              <p className="text-xs text-slate-400 mt-1">Physician</p>
+            </div>
+          )}
+          {result.analyzed_by && (
+            <div aria-label="Analyzed by">
+              <h2 className="text-base font-bold text-slate-800 mb-3">Analyzed by</h2>
+              <p className="text-sm font-semibold text-slate-700">{result.analyzed_by}</p>
+              <p className="text-xs text-slate-400 mt-1">Medical Technologist</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Particle Count Table */}
-      <div
-        className="rounded-xl border border-slate-200 bg-white p-6"
-        aria-label="Particle counts"
-      >
+      <div className="rounded-xl border border-slate-200 bg-white p-6" aria-label="Particle counts">
         <h2 className="text-base font-bold text-slate-800 mb-4">Particle counts</h2>
         <CellCountTable cellCounts={result.particle_counts} />
       </div>
