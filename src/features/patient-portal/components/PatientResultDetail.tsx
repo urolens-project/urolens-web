@@ -2,7 +2,6 @@ import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ResultStatusChip } from './ResultStatusChip';
 import { CellCountTable } from './CellCountTable';
-import { AIDisclaimer } from '../../../components/feedback/AIDisclaimer';
 import type { PatientResultDetail as DetailType } from '../types';
 
 interface PatientResultDetailProps {
@@ -108,8 +107,10 @@ export function PatientResultDetail({
         </div>
       )}
 
-      {/* AI Disclaimer — mandatory */}
-      <AIDisclaimer />
+      {/* No AIDisclaimer here — this screen shows plain particle counts and
+          lab notes, never AI-branded findings or Smart Diagnosis output, so
+          the dev guide's "mandatory on every screen showing AI or Smart
+          Diagnosis output" trigger isn't actually met. */}
 
       {/* Download PDF — released results only */}
       {isReleased && (
