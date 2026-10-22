@@ -57,7 +57,9 @@ export function useSessionTimeout() {
 
   const doInactivityLogout = useCallback(() => {
     const logoutFn = isPatient ? patientAuthApi.logout : () => authApi.logout('INACTIVITY');
-    const loginPath = isPatient ? '/patient/login?reason=timeout' : '/login?reason=timeout';
+    // Same destination for every role — the unified /login already
+    // authenticates patients fine, see RoleShell.handleLogout.
+    const loginPath = '/login?reason=timeout';
     logoutFn().finally(() => {
       logout();
       navigate(loginPath, { replace: true });

@@ -69,7 +69,12 @@ export default function RoleShell({
       /* ignore network errors on logout */
     }
     logout();
-    navigate(isPatient ? '/patient/login' : '/login', { replace: true });
+    // The unified /login already authenticates patients fine (their
+    // username is their patient_uid on the same users table) and gives
+    // them full session/idle-timeout handling, unlike the dedicated
+    // /patient/login path — no reason to route a logged-out patient
+    // anywhere else.
+    navigate('/login', { replace: true });
   }
 
   return (
