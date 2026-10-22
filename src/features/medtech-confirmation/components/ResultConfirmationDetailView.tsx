@@ -102,7 +102,9 @@ export function ResultConfirmationDetailView() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
+    // No overflow-y-auto/h-full here — see FullResultDetailView for why
+    // (RoleShell's <main> is already the real scroll container).
+    <div className="bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
         {/* Header banner */}
         <div className="rounded-2xl overflow-hidden shadow-sm border border-blue-200/60">

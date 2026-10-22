@@ -114,7 +114,12 @@ export function FullResultDetailView() {
     .join(' · ');
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
+    // No overflow-y-auto/h-full here — RoleShell's <main> is already the
+    // real scroll container. A second nested scroll context here had an
+    // unconstrained height (never actually scrolled), which made the
+    // sticky left column below attach to the wrong ancestor and never
+    // visibly stick.
+    <div className="bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
         {/* ── Gradient Header Banner ── */}
         <div className="rounded-2xl overflow-hidden shadow-sm border border-emerald-200/60">
