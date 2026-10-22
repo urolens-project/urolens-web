@@ -191,6 +191,7 @@ export function ResultConfirmationDetailView() {
               myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
               myAnnotation={myAnnotation}
               otherAnnotations={otherAnnotations}
+              isRetakePending={data.is_retake_pending}
             />
           </div>
 
@@ -222,6 +223,7 @@ export function ResultConfirmationDetailView() {
                   <Button
                     onClick={handleConfirm}
                     loading={confirmMutation.isPending}
+                    disabled={data.is_retake_pending}
                     size="lg"
                     className="w-full"
                   >
@@ -234,8 +236,9 @@ export function ResultConfirmationDetailView() {
                 </div>
                 <div className="px-5 pb-4">
                   <p className="text-[10px] text-slate-400 text-center leading-relaxed">
-                    Correct any AI findings below before confirming — this sends the result to the
-                    Supervisor for approval.
+                    {data.is_retake_pending
+                      ? "This result's image is mid-retake — upload a new image before confirming."
+                      : 'Correct any AI findings below before confirming — this sends the result to the Supervisor for approval.'}
                   </p>
                 </div>
               </div>

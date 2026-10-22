@@ -75,6 +75,7 @@ export interface FullResultDetail {
   smart_diagnosis: SmartDiagnosisAttached | null;
   smart_diagnosis_unavailable: boolean;
   status: string;
+  is_retake_pending: boolean;
   annotations: AnnotationItem[];
 }
 

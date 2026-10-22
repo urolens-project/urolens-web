@@ -3,6 +3,7 @@ import { StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { useSaveAnnotation } from '../hooks/useResultReview';
 import { reviewerRoleLabel } from '../constants';
+import { getSaveAnnotationErrorMessage } from '../utils/errors';
 import type { AnnotationItem } from '../types';
 
 interface Props {
@@ -10,6 +11,10 @@ interface Props {
   myRoleLabel: string;
   myAnnotation: AnnotationItem | undefined;
   otherAnnotations: AnnotationItem[];
+  // Mirrors MicroscopyImageSection: saveAnnotation refuses outright while a
+  // retake is pending (UROLENS-230), so notes-only saves are disabled here
+  // too, not just box edits.
+  isRetakePending?: boolean;
 }
 
 function OtherAnnotationCard({ annotation }: { annotation: AnnotationItem }) {
@@ -29,6 +34,7 @@ export function AnnotationInputControl({
   myRoleLabel,
   myAnnotation,
   otherAnnotations,
+  isRetakePending = false,
 }: Props) {
   const initialNotes = myAnnotation?.annotation_notes ?? null;
   const [expanded, setExpanded] = useState(!!initialNotes || otherAnnotations.length > 0);
@@ -39,9 +45,13 @@ export function AnnotationInputControl({
 
   async function handleSave() {
     if (!notes.trim()) return;
-    await mutation.mutateAsync({ notes: notes.trim() });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await mutation.mutateAsync({ notes: notes.trim() });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // mutation.isError below renders the message; nothing further to do.
+    }
   }
 
   return (
@@ -83,21 +93,30 @@ export function AnnotationInputControl({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add internal annotation or review notes for this result…"
               rows={4}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+              disabled={isRetakePending}
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100 disabled:opacity-60 disabled:cursor-not-allowed"
             />
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400">{notes.length} chars</span>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                loading={mutation.isPending}
-                disabled={!notes.trim()}
-              >
-                {saved ? 'Saved!' : 'Save Note'}
-              </Button>
-            </div>
+            {isRetakePending ? (
+              <p className="text-xs text-amber-700">
+                Disabled while this result's image is mid-retake.
+              </p>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-400">{notes.length} chars</span>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  loading={mutation.isPending}
+                  disabled={!notes.trim()}
+                >
+                  {saved ? 'Saved!' : 'Save Note'}
+                </Button>
+              </div>
+            )}
             {mutation.isError && (
-              <p className="text-xs text-red-600">Failed to save annotation. Please try again.</p>
+              <p className="text-xs text-red-600">
+                {getSaveAnnotationErrorMessage(mutation.error)}
+              </p>
             )}
           </div>
         </div>

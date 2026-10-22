@@ -197,6 +197,7 @@ export function FullResultDetailView() {
               myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
               myAnnotation={myAnnotation}
               otherAnnotations={otherAnnotations}
+              isRetakePending={data.is_retake_pending}
             />
           </div>
 

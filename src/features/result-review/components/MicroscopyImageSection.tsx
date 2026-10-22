@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Microscope, ImageOff, Save } from 'lucide-react';
+import { Microscope, ImageOff, Save, RotateCcw } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { AnnotationCanvas } from './AnnotationCanvas';
@@ -135,7 +135,11 @@ export function MicroscopyImageSection({
   // AI-seeded boxes haven't been touched yet still need an explicit save to
   // become this reviewer's own annotation — isDirty alone would never be
   // true if the reviewer agrees with the AI's boxes as-is.
-  const canSave = isDirty || (isAiSeeded && boxes.length > 0);
+  // While a retake is pending, the backend refuses annotate/override/confirm
+  // outright (UROLENS-230) — boxes drawn now would anchor to an image about
+  // to be replaced, so the canvas goes read-only instead of letting a
+  // reviewer do work that's guaranteed to 422 or go stale.
+  const canSave = !result.is_retake_pending && (isDirty || (isAiSeeded && boxes.length > 0));
   const showAiSuggestedBadge = isAiSeeded && !isDirty && boxes.length > 0;
   const otherReviewerBoxes = otherAnnotations
     .filter((a) => (a.spatial_annotations?.length ?? 0) > 0)
@@ -179,6 +183,19 @@ export function MicroscopyImageSection({
         </div>
       </div>
 
+      {/* Retake-pending banner — annotate/override/confirm all refuse while
+          this is true, so the canvas is read-only rather than letting a
+          reviewer draw boxes that are guaranteed to 422 or go stale. */}
+      {result.is_retake_pending && (
+        <div className="flex items-start gap-2.5 px-5 py-3 bg-amber-50 border-b border-amber-100 shrink-0">
+          <RotateCcw className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+          <p className="text-xs text-amber-800 leading-relaxed">
+            This result's image is mid-retake — the old findings are kept until a new image is
+            uploaded. Annotating is disabled until then.
+          </p>
+        </div>
+      )}
+
       {/* Canvas area — fills remaining height */}
       <div className="flex-1 min-h-0 bg-slate-900 relative">
         {result.image_url ? (
@@ -187,6 +204,7 @@ export function MicroscopyImageSection({
             boxes={boxes}
             onChange={handleBoxesChange}
             otherReviewerBoxes={otherReviewerBoxes}
+            readOnly={result.is_retake_pending}
             fullHeight
           />
         ) : (
@@ -198,11 +216,13 @@ export function MicroscopyImageSection({
       </div>
 
       {/* Footer hint */}
-      <div className="px-5 py-2 border-t border-slate-100 bg-slate-50 shrink-0">
-        <p className="text-[10px] text-slate-400 font-medium">
-          Click and drag on the image to draw bounding boxes. Click a box to remove it.
-        </p>
-      </div>
+      {!result.is_retake_pending && (
+        <div className="px-5 py-2 border-t border-slate-100 bg-slate-50 shrink-0">
+          <p className="text-[10px] text-slate-400 font-medium">
+            Click and drag on the image to draw bounding boxes. Click a box to remove it.
+          </p>
+        </div>
+      )}
 
       <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Confirm count changes">
         <p className="text-sm text-slate-600">
