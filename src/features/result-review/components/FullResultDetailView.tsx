@@ -9,6 +9,8 @@ import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
 import { reviewerRoleLabel } from '../constants';
 import type { BoundingBox } from '../types';
+import { getSaveAnnotationErrorMessage } from '../utils/errors';
+import type { ApiError } from '../../../types/domain';
 import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
 import { ApproveModal } from './ApproveModal';
@@ -64,8 +66,8 @@ export function FullResultDetailView() {
   async function withFlushedBoxes(openAction: () => void) {
     try {
       await flushBoxesIfDirty();
-    } catch {
-      toast.error('Failed to save your annotation changes. Please try again.');
+    } catch (err) {
+      toast.error(getSaveAnnotationErrorMessage(err as ApiError));
       return;
     }
     openAction();

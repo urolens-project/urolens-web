@@ -10,6 +10,11 @@ import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../../result-review/hooks/useResultReview';
 import { reviewerRoleLabel } from '../../result-review/constants';
 import type { BoundingBox } from '../../result-review/types';
+import {
+  getConfirmErrorMessage,
+  getSaveAnnotationErrorMessage,
+} from '../../result-review/utils/errors';
+import type { ApiError } from '../../../types/domain';
 import { AIFindingsSection } from '../../result-review/components/AIFindingsSection';
 import { AnnotationInputControl } from '../../result-review/components/AnnotationInputControl';
 import { MicroscopyImageSection } from '../../result-review/components/MicroscopyImageSection';
@@ -84,8 +89,8 @@ export function ResultConfirmationDetailView() {
             notes: myAnnotation?.annotation_notes ?? '',
             boxes: pendingBoxesRef.current,
           });
-        } catch {
-          setConfirmError('Failed to save your annotation. Please try again.');
+        } catch (err) {
+          setConfirmError(getSaveAnnotationErrorMessage(err as ApiError));
           return;
         }
       }
@@ -96,8 +101,8 @@ export function ResultConfirmationDetailView() {
         isReturned ? 'Result re-submitted for supervisor approval.' : 'Result confirmed.',
       );
       navigate('/medtech/results');
-    } catch {
-      setConfirmError('Failed to confirm. Please try again.');
+    } catch (err) {
+      setConfirmError(getConfirmErrorMessage(err as ApiError));
     }
   }
 
