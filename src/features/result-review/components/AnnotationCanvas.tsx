@@ -338,9 +338,13 @@ export function AnnotationCanvas({
           <div
             className="absolute z-10 flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
             style={{
-              left: `${selectedBox.x}%`,
-              top: `${selectedBox.y}%`,
-              transform: 'translateY(-100%)',
+              // Default position is above/left of the box. A box near the
+              // top or right edge of the image flipped the toolbar off the
+              // visible canvas entirely — render it below/right instead
+              // whenever there's no room on the usual side.
+              left: `${selectedBox.x > 80 ? selectedBox.x + selectedBox.w : selectedBox.x}%`,
+              top: `${selectedBox.y < 10 ? selectedBox.y + selectedBox.h : selectedBox.y}%`,
+              transform: `${selectedBox.x > 80 ? 'translateX(-100%) ' : ''}${selectedBox.y < 10 ? '' : 'translateY(-100%)'}`,
             }}
           >
             <select
