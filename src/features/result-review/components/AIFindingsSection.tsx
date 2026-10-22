@@ -32,6 +32,7 @@ interface ParticleRowProps {
   isFlagged: boolean;
   resultId: string;
   isLast: boolean;
+  isRetakePending: boolean;
 }
 
 function ParticleRow({
@@ -42,6 +43,7 @@ function ParticleRow({
   isFlagged,
   resultId,
   isLast,
+  isRetakePending,
 }: ParticleRowProps) {
   const latestOverride = getLatestOverride(particleKey, overrides);
   const displayValue =
@@ -174,13 +176,15 @@ function ParticleRow({
                 Saved!
               </span>
             )}
-            <button
-              onClick={startEdit}
-              className="rounded-lg p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
-              title="Correct this value"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
+            {!isRetakePending && (
+              <button
+                onClick={startEdit}
+                className="rounded-lg p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                title="Correct this value"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-1 shrink-0">
@@ -308,7 +312,9 @@ export function AIFindingsSection({ result }: Props) {
                 AI Particle Counts
               </h3>
               <p className="text-[10px] text-emerald-400 uppercase tracking-widest mt-0.5">
-                Hover any row to correct
+                {result.is_retake_pending
+                  ? 'Corrections disabled — retake pending'
+                  : 'Hover any row to correct'}
               </p>
             </div>
             {overrideCount > 0 && (
@@ -345,6 +351,7 @@ export function AIFindingsSection({ result }: Props) {
                 isFlagged={flaggedKeys.has(key)}
                 resultId={result.result_id}
                 isLast={idx === PARTICLE_CLASSES.length - 1}
+                isRetakePending={result.is_retake_pending}
               />
             );
           })}
