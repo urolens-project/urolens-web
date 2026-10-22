@@ -146,14 +146,18 @@ describe('PatientResultDetail', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('always renders AI disclaimer', () => {
+  it('never renders the AI disclaimer — this screen shows plain counts, not AI-branded output', () => {
     renderDetail(mockResult);
-    expect(screen.getByText(/UroLens is a clinical decision-support tool/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/UroLens is a clinical decision-support tool/),
+    ).not.toBeInTheDocument();
   });
 
-  it('also renders AI disclaimer on pending results', () => {
+  it('does not render the AI disclaimer on pending results either', () => {
     renderDetail(mockPendingResult);
-    expect(screen.getByText(/UroLens is a clinical decision-support tool/)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/UroLens is a clinical decision-support tool/),
+    ).not.toBeInTheDocument();
   });
 
   it('shows Download PDF button for RELEASED results', () => {
