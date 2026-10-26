@@ -81,7 +81,17 @@ export function PatientResultDetail({
 
       {/* Particle Count Table */}
       <div className="rounded-xl border border-slate-200 bg-white p-6" aria-label="Particle counts">
-        <h2 className="text-base font-bold text-slate-800 mb-4">Particle counts</h2>
+        <h2
+          className={`text-base font-bold text-slate-800 ${result.fields_examined !== undefined ? 'mb-1' : 'mb-4'}`}
+        >
+          Particle counts
+        </h2>
+        {result.fields_examined !== undefined && (
+          <p className="text-xs text-slate-400 mb-3">
+            Average per field · {result.fields_examined} field
+            {result.fields_examined !== 1 ? 's' : ''} examined
+          </p>
+        )}
         <CellCountTable cellCounts={result.particle_counts} />
       </div>
 
