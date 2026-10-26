@@ -4,22 +4,41 @@ import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useReturnResult } from '../hooks/useResultReview';
 import { getReturnErrorMessage } from '../utils/errors';
+import { PARTICLE_LABEL_DISPLAY, PARTICLE_LABELS } from '../constants';
+import type { FieldSummaryItem } from '../../field-verification/types';
 
 interface Props {
   resultId: string;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  // Proposal §4 "Effects on Modules 3 and 4": "Return for Correction is
+  // now the only way a supervisor changes a value, so the return reason
+  // should name the field and particle concerned." Omit for a legacy
+  // single-image result — the picker only makes sense once there's more
+  // than one field to point at.
+  fields?: FieldSummaryItem[];
 }
 
-export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
+export function ReturnModal({ resultId, open, onClose, onSuccess, fields }: Props) {
   const [reason, setReason] = useState('');
+  const [fieldNo, setFieldNo] = useState<number | ''>('');
+  const [particleType, setParticleType] = useState('');
   const mutation = useReturnResult(resultId);
+
+  function composedReason(): string {
+    const trimmed = reason.trim();
+    if (!fields?.length || (fieldNo === '' && !particleType)) return trimmed;
+    const parts: string[] = [];
+    if (fieldNo !== '') parts.push(`Field ${fieldNo}`);
+    if (particleType) parts.push(PARTICLE_LABEL_DISPLAY[particleType] ?? particleType);
+    return parts.length ? `[${parts.join(' · ')}] ${trimmed}` : trimmed;
+  }
 
   async function handleConfirm() {
     if (!reason.trim()) return;
     try {
-      await mutation.mutateAsync(reason.trim());
+      await mutation.mutateAsync(composedReason());
     } catch {
       return;
     }
@@ -36,6 +55,40 @@ export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
             This result will be <strong>returned to the MedTech</strong> for correction.
           </p>
         </div>
+        {!!fields?.length && (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Field</label>
+              <select
+                value={fieldNo}
+                onChange={(e) => setFieldNo(e.target.value ? Number(e.target.value) : '')}
+                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              >
+                <option value="">Not specific to one field</option>
+                {fields.map((f) => (
+                  <option key={f.field_id} value={f.field_no}>
+                    Field {f.field_no}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Particle</label>
+              <select
+                value={particleType}
+                onChange={(e) => setParticleType(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              >
+                <option value="">Not specific to one particle</option>
+                {PARTICLE_LABELS.map((key) => (
+                  <option key={key} value={key}>
+                    {PARTICLE_LABEL_DISPLAY[key]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1.5">
             Reason for return <span className="text-red-500">*</span>

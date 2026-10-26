@@ -265,6 +265,7 @@ export function FullResultDetailView() {
         open={returnOpen}
         onClose={() => setReturnOpen(false)}
         onSuccess={handleActionSuccess}
+        fields={data.fields}
       />
       <EscalateModal
         resultId={resultId}

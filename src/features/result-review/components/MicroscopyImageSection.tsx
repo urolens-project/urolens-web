@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Microscope, ImageOff, Save, RotateCcw } from 'lucide-react';
+import { Microscope, ImageOff, Save, RotateCcw, Images } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { AnnotationCanvas } from './AnnotationCanvas';
 import { useSaveAnnotation } from '../hooks/useResultReview';
 import { reviewerRoleLabel, PARTICLE_LABEL_DISPLAY } from '../constants';
+import { FieldGrid } from '../../field-verification/components/FieldGrid';
+import { useFieldDetail } from '../../field-verification/hooks/useFieldVerification';
 import type { AnnotationItem, BoundingBox, FullResultDetail } from '../types';
 
 interface Props {
@@ -65,7 +67,120 @@ function computeCountChanges(
   return changes;
 }
 
-export function MicroscopyImageSection({
+// Proposal §10.2: "Becomes a field gallery with a read-only viewer: AI
+// boxes, removed boxes struck through, added boxes highlighted, with a
+// toggle between 'AI' and 'Corrected'." The supervisor never edits
+// fields directly (§3.4: "The supervisor no longer edits counts" —
+// Return for Correction is the only path to changing a value), so this
+// has no save/annotate flow at all, unlike the single-image view below.
+function MultiFieldGallery({ result }: { result: FullResultDetail }) {
+  const fields = result.fields ?? [];
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(
+    fields[0]?.field_id ?? null,
+  );
+  const [showCorrected, setShowCorrected] = useState(true);
+  const { data: fieldDetail, isLoading } = useFieldDetail(selectedFieldId ?? '');
+
+  const boxes: BoundingBox[] = fieldDetail
+    ? showCorrected
+      ? [
+          ...fieldDetail.detections
+            .filter((d) => !fieldDetail.annotation_edits.removed_detection_ids.includes(d.id))
+            .map(({ id, particle_type, x, y, w, h }): BoundingBox => ({
+              id,
+              particle_type,
+              x,
+              y,
+              w,
+              h,
+            })),
+          ...fieldDetail.annotation_edits.added_boxes.map(
+            ({ id, particle_type, x, y, w, h }): BoundingBox => ({ id, particle_type, x, y, w, h }),
+          ),
+        ]
+      : fieldDetail.detections.map(({ id, particle_type, x, y, w, h }): BoundingBox => ({
+          id,
+          particle_type,
+          x,
+          y,
+          w,
+          h,
+        }))
+    : [];
+
+  return (
+    <div className="flex flex-col rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-160">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50/80 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100">
+            <Images className="h-3.5 w-3.5 text-slate-500" />
+          </div>
+          <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">
+            Fields ({fields.length})
+          </h3>
+        </div>
+        {fieldDetail && (
+          <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button
+              onClick={() => setShowCorrected(false)}
+              className={`px-3 py-1.5 transition-colors ${!showCorrected ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            >
+              AI
+            </button>
+            <button
+              onClick={() => setShowCorrected(true)}
+              className={`px-3 py-1.5 transition-colors ${showCorrected ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+            >
+              Corrected
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 border-b border-slate-100 shrink-0">
+        <FieldGrid
+          fields={fields}
+          selectedFieldId={selectedFieldId}
+          onSelect={setSelectedFieldId}
+        />
+      </div>
+
+      <div className="flex-1 min-h-0 bg-slate-900 relative">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
+            Loading field…
+          </div>
+        ) : fieldDetail?.image_url ? (
+          <AnnotationCanvas
+            imageUrl={fieldDetail.image_url}
+            boxes={boxes}
+            onChange={() => {}}
+            readOnly
+            fullHeight
+          />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-slate-500">
+            <ImageOff className="h-10 w-10 text-slate-600" />
+            <p className="text-sm font-medium">Select a field to view it.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function MicroscopyImageSection(props: Props) {
+  // A legacy single-image result has no `fields` at all (optional,
+  // never an empty array from a real response) — fall through to the
+  // existing single-image annotation view unchanged. Only a genuine
+  // multi-field result gets the gallery.
+  if (props.result.fields && props.result.fields.length > 0) {
+    return <MultiFieldGallery result={props.result} />;
+  }
+  return <SingleFieldAnnotationView {...props} />;
+}
+
+function SingleFieldAnnotationView({
   result,
   myAnnotation,
   otherAnnotations,

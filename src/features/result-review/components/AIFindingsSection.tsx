@@ -280,7 +280,68 @@ function ParticleRow({
   );
 }
 
+// Proposal §10.2: "Shows final average, range, total and AI average per
+// class. The inline edit control and useSaveOverride are removed for
+// the supervisor; the section is read-only" once a result carries
+// field_summary — multi-field results are never corrected here; Return
+// for Correction is the only path (§3.4). Legacy single-image results
+// (field_summary absent) keep today's editable view below, untouched.
+function FinalAveragesSection({ result }: Props) {
+  const summary = result.field_summary ?? {};
+  const entries = Object.entries(summary);
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-emerald-100 bg-emerald-50">
+        <div className="flex items-center gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
+            <Bot className="h-3.5 w-3.5 text-emerald-600" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">
+              Final Particle Counts
+            </h3>
+            <p className="text-[10px] text-emerald-400 uppercase tracking-widest mt-0.5">
+              Average per field · {result.field_count ?? 0} fields examined
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 border-b border-slate-100">
+        <span className="flex-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Particle
+        </span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24 text-right">
+          Per Field
+        </span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest w-20 text-right">
+          Range
+        </span>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {entries.map(([key, agg]) => (
+          <div key={key} className="flex items-center gap-3 px-4 py-3">
+            <span className="flex-1 text-sm text-slate-600 font-medium">
+              {PARTICLE_LABEL_DISPLAY[key] ?? key}
+            </span>
+            <span className="w-24 text-right text-sm font-bold tabular-nums text-slate-900">
+              {agg.display_value}
+            </span>
+            <span className="w-20 text-right text-xs tabular-nums text-slate-400">
+              {agg.min}–{agg.max}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AIFindingsSection({ result }: Props) {
+  if (result.field_summary) {
+    return <FinalAveragesSection result={result} />;
+  }
+
   // The AI-detected baseline for the "was" value and for the override
   // request's original_ai_value must come from ai_findings, not
   // particle_classes — the latter already has overrides folded in (settled

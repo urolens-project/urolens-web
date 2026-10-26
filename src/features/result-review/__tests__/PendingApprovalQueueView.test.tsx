@@ -68,7 +68,10 @@ describe('PendingApprovalQueueView', () => {
     renderView();
 
     await screen.findByText('PAT-000001');
-    expect(screen.getByText('—')).toBeInTheDocument();
+    // Two dashes now: Sample ID (null sample_uid) and Fields (field_count
+    // is undefined on this fixture — the field-count columns aren't sent
+    // by the backend yet, see result-review/types.ts PendingResultItem).
+    expect(screen.getAllByText('—')).toHaveLength(2);
   });
 
   it('flags a long wait as urgent', async () => {
@@ -85,7 +88,12 @@ describe('PendingApprovalQueueView', () => {
   });
 
   it('says so clearly when the queue is empty', async () => {
-    vi.mocked(fetchPendingResults).mockResolvedValue({ items: [], total: 0, page: 1, page_size: 20 });
+    vi.mocked(fetchPendingResults).mockResolvedValue({
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: 20,
+    });
     renderView();
 
     expect(await screen.findByText('All caught up!')).toBeInTheDocument();

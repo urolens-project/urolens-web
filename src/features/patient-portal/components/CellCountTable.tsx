@@ -21,20 +21,19 @@ export function CellCountTable({ cellCounts }: CellCountTableProps) {
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
           {cellCounts.map((item) => {
-            const isNonZero = item.count > 0;
+            // display_value handles "<1" for a rare-but-real finding
+            // (proposal §3.3) — a raw count of 0 is the only case where
+            // falling back to item.count is still correct either way.
+            const isNonZero = item.display_value ? item.display_value !== '0' : item.count > 0;
             return (
               <tr key={item.label}>
-                <td className="px-4 py-3 text-slate-700">
-                  {formatParticleLabel(item.label)}
-                </td>
+                <td className="px-4 py-3 text-slate-700">{formatParticleLabel(item.label)}</td>
                 <td
                   className={`px-4 py-3 font-mono ${
-                    isNonZero
-                      ? 'text-amber-700 font-semibold bg-amber-50/50'
-                      : 'text-slate-400'
+                    isNonZero ? 'text-amber-700 font-semibold bg-amber-50/50' : 'text-slate-400'
                   }`}
                 >
-                  {item.count}
+                  {item.display_value ?? item.count}
                 </td>
               </tr>
             );
