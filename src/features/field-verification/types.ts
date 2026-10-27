@@ -231,7 +231,12 @@ export interface FocalFinding {
   field_nos: number[];
 }
 
-export type SummaryBlockingReason = 'FIELDS_BELOW_MINIMUM' | 'FIELDS_NOT_VERIFIED';
+export type SummaryBlockingReason =
+  | 'RESULT_NOT_CONFIRMABLE'
+  | 'LEGACY_NO_FIELD'
+  | 'LEGACY_NO_FINDINGS'
+  | 'FIELDS_BELOW_MINIMUM'
+  | 'FIELDS_NOT_VERIFIED';
 
 // GET /results/{id}/summary: the numbers confirmation will store, shown
 // on the verification workspace's final step before Confirm.
@@ -297,10 +302,30 @@ export type FieldErrorCode =
   | 'IMAGE_NOT_MICROSCOPY'
   | 'IMAGE_EXPOSURE'
   | 'APP_UPDATE_REQUIRED'
+  | 'FIELD_NOT_FOUND'
   | 'FIELD_NOT_OPENED'
   | 'FIELD_VERSION_CONFLICT'
+  | 'INVALID_FIELD_STATUS'
+  | 'INVALID_RESULT_STATUS'
+  | 'BOX_OUT_OF_BOUNDS'
+  | 'DETECTION_NOT_FOUND'
+  | 'TOO_MANY_BOXES'
+  | 'PARAMETER_NOT_FOUND'
+  | 'OVERRIDE_IN_FORCE'
+  | 'OVERRIDE_NOT_IN_FORCE'
+  | 'OVERRIDE_UNCHANGED'
+  | 'REASON_REQUIRED'
   | 'FIELDS_UNDECIDED'
   | 'FIELDS_BELOW_MINIMUM'
   | 'FIELDS_NOT_VERIFIED'
+  | 'RESULT_NOT_CONFIRMABLE'
+  | 'RESULT_ALREADY_CONFIRMED'
+  | 'RESULT_NOT_EDITABLE'
+  | 'RESULT_NOT_FOUND'
+  | 'LEGACY_NO_FIELD'
+  | 'LEGACY_NO_FINDINGS'
+  | 'SPECIMEN_NOT_ASSIGNED'
+  | 'SPECIMEN_NOT_FOUND'
+  | 'SPECIMEN_REJECTED'
   | 'FEATURE_DISABLED'
   | 'NOT_IMPLEMENTED';
