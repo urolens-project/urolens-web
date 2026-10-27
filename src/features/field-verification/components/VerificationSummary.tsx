@@ -73,7 +73,12 @@ export function VerificationSummary({ resultId }: Props) {
               ? `At least ${data.min_fields} accepted fields are needed (${data.field_count} so far).`
               : data.blocking_reason === 'FIELDS_NOT_VERIFIED'
                 ? 'Every accepted field must be marked checked before confirming.'
-                : 'This result cannot be confirmed yet.'}
+                : data.blocking_reason === 'LEGACY_NO_FIELD' ||
+                    data.blocking_reason === 'LEGACY_NO_FINDINGS'
+                  ? 'This result has no captured field data to confirm from.'
+                  : data.blocking_reason === 'RESULT_NOT_CONFIRMABLE'
+                    ? 'This result is not in a confirmable status right now.'
+                    : 'This result cannot be confirmed yet.'}
         </p>
       </div>
 
