@@ -10,11 +10,11 @@ import { SkeletonRows } from './SkeletonRows';
 const PAGE_SIZE = 20;
 
 const urgencyConfig = {
-  low:      { dot: 'bg-emerald-500', text: 'text-emerald-700' },
-  medium:   { dot: 'bg-amber-500',   text: 'text-amber-700'   },
-  high:     { dot: 'bg-orange-500',  text: 'text-orange-700'  },
-  critical: { dot: 'bg-rose-600',    text: 'text-rose-700'    },
-  none:     { dot: 'bg-slate-300',   text: 'text-slate-400'   },
+  low: { dot: 'bg-emerald-500', text: 'text-emerald-700' },
+  medium: { dot: 'bg-amber-500', text: 'text-amber-700' },
+  high: { dot: 'bg-orange-500', text: 'text-orange-700' },
+  critical: { dot: 'bg-rose-600', text: 'text-rose-700' },
+  none: { dot: 'bg-slate-300', text: 'text-slate-400' },
 } as const;
 
 function getWaiting(confirmedAt: string | null) {
@@ -23,7 +23,7 @@ function getWaiting(confirmedAt: string | null) {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
   const label = mins < 60 ? `${mins}m` : m === 0 ? `${h}h` : `${h}h ${m}m`;
-  if (mins < 30)  return { label, ...urgencyConfig.low };
+  if (mins < 30) return { label, ...urgencyConfig.low };
   if (mins < 120) return { label, ...urgencyConfig.medium };
   if (mins < 240) return { label, ...urgencyConfig.high };
   return { label, ...urgencyConfig.critical };
@@ -38,7 +38,6 @@ export function PendingApprovalQueueView() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-
       {/* Breadcrumb */}
       <button
         onClick={() => navigate('/dashboard/supervisor')}
@@ -85,8 +84,11 @@ export function PendingApprovalQueueView() {
         <table className="w-full text-sm">
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
-              {['Patient', 'Sample ID', 'MedTech', 'Submitted', 'Waiting'].map((h) => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+              {['Patient', 'Sample ID', 'MedTech', 'Fields', 'Submitted', 'Waiting'].map((h) => (
+                <th
+                  key={h}
+                  className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                >
                   {h}
                 </th>
               ))}
@@ -94,16 +96,18 @@ export function PendingApprovalQueueView() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {showSkeleton ? (
-              <SkeletonRows cols={5} />
+              <SkeletonRows cols={6} />
             ) : data?.items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-5 py-20 text-center">
+                <td colSpan={6} className="px-5 py-20 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50">
                       <CheckCircle2 className="h-7 w-7 text-emerald-400" />
                     </div>
                     <p className="font-semibold text-slate-800">All caught up!</p>
-                    <p className="text-xs text-slate-400">No results are pending approval right now.</p>
+                    <p className="text-xs text-slate-400">
+                      No results are pending approval right now.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -120,7 +124,9 @@ export function PendingApprovalQueueView() {
                       <p className="font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">
                         {row.patient_uid || '—'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{formatAge(row.patient_age, row.patient_sex)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {formatAge(row.patient_age, row.patient_sex)}
+                      </p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
@@ -128,9 +134,22 @@ export function PendingApprovalQueueView() {
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-600">{row.medtech_name || '—'}</td>
-                    <td className="px-5 py-4 text-xs text-slate-400">{formatTimestamp(row.confirmed_at)}</td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${waiting.text}`}>
+                      {row.field_count !== undefined ? (
+                        <span className="font-mono text-xs text-slate-600">
+                          {row.verified_field_count ?? 0} / {row.field_count}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-slate-400">
+                      {formatTimestamp(row.confirmed_at)}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold ${waiting.text}`}
+                      >
                         <span className={`h-1.5 w-1.5 rounded-full ${waiting.dot}`} />
                         {waiting.label}
                       </span>
@@ -150,10 +169,20 @@ export function PendingApprovalQueueView() {
             Page {page} of {totalPages} &middot; {data.total} total
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
-            <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

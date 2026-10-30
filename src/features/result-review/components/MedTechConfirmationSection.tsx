@@ -12,6 +12,14 @@ export function MedTechConfirmationSection({ result }: Props) {
         timeStyle: 'short',
       })
     : '—';
+  // Proposal §10.2: "Adds fields examined, fields excluded and who
+  // verified." Only shown for a multi-field result — result.fields is
+  // absent entirely for a legacy single-image one. verified_by is a
+  // user id, not a name this response resolves — shown as a count
+  // rather than fabricating a name lookup this section doesn't have.
+  const fields = result.fields ?? [];
+  const excludedCount = fields.filter((f) => f.status === 'DISCARDED').length;
+  const verifiedCount = fields.filter((f) => !!f.verified_by).length;
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
@@ -19,25 +27,58 @@ export function MedTechConfirmationSection({ result }: Props) {
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100">
           <FlaskConical className="h-3.5 w-3.5 text-emerald-600" />
         </div>
-        <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">MedTech Confirmation</h3>
+        <h3 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">
+          MedTech Confirmation
+        </h3>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 divide-x divide-slate-100">
         <div className="px-5 py-4">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confirmed By</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+            Confirmed By
+          </p>
           <p className="text-sm font-semibold text-slate-800">{result.medtech_name || '—'}</p>
         </div>
         <div className="px-5 py-4">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Confirmed At</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+            Confirmed At
+          </p>
           <p className="text-sm font-semibold text-slate-800">{confirmedAt}</p>
         </div>
         {result.confirmation_notes && (
           <div className="col-span-2 sm:col-span-3 px-5 py-4 border-t border-slate-100">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Notes</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Notes
+            </p>
             <p className="text-sm text-slate-700">{result.confirmation_notes}</p>
           </div>
         )}
       </div>
+
+      {fields.length > 0 && (
+        <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100">
+          <div className="px-5 py-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Fields Examined
+            </p>
+            <p className="text-sm font-semibold text-slate-800">{fields.length}</p>
+          </div>
+          <div className="px-5 py-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Fields Excluded
+            </p>
+            <p className="text-sm font-semibold text-slate-800">{excludedCount}</p>
+          </div>
+          <div className="px-5 py-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              Fields Verified
+            </p>
+            <p className="text-sm font-semibold text-slate-800">
+              {verifiedCount} / {fields.length}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
