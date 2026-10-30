@@ -27,6 +27,7 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: '2025-05-10T08:30:00Z',
     confirmed_at: '2025-05-09T15:45:00Z',
     analyzed_by: 'Juan dela Cruz, RMT',
+    requesting_physician: 'Dr. Maria Santos',
     particle_counts: [
       { label: 'bacteria', count: 1 },
       { label: 'crystals', count: 0 },
@@ -40,7 +41,8 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
       { label: 'yeast', count: 0 },
     ],
     particle_classes: ['bacteria', 'erythrocytes', 'leukocytes'],
-    confirmation_notes: 'Mild pyuria noted with elevated leukocyte count. Findings are suggestive of a urinary tract infection. Clinical correlation is recommended.',
+    confirmation_notes:
+      'Mild pyuria noted with elevated leukocyte count. Findings are suggestive of a urinary tract infection. Clinical correlation is recommended.',
     smart_diagnosis_unavailable: false,
     test_type: 'Urinalysis',
   },
@@ -49,6 +51,7 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: null,
     confirmed_at: '2025-05-14T11:00:00Z',
     analyzed_by: 'Ana Reyes, RMT',
+    requesting_physician: 'Dr. Jose Lim',
     particle_counts: [
       { label: 'bacteria', count: 0 },
       { label: 'crystals', count: 2 },
@@ -71,6 +74,7 @@ export const MOCK_RESULT_DETAILS: Record<string, PatientResultDetail> = {
     released_at: null,
     confirmed_at: null,
     analyzed_by: null,
+    requesting_physician: null,
     particle_counts: [
       { label: 'bacteria', count: 0 },
       { label: 'crystals', count: 0 },

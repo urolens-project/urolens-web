@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from 'react';
 import { Trash2 } from 'lucide-react';
+import { Modal } from '../../../components/ui/Modal';
 import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../constants';
 import type { BoundingBox } from '../types';
 
@@ -64,6 +65,13 @@ export function AnnotationCanvas({
   const [selectedLabel, setSelectedLabel] = useState<string>('leukocytes');
   const [drawing, setDrawing] = useState<DrawState | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // A box only gets its full text label + a brighter outline while hovered
+  // or selected — with a dense AI-seeded set (hundreds of boxes on one
+  // image is common), permanently labeling every box makes the image
+  // unreadable without making any single box easier to find.
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [hoveredOtherKey, setHoveredOtherKey] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [imgError, setImgError] = useState(false);
 
   const toPercent = useCallback((clientX: number, clientY: number) => {
@@ -109,9 +117,19 @@ export function AnnotationCanvas({
     setDrawing(null);
   }
 
-  function deleteBox(id: string) {
-    onChange(boxes.filter((b) => b.id !== id));
+  function requestDelete(id: string) {
+    setPendingDeleteId(id);
+  }
+
+  function confirmDelete() {
+    if (!pendingDeleteId) return;
+    onChange(boxes.filter((b) => b.id !== pendingDeleteId));
     setSelectedId(null);
+    setPendingDeleteId(null);
+  }
+
+  function relabelBox(id: string, particleType: string) {
+    onChange(boxes.map((b) => (b.id === id ? { ...b, particle_type: particleType } : b)));
   }
 
   function handleBoxClick(e: React.MouseEvent, id: string) {
@@ -129,6 +147,8 @@ export function AnnotationCanvas({
         h: Math.abs(drawing.currentY - drawing.startY),
       }
     : null;
+
+  const selectedBox = selectedId ? boxes.find((b) => b.id === selectedId) : undefined;
 
   return (
     <div className={fullHeight ? 'flex flex-col h-full' : 'space-y-2'}>
@@ -210,10 +230,13 @@ export function AnnotationCanvas({
           {boxes.map((box) => {
             const color = getColor(box.particle_type);
             const isSelected = selectedId === box.id;
+            const isHighlighted = isSelected || hoveredId === box.id;
             return (
               <g
                 key={box.id}
                 onClick={(e) => handleBoxClick(e, box.id)}
+                onMouseEnter={() => setHoveredId(box.id)}
+                onMouseLeave={() => setHoveredId((prev) => (prev === box.id ? null : prev))}
                 style={{ cursor: 'pointer' }}
               >
                 <rect
@@ -221,84 +244,77 @@ export function AnnotationCanvas({
                   y={`${box.y}%`}
                   width={`${box.w}%`}
                   height={`${box.h}%`}
-                  fill={`${color}22`}
+                  fill={`${color}${isHighlighted ? '33' : '14'}`}
                   stroke={color}
-                  strokeWidth={isSelected ? 2.5 : 1.5}
+                  strokeWidth={isSelected ? 2.5 : isHighlighted ? 2 : 1}
+                  strokeOpacity={isHighlighted ? 1 : 0.55}
                   strokeDasharray={isSelected ? '4 2' : undefined}
                 />
-                <rect
-                  x={`${box.x}%`}
-                  y={`${box.y - 5}%`}
-                  width={`${Math.min(box.w, 40)}%`}
-                  height="5%"
-                  fill={color}
-                  rx="2"
-                />
-                <text
-                  x={`${box.x + 1}%`}
-                  y={`${box.y - 1}%`}
-                  fill="white"
-                  fontSize="9"
-                  fontWeight="600"
-                  dominantBaseline="auto"
-                  style={{ pointerEvents: 'none', userSelect: 'none' }}
-                >
-                  {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
-                </text>
-                {isSelected && !readOnly && (
-                  <g
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBox(box.id);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <circle cx={`${box.x + box.w}%`} cy={`${box.y}%`} r="8" fill="#ef4444" />
+                {isHighlighted && (
+                  <>
+                    <rect
+                      x={`${box.x}%`}
+                      y={`${box.y - 5}%`}
+                      width={`${Math.min(box.w, 40)}%`}
+                      height="5%"
+                      fill={color}
+                      rx="2"
+                    />
                     <text
-                      x={`${box.x + box.w}%`}
-                      y={`${box.y}%`}
+                      x={`${box.x + 1}%`}
+                      y={`${box.y - 1}%`}
                       fill="white"
-                      fontSize="10"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                      dominantBaseline="central"
+                      fontSize="9"
+                      fontWeight="600"
+                      dominantBaseline="auto"
                       style={{ pointerEvents: 'none', userSelect: 'none' }}
                     >
-                      ×
+                      {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
                     </text>
-                  </g>
+                  </>
                 )}
               </g>
             );
           })}
 
           {otherReviewerBoxes.map(({ ownerLabel, boxes: theirBoxes }) =>
-            theirBoxes.map((box) => (
-              <g key={`${ownerLabel}-${box.id}`} style={{ pointerEvents: 'none' }}>
-                <rect
-                  x={`${box.x}%`}
-                  y={`${box.y}%`}
-                  width={`${box.w}%`}
-                  height={`${box.h}%`}
-                  fill="none"
-                  stroke="#cbd5e1"
-                  strokeWidth="1.5"
-                  strokeDasharray="3 3"
-                  opacity={0.7}
-                />
-                <text
-                  x={`${box.x + 1}%`}
-                  y={`${box.y - 1}%`}
-                  fill="#cbd5e1"
-                  fontSize="8"
-                  fontWeight="600"
-                  dominantBaseline="auto"
-                  style={{ userSelect: 'none' }}
+            theirBoxes.map((box) => {
+              const key = `${ownerLabel}-${box.id}`;
+              const isHighlighted = hoveredOtherKey === key;
+              return (
+                <g
+                  key={key}
+                  onMouseEnter={() => setHoveredOtherKey(key)}
+                  onMouseLeave={() => setHoveredOtherKey((prev) => (prev === key ? null : prev))}
+                  style={{ pointerEvents: 'auto', cursor: 'default' }}
                 >
-                  {ownerLabel}: {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
-                </text>
-              </g>
-            )),
+                  <rect
+                    x={`${box.x}%`}
+                    y={`${box.y}%`}
+                    width={`${box.w}%`}
+                    height={`${box.h}%`}
+                    fill="none"
+                    stroke="#cbd5e1"
+                    strokeWidth={isHighlighted ? 2 : 1.5}
+                    strokeDasharray="3 3"
+                    opacity={isHighlighted ? 1 : 0.5}
+                  />
+                  {isHighlighted && (
+                    <text
+                      x={`${box.x + 1}%`}
+                      y={`${box.y - 1}%`}
+                      fill="#cbd5e1"
+                      fontSize="8"
+                      fontWeight="600"
+                      dominantBaseline="auto"
+                      style={{ userSelect: 'none' }}
+                    >
+                      {ownerLabel}: {PARTICLE_LABEL_DISPLAY[box.particle_type] ?? box.particle_type}
+                    </text>
+                  )}
+                </g>
+              );
+            }),
           )}
 
           {previewBox && (
@@ -314,16 +330,84 @@ export function AnnotationCanvas({
             />
           )}
         </svg>
+
+        {/* Relabel + delete toolbar for the selected box — an HTML overlay
+            (not SVG) so it can host a real <select>, positioned with the
+            same percentage coordinates the SVG boxes use. */}
+        {selectedBox && !readOnly && mode === 'view' && (
+          <div
+            className="absolute z-10 flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"
+            style={{
+              // Default position is above/left of the box. A box near the
+              // top or right edge of the image flipped the toolbar off the
+              // visible canvas entirely — render it below/right instead
+              // whenever there's no room on the usual side.
+              left: `${selectedBox.x > 80 ? selectedBox.x + selectedBox.w : selectedBox.x}%`,
+              top: `${selectedBox.y < 10 ? selectedBox.y + selectedBox.h : selectedBox.y}%`,
+              transform: `${selectedBox.x > 80 ? 'translateX(-100%) ' : ''}${selectedBox.y < 10 ? '' : 'translateY(-100%)'}`,
+            }}
+          >
+            <select
+              value={selectedBox.particle_type}
+              onChange={(e) => relabelBox(selectedBox.id, e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-md border border-slate-200 bg-white px-1.5 py-1 text-[11px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            >
+              {PARTICLE_LABELS.map((l) => (
+                <option key={l} value={l}>
+                  {PARTICLE_LABEL_DISPLAY[l]}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                requestDelete(selectedBox.id);
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-red-500 hover:bg-red-50 transition-colors"
+              title="Delete this box"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {!readOnly && mode === 'view' && boxes.length > 0 && (
-        <p className="text-xs text-slate-400">Click a box to select it, then × to delete.</p>
+        <p className="text-xs text-slate-400">Click a box to relabel or delete it.</p>
       )}
       {!readOnly && mode === 'draw' && (
         <p className="text-xs text-slate-400">
           Click and drag on the image to draw a bounding box.
         </p>
       )}
+
+      <Modal
+        open={pendingDeleteId !== null}
+        onClose={() => setPendingDeleteId(null)}
+        title="Delete this box?"
+        maxWidth="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            This removes the bounding box from your annotation. This can't be undone once saved.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPendingDeleteId(null)}
+              className="flex-1 h-10 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="flex-1 h-10 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition cursor-pointer"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

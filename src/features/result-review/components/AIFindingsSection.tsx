@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Bot, Pencil, Check, X, Loader2 } from 'lucide-react';
+import { Bot, Pencil, Check, X, Loader2, Flag, ChevronDown, ChevronUp } from 'lucide-react';
 import { useSaveOverride } from '../hooks/useResultReview';
 import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../constants';
+import { getSaveOverrideErrorMessage } from '../utils/errors';
+import type { ApiError } from '../../../types/domain';
 import type { FullResultDetail, ManualOverrideItem } from '../types';
 
 interface Props {
@@ -13,11 +15,13 @@ const PARTICLE_CLASSES: { key: string; label: string }[] = PARTICLE_LABELS.map((
   label: PARTICLE_LABEL_DISPLAY[key],
 }));
 
-function getEffectiveValue(key: string, overrides: ManualOverrideItem[]): string | null {
+function getLatestOverride(
+  key: string,
+  overrides: ManualOverrideItem[],
+): ManualOverrideItem | null {
   const matches = overrides.filter((o) => o.parameter_name === key);
   if (matches.length === 0) return null;
-  const latest = matches.reduce((a, b) => (a.overridden_at > b.overridden_at ? a : b));
-  return latest.corrected_value;
+  return matches.reduce((a, b) => (a.overridden_at > b.overridden_at ? a : b));
 }
 
 interface ParticleRowProps {
@@ -25,8 +29,10 @@ interface ParticleRowProps {
   label: string;
   aiValue: number | null;
   overrides: ManualOverrideItem[];
+  isFlagged: boolean;
   resultId: string;
   isLast: boolean;
+  isRetakePending: boolean;
 }
 
 function ParticleRow({
@@ -34,14 +40,18 @@ function ParticleRow({
   label,
   aiValue,
   overrides,
+  isFlagged,
   resultId,
   isLast,
+  isRetakePending,
 }: ParticleRowProps) {
-  const effective = getEffectiveValue(particleKey, overrides);
-  const displayValue = effective ?? (aiValue !== null ? String(aiValue) : '—');
-  const hasOverride = !!effective;
+  const latestOverride = getLatestOverride(particleKey, overrides);
+  const displayValue =
+    latestOverride?.corrected_value ?? (aiValue !== null ? String(aiValue) : '—');
+  const hasOverride = !!latestOverride;
 
   const [editing, setEditing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [inputVal, setInputVal] = useState('');
   const [rationale, setRationale] = useState('');
   const [localSaved, setLocalSaved] = useState(false);
@@ -50,7 +60,7 @@ function ParticleRow({
   const mutation = useSaveOverride(resultId);
 
   // The baseline numeric value before any edit
-  const baselineNum = effective !== null ? parseFloat(effective) : aiValue !== null ? aiValue : 0;
+  const baselineNum = latestOverride ? parseFloat(latestOverride.corrected_value) : (aiValue ?? 0);
 
   function startEdit() {
     setInputVal(String(baselineNum));
@@ -99,8 +109,8 @@ function ParticleRow({
       setLocalSaved(true);
       setEditing(false);
       setTimeout(() => setLocalSaved(false), 2500);
-    } catch {
-      setError('Failed to save. Please try again.');
+    } catch (err) {
+      setError(getSaveOverrideErrorMessage(err as ApiError));
     }
   }
 
@@ -112,6 +122,11 @@ function ParticleRow({
     parsedInput !== baselineNum &&
     rationale.trim().length > 0;
 
+  const history = overrides
+    .filter((o) => o.parameter_name === particleKey)
+    .slice()
+    .sort((a, b) => (a.overridden_at > b.overridden_at ? -1 : 1));
+
   return (
     <div
       className={`${!isLast ? 'border-b border-slate-100' : ''} ${hasOverride ? 'bg-amber-50' : ''}`}
@@ -119,7 +134,13 @@ function ParticleRow({
       {/* Main row */}
       <div className={`flex items-center gap-3 px-4 py-3 ${editing ? '' : 'group'}`}>
         {/* Label */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          {isFlagged && (
+            <Flag
+              className="h-3 w-3 text-red-500 shrink-0"
+              aria-label="Flagged: exceeds clinical threshold"
+            />
+          )}
           <span className="text-sm text-slate-600 font-medium">{label}</span>
         </div>
 
@@ -137,22 +158,33 @@ function ParticleRow({
               {displayValue}
             </span>
             {hasOverride && (
-              <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              <button
+                onClick={() => setShowHistory((v) => !v)}
+                className="flex items-center gap-0.5 text-[10px] font-semibold text-amber-600 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-full whitespace-nowrap hover:bg-amber-200 transition-colors cursor-pointer"
+                title={showHistory ? 'Hide correction history' : 'Show correction history'}
+              >
                 edited
-              </span>
+                {showHistory ? (
+                  <ChevronUp className="h-2.5 w-2.5" />
+                ) : (
+                  <ChevronDown className="h-2.5 w-2.5" />
+                )}
+              </button>
             )}
             {localSaved && (
               <span className="text-xs text-emerald-600 font-semibold animate-in fade-in duration-200">
                 Saved!
               </span>
             )}
-            <button
-              onClick={startEdit}
-              className="rounded-lg p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
-              title="Correct this value"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
+            {!isRetakePending && (
+              <button
+                onClick={startEdit}
+                className="rounded-lg p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 opacity-0 group-hover:opacity-100 transition-all"
+                title="Correct this value"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-1 shrink-0">
@@ -214,41 +246,36 @@ function ParticleRow({
           {error && <p className="mt-1.5 text-xs text-red-500 font-medium">{error}</p>}
         </div>
       )}
-    </div>
-  );
-}
 
-function GenericFindingsCard({
-  title,
-  tone,
-  data,
-}: {
-  title: string;
-  tone: 'neutral' | 'warning';
-  data: Record<string, unknown>;
-}) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
-
-  const headerClass =
-    tone === 'warning' ? 'border-amber-100 bg-amber-50' : 'border-slate-100 bg-slate-50';
-  const titleClass = tone === 'warning' ? 'text-amber-700' : 'text-slate-500';
-
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div className={`px-5 py-3.5 border-b ${headerClass}`}>
-        <h3 className={`text-xs font-bold uppercase tracking-widest ${titleClass}`}>{title}</h3>
-      </div>
-      <div className="divide-y divide-slate-100">
-        {entries.map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between px-5 py-3">
-            <span className="text-sm text-slate-500 capitalize">{key.replace(/_/g, ' ')}</span>
-            <span className="text-sm font-semibold text-slate-800 font-mono">
-              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* Correction history — rationale + timestamp for every override of
+          this particle, newest first. Replaces a standalone "Manual
+          Overrides" card: the audit detail only matters when a reviewer
+          asks "why was this changed", not every time the page loads. */}
+      {showHistory && !editing && (
+        <div className="px-5 pb-4 pt-1 bg-amber-50/60 border-t border-amber-100 space-y-2 animate-in slide-in-from-top-1 duration-200">
+          {history.map((o) => (
+            <div key={o.override_id} className="rounded-lg border border-amber-100 bg-white p-2.5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-mono">
+                  <span className="text-slate-400 line-through">{o.original_ai_value}</span>
+                  <span className="text-slate-400"> → </span>
+                  <span className="font-bold text-amber-700">{o.corrected_value}</span>
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {new Date(o.overridden_at).toLocaleString('en-PH', {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600">
+                <span className="font-medium text-amber-700">Rationale: </span>
+                {o.rationale}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -262,6 +289,11 @@ export function AIFindingsSection({ result }: Props) {
   // it were the original AI detection.
   const counts = result.ai_findings ?? {};
   const overrides = result.manual_overrides ?? [];
+  // flagged_anomalies is a filtered view of the same particle list above
+  // (currently: non-zero counts; see ai_integration_service.py) — surfaced
+  // as a flag icon on the relevant row instead of a second, near-duplicate
+  // list underneath.
+  const flaggedKeys = new Set(Object.keys(result.flagged_anomalies ?? {}));
 
   const overriddenKeys = new Set(overrides.map((o) => o.parameter_name));
   const overrideCount = PARTICLE_CLASSES.filter((p) => overriddenKeys.has(p.key)).length;
@@ -280,7 +312,9 @@ export function AIFindingsSection({ result }: Props) {
                 AI Particle Counts
               </h3>
               <p className="text-[10px] text-emerald-400 uppercase tracking-widest mt-0.5">
-                Hover any row to correct
+                {result.is_retake_pending
+                  ? 'Corrections disabled — retake pending'
+                  : 'Hover any row to correct'}
               </p>
             </div>
             {overrideCount > 0 && (
@@ -314,20 +348,15 @@ export function AIFindingsSection({ result }: Props) {
                 label={label}
                 aiValue={aiValue}
                 overrides={overrides}
+                isFlagged={flaggedKeys.has(key)}
                 resultId={result.result_id}
                 isLast={idx === PARTICLE_CLASSES.length - 1}
+                isRetakePending={result.is_retake_pending}
               />
             );
           })}
         </div>
       </div>
-
-      <GenericFindingsCard
-        title="Flagged Anomalies"
-        tone="warning"
-        data={result.flagged_anomalies ?? {}}
-      />
-      <GenericFindingsCard title="AI Findings" tone="neutral" data={result.ai_findings ?? {}} />
     </div>
   );
 }

@@ -26,7 +26,10 @@ import {
   EscalatedQueueView,
 } from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
-import { PendingConfirmationQueueView, ResultConfirmationDetailView } from './features/medtech-confirmation';
+import {
+  PendingConfirmationQueueView,
+  ResultConfirmationDetailView,
+} from './features/medtech-confirmation';
 
 import LoginPage from './routes/auth.routes';
 import PatientLoginPage from './features/auth/components/PatientLoginPage';
@@ -90,7 +93,10 @@ export default function App() {
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/medtech" element={<Navigate to="/medtech/results" replace />} />
+              <Route
+                path="/dashboard/medtech"
+                element={<Navigate to="/medtech/results" replace />}
+              />
               <Route path="/medtech/results" element={<PendingConfirmationQueueView />} />
               <Route path="/medtech/results/:resultId" element={<ResultConfirmationDetailView />} />
             </Route>
@@ -137,7 +143,7 @@ export default function App() {
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
             <Route
               element={
-                <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
+                <RequireRole roles={[UserRole.PATIENT]}>
                   <RoleShell
                     navItems={ROLE_SHELL_CONFIG[UserRole.PATIENT]}
                     navSectionLabel="Patient Workspace"

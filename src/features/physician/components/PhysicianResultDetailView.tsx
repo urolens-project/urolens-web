@@ -1,25 +1,51 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FlaskConical, Loader2 } from 'lucide-react';
+import { ArrowLeft, FlaskConical, Loader2, Flag } from 'lucide-react';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
+import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../../result-review/constants';
 import { useResultDetail } from '../hooks/usePhysician';
 
-function FindingsGrid({ title, data }: { title: string; data: Record<string, unknown> }) {
-  const entries = Object.entries(data);
-  if (entries.length === 0) return null;
+// A physician only ever sees an already-finalized RELEASED result — so,
+// unlike AIFindingsSection (the Supervisor/MedTech editable equivalent),
+// this is read-only and has no per-parameter edit history: ai_findings,
+// flagged_anomalies and particle_classes are the same three overlapping
+// dicts that used to render as three separate near-duplicate cards here;
+// merged into one row per particle type instead.
+function ParticleCountsCard({
+  aiFindings,
+  flaggedAnomalies,
+  particleClasses,
+}: {
+  aiFindings: Record<string, unknown>;
+  flaggedAnomalies: Record<string, unknown>;
+  particleClasses: Record<string, unknown>;
+}) {
+  const flaggedKeys = new Set(Object.keys(flaggedAnomalies));
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-bold text-slate-900">{title}</h2>
+        <h2 className="text-sm font-bold text-slate-900">Particle Counts</h2>
       </div>
       <div className="divide-y divide-slate-100">
-        {entries.map(([key, value]) => (
-          <div key={key} className="flex items-center justify-between px-6 py-3">
-            <span className="text-sm text-slate-500 capitalize">{key.replace(/_/g, ' ')}</span>
-            <span className="text-sm font-semibold text-slate-800 font-mono">
-              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-            </span>
-          </div>
-        ))}
+        {PARTICLE_LABELS.map((key) => {
+          const effective = particleClasses[key] ?? aiFindings[key] ?? 0;
+          return (
+            <div key={key} className="flex items-center justify-between px-6 py-3">
+              <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                {flaggedKeys.has(key) && (
+                  <Flag
+                    className="h-3 w-3 text-red-500 shrink-0"
+                    aria-label="Flagged: exceeds clinical threshold"
+                  />
+                )}
+                {PARTICLE_LABEL_DISPLAY[key]}
+              </span>
+              <span className="text-sm font-semibold text-slate-800 font-mono">
+                {String(effective)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -141,10 +167,12 @@ export function PhysicianResultDetailView() {
         </div>
       )}
 
-      {/* AI Findings */}
-      <FindingsGrid title="AI Findings" data={data.ai_findings} />
-      <FindingsGrid title="Flagged Anomalies" data={data.flagged_anomalies} />
-      <FindingsGrid title="Particle Classification" data={data.particle_classes} />
+      {/* Particle Counts — merged from ai_findings/flagged_anomalies/particle_classes */}
+      <ParticleCountsCard
+        aiFindings={data.ai_findings}
+        flaggedAnomalies={data.flagged_anomalies}
+        particleClasses={data.particle_classes}
+      />
 
       {/* Smart Diagnosis */}
       <SmartDiagnosisPanel data={data.smart_diagnosis} unavailable={!data.smart_diagnosis} />
