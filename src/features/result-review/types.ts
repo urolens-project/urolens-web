@@ -38,6 +38,13 @@ export interface BoundingBox {
   h: number;
 }
 
+// One AI-detected particle box, before any reviewer has drawn their own
+// annotation. Read-only data from the AI pipeline, not a reviewer's saved
+// work — see MicroscopyImageSection for how this seeds the canvas.
+export interface AiDetectionBox extends BoundingBox {
+  confidence: number | null;
+}
+
 // One reviewer's annotation on a result. A MedTech's and a Supervisor's
 // annotations are independent — this is one entry in FullResultDetail's
 // `annotations` list, not the whole thing.
@@ -59,6 +66,7 @@ export interface FullResultDetail {
   confirmed_at: string | null;
   confirmation_notes: string | null;
   ai_findings: Record<string, unknown>;
+  ai_detections: AiDetectionBox[];
   flagged_anomalies: Record<string, unknown>;
   particle_classes: Record<string, unknown>;
   model_version: string;
@@ -67,6 +75,7 @@ export interface FullResultDetail {
   smart_diagnosis: SmartDiagnosisAttached | null;
   smart_diagnosis_unavailable: boolean;
   status: string;
+  is_retake_pending: boolean;
   annotations: AnnotationItem[];
 }
 

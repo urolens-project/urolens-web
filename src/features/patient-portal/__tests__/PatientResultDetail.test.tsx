@@ -6,20 +6,27 @@ import { PatientResultDetail } from '../components/PatientResultDetail';
 import type { PatientResultDetail as DetailType } from '../types';
 
 const ALL_LABELS = [
-  'bacteria', 'crystals', 'epithelial-cells', 'erythrocytes',
-  'leukocytes', 'mucus-threads', 'sperm-cells',
-  'trichomonas-vaginalis', 'urinary-casts', 'yeast',
+  'bacteria',
+  'crystals',
+  'epithelial-cells',
+  'erythrocytes',
+  'leukocytes',
+  'mucus-threads',
+  'sperm-cells',
+  'trichomonas-vaginalis',
+  'urinary-casts',
+  'yeast',
 ];
 
 function makeParticleCounts(overrides: Partial<Record<string, number>> = {}) {
-  return ALL_LABELS.map(label => ({ label, count: overrides[label] ?? 0 }));
+  return ALL_LABELS.map((label) => ({ label, count: overrides[label] ?? 0 }));
 }
 
 function renderDetail(result: DetailType, onDownloadPdf?: () => void) {
   return render(
     <MemoryRouter>
       <PatientResultDetail result={result} onDownloadPdf={onDownloadPdf} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 }
 
@@ -28,6 +35,7 @@ const mockResult: DetailType = {
   confirmed_at: '2026-05-16T10:00:00Z',
   released_at: '2026-05-20T10:00:00Z',
   analyzed_by: 'Dr. Santos, RMT',
+  requesting_physician: 'Dr. Reyes',
   particle_counts: makeParticleCounts({ bacteria: 5, leukocytes: 2 }),
   particle_classes: ['bacteria', 'leukocytes'],
   confirmation_notes: 'Normal urinalysis findings.',
@@ -51,6 +59,7 @@ const mockPendingResult: DetailType = {
   confirmed_at: null,
   released_at: null,
   analyzed_by: null,
+  requesting_physician: null,
   particle_counts: makeParticleCounts(),
   particle_classes: [],
   confirmation_notes: null,
@@ -95,6 +104,17 @@ describe('PatientResultDetail', () => {
     expect(screen.queryByLabelText('Analyzed by')).not.toBeInTheDocument();
   });
 
+  it('renders requested_by section when non-null', () => {
+    renderDetail(mockResult);
+    expect(screen.getByLabelText('Requested by')).toBeInTheDocument();
+    expect(screen.getByText('Dr. Reyes')).toBeInTheDocument();
+  });
+
+  it('hides requested_by section when null', () => {
+    renderDetail({ ...mockResult, requesting_physician: null });
+    expect(screen.queryByLabelText('Requested by')).not.toBeInTheDocument();
+  });
+
   it('renders particle counts section with all 10 rows', () => {
     renderDetail(mockResult);
     expect(screen.getByLabelText('Particle counts')).toBeInTheDocument();
@@ -115,29 +135,29 @@ describe('PatientResultDetail', () => {
   it('shows availability notice when smart_diagnosis_unavailable is true', () => {
     renderDetail(mockResultUnavailable);
     expect(
-      screen.getByText('Analysis indicators are currently unavailable for this result.')
+      screen.getByText('Analysis indicators are currently unavailable for this result.'),
     ).toBeInTheDocument();
   });
 
   it('hides availability notice when smart_diagnosis_unavailable is false', () => {
     renderDetail(mockResult);
     expect(
-      screen.queryByText('Analysis indicators are currently unavailable for this result.')
+      screen.queryByText('Analysis indicators are currently unavailable for this result.'),
     ).not.toBeInTheDocument();
   });
 
-  it('always renders AI disclaimer', () => {
+  it('never renders the AI disclaimer — this screen shows plain counts, not AI-branded output', () => {
     renderDetail(mockResult);
     expect(
-      screen.getByText(/UroLens is a clinical decision-support tool/)
-    ).toBeInTheDocument();
+      screen.queryByText(/UroLens is a clinical decision-support tool/),
+    ).not.toBeInTheDocument();
   });
 
-  it('also renders AI disclaimer on pending results', () => {
+  it('does not render the AI disclaimer on pending results either', () => {
     renderDetail(mockPendingResult);
     expect(
-      screen.getByText(/UroLens is a clinical decision-support tool/)
-    ).toBeInTheDocument();
+      screen.queryByText(/UroLens is a clinical decision-support tool/),
+    ).not.toBeInTheDocument();
   });
 
   it('shows Download PDF button for RELEASED results', () => {

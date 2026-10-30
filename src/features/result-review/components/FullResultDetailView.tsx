@@ -9,11 +9,12 @@ import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
 import { reviewerRoleLabel } from '../constants';
 import type { BoundingBox } from '../types';
+import { getSaveAnnotationErrorMessage } from '../utils/errors';
+import type { ApiError } from '../../../types/domain';
 import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
 import { ApproveModal } from './ApproveModal';
 import { EscalateModal } from './EscalateModal';
-import { ManualOverridesSection } from './ManualOverridesSection';
 import { MedTechConfirmationSection } from './MedTechConfirmationSection';
 import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
@@ -65,8 +66,8 @@ export function FullResultDetailView() {
   async function withFlushedBoxes(openAction: () => void) {
     try {
       await flushBoxesIfDirty();
-    } catch {
-      toast.error('Failed to save your annotation changes. Please try again.');
+    } catch (err) {
+      toast.error(getSaveAnnotationErrorMessage(err as ApiError));
       return;
     }
     openAction();
@@ -115,7 +116,12 @@ export function FullResultDetailView() {
     .join(' · ');
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
+    // No overflow-y-auto/h-full here — RoleShell's <main> is already the
+    // real scroll container. A second nested scroll context here had an
+    // unconstrained height (never actually scrolled), which made the
+    // sticky left column below attach to the wrong ancestor and never
+    // visibly stick.
+    <div className="bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
         {/* ── Gradient Header Banner ── */}
         <div className="rounded-2xl overflow-hidden shadow-sm border border-emerald-200/60">
@@ -171,9 +177,13 @@ export function FullResultDetailView() {
         <PatientInfoSection result={data} />
 
         {/* ── Main Content Grid: image-first ── */}
-        <div className="grid gap-5 lg:grid-cols-3">
+        {/* items-start + sticky on the left column: the image and
+            annotation controls stay in view while the right column's data
+            sections scroll past, instead of the whole page scrolling as
+            one unit and losing the image off-screen. */}
+        <div className="grid gap-5 lg:grid-cols-3 items-start">
           {/* Left col (2/3): microscopy canvas — primary review artifact */}
-          <div className="lg:col-span-2 flex flex-col gap-5">
+          <div className="lg:col-span-2 flex flex-col gap-5 lg:sticky lg:top-6">
             <MicroscopyImageSection
               result={data}
               myAnnotation={myAnnotation}
@@ -187,6 +197,7 @@ export function FullResultDetailView() {
               myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
               myAnnotation={myAnnotation}
               otherAnnotations={otherAnnotations}
+              isRetakePending={data.is_retake_pending}
             />
           </div>
 
@@ -234,7 +245,6 @@ export function FullResultDetailView() {
 
             <AIFindingsSection result={data} />
             <MedTechConfirmationSection result={data} />
-            <ManualOverridesSection result={data} />
             <SmartDiagnosisPanel
               data={data.smart_diagnosis}
               unavailable={data.smart_diagnosis_unavailable}

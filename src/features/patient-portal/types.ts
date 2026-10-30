@@ -4,11 +4,7 @@ export interface ParticleCount {
 }
 
 export type ResultStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'PENDING_SUPERVISOR_APPROVAL'
-  | 'APPROVED'
-  | 'RELEASED';
+  'PENDING' | 'CONFIRMED' | 'PENDING_SUPERVISOR_APPROVAL' | 'APPROVED' | 'RELEASED';
 
 export interface PatientResultItem {
   result_id: string;
@@ -22,6 +18,7 @@ export interface PatientResultDetail {
   confirmed_at: string | null;
   confirmation_notes: string | null;
   analyzed_by: string | null;
+  requesting_physician: string | null;
   particle_counts: ParticleCount[];
   particle_classes: string[];
   smart_diagnosis_unavailable: boolean;
