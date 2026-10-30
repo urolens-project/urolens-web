@@ -1,4 +1,5 @@
 import type { SmartDiagnosisAttached } from '../smart-diagnosis/types';
+import type { FieldSummaryItem, ParticleAggregate } from '../field-verification/types';
 
 export interface ManualOverrideItem {
   override_id: string;
@@ -20,6 +21,10 @@ export interface PendingResultItem {
   medtech_name: string;
   confirmed_at: string | null;
   status: string;
+  // Same optional, lane-pending pattern as FullResultDetail.fields —
+  // GET /results/supervisor/pending doesn't send these yet.
+  field_count?: number;
+  verified_field_count?: number;
 }
 
 export interface PendingResultListResponse {
@@ -77,6 +82,15 @@ export interface FullResultDetail {
   status: string;
   is_retake_pending: boolean;
   annotations: AnnotationItem[];
+  // Multi-field additions (Module 2 Update Proposal §3.2/§10.2,
+  // urolens-backend PR #91's FullResultFieldAdditions). Optional and
+  // absent from every response today — GET /results/{result_id} hasn't
+  // been changed to send them yet (foundation-plan.md Q10: lane work).
+  // Every reader of these three fields must treat absence as "this is a
+  // legacy single-image result", not as missing/loading data.
+  fields?: FieldSummaryItem[];
+  field_count?: number;
+  field_summary?: Record<string, ParticleAggregate> | null;
 }
 
 export interface AnnotationResponse {
