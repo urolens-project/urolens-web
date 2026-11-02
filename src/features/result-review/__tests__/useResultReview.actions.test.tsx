@@ -89,7 +89,7 @@ describe('useReturnResult', () => {
     const { result } = renderHook(() => useReturnResult('r-1'), {
       wrapper: makeWrapper(queryClient),
     });
-    result.current.mutate('Please recount the WBC field.');
+    result.current.mutate({ reason: 'Please recount the WBC field.' });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

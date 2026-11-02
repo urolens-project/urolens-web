@@ -287,8 +287,7 @@ function ParticleRow({
 // for Correction is the only path (§3.4). Legacy single-image results
 // (field_summary absent) keep today's editable view below, untouched.
 function FinalAveragesSection({ result }: Props) {
-  const summary = result.field_summary ?? {};
-  const entries = Object.entries(summary);
+  const entries = Object.entries(result.field_summary?.per_class ?? {});
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">

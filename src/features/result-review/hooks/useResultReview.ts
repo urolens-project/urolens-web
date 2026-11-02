@@ -17,6 +17,7 @@ import type {
   BoundingBox,
   EscalateResponse,
   OverrideResponse,
+  ReturnRequest,
   ReturnResponse,
 } from '../types';
 import type { ApiError } from '../../../types/domain';
@@ -115,8 +116,8 @@ export function useApproveResult(resultId: string) {
 
 export function useReturnResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation<ReturnResponse, ApiError, string>({
-    mutationFn: (reason: string) => returnResult(resultId, reason),
+  return useMutation<ReturnResponse, ApiError, ReturnRequest>({
+    mutationFn: (request: ReturnRequest) => returnResult(resultId, request),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
