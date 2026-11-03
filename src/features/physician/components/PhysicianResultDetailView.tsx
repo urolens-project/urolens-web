@@ -3,7 +3,7 @@ import { ArrowLeft, FlaskConical, Loader2, Flag } from 'lucide-react';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { PARTICLE_LABELS, PARTICLE_LABEL_DISPLAY } from '../../result-review/constants';
 import { useResultDetail } from '../hooks/usePhysician';
-import type { ParticleAggregate } from '../../field-verification/types';
+import type { FieldSummary } from '../../field-verification/types';
 
 // A physician only ever sees an already-finalized RELEASED result — so,
 // unlike AIFindingsSection (the Supervisor/MedTech editable equivalent),
@@ -59,21 +59,19 @@ function ParticleCountsCard({
 // only thing a physician sees until a lane wires this on.
 function FinalAveragesCard({
   fieldSummary,
-  fieldCount,
+  countsLabel,
 }: {
-  fieldSummary: Record<string, ParticleAggregate>;
-  fieldCount: number;
+  fieldSummary: FieldSummary;
+  countsLabel?: string;
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100">
         <h2 className="text-sm font-bold text-slate-900">Particle Counts</h2>
-        <p className="mt-0.5 text-xs text-slate-400">
-          Average per field · {fieldCount} field{fieldCount !== 1 ? 's' : ''} examined
-        </p>
+        {countsLabel && <p className="mt-0.5 text-xs text-slate-400">{countsLabel}</p>}
       </div>
       <div className="divide-y divide-slate-100">
-        {Object.entries(fieldSummary).map(([key, agg]) => (
+        {Object.entries(fieldSummary.per_class).map(([key, agg]) => (
           <div key={key} className="flex items-center justify-between px-6 py-3">
             <span className="text-sm text-slate-500">{PARTICLE_LABEL_DISPLAY[key] ?? key}</span>
             <span className="text-sm font-semibold text-slate-800 font-mono">
@@ -205,7 +203,7 @@ export function PhysicianResultDetailView() {
       {/* Particle Counts — final averages once field_summary exists,
           otherwise today's merged ai_findings/flagged_anomalies/particle_classes view */}
       {data.field_summary ? (
-        <FinalAveragesCard fieldSummary={data.field_summary} fieldCount={data.field_count ?? 0} />
+        <FinalAveragesCard fieldSummary={data.field_summary} countsLabel={data.counts_label} />
       ) : (
         <ParticleCountsCard
           aiFindings={data.ai_findings}

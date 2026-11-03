@@ -7,6 +7,11 @@ export interface MedtechPendingItem {
   patient_sex: string | null;
   status: 'PENDING_CONFIRM' | 'RETURNED_FOR_CORRECTION';
   return_reason: string | null;
+  // The field/particle a supervisor's return pointed at (urolens-backend
+  // PR #103) — present only while RETURNED_FOR_CORRECTION and only when
+  // the return named one.
+  return_field_id?: string | null;
+  return_particle_type?: string | null;
 }
 
 export interface MedtechPendingListResponse {

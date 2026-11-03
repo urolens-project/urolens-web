@@ -231,6 +231,15 @@ export interface FocalFinding {
   field_nos: number[];
 }
 
+// A result's stored field summary, as sent on GET /results/{id} and the
+// physician detail once confirmed (urolens-backend PR #103's FieldSummary —
+// NOT the same shape as a bare Record<string, ParticleAggregate>).
+export interface FieldSummary {
+  field_count: number;
+  per_class: Record<string, ParticleAggregate>;
+  focal_findings: FocalFinding[];
+}
+
 export type SummaryBlockingReason =
   | 'RESULT_NOT_CONFIRMABLE'
   | 'LEGACY_NO_FIELD'
@@ -276,6 +285,10 @@ export interface VerificationQueueItem extends Partial<MedtechPendingFieldCounts
   patient_sex: string | null;
   status: 'PENDING_CONFIRM' | 'RETURNED_FOR_CORRECTION';
   return_reason: string | null;
+  // The field/particle a supervisor's return pointed at (PR #103) — present
+  // only while RETURNED_FOR_CORRECTION and only when the return named one.
+  return_field_id?: string | null;
+  return_particle_type?: string | null;
 }
 
 export interface VerificationQueueResponse {
@@ -292,7 +305,8 @@ export interface VerificationQueueResponse {
 export interface FullResultFieldAdditions {
   fields: FieldSummaryItem[];
   field_count: number;
-  field_summary: Record<string, ParticleAggregate> | null;
+  field_summary: FieldSummary | null;
+  is_legacy_single_field: boolean;
 }
 
 // Backend error codes this feature's routes can answer with, once the

@@ -1,5 +1,5 @@
 import type { SmartDiagnosisAttached } from '../smart-diagnosis/types';
-import type { ParticleAggregate } from '../field-verification/types';
+import type { FieldSummary } from '../field-verification/types';
 
 export interface PhysicianPatient {
   patient_id: string;
@@ -62,9 +62,11 @@ export interface PhysicianResultDetail {
   image_url: string | null;
   status: string;
   annotation_notes: string | null;
-  // Multi-field additions (Module 2 Update Proposal §10.3), optional and
-  // absent from every response today — same lane-pending situation as
-  // result-review's FullResultDetail.field_summary.
+  // Multi-field additions, real as of urolens-backend PR #103 — left out of
+  // the JSON entirely while FIELD_WORKFLOW_ENABLED is off.
   field_count?: number;
-  field_summary?: Record<string, ParticleAggregate> | null;
+  field_summary?: FieldSummary | null;
+  // "average per field (N fields)", or "single image" for a result from
+  // before multi-field. Render directly rather than re-deriving client-side.
+  counts_label?: string;
 }

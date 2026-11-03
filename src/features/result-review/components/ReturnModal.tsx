@@ -22,23 +22,21 @@ interface Props {
 
 export function ReturnModal({ resultId, open, onClose, onSuccess, fields }: Props) {
   const [reason, setReason] = useState('');
-  const [fieldNo, setFieldNo] = useState<number | ''>('');
+  const [fieldId, setFieldId] = useState('');
   const [particleType, setParticleType] = useState('');
   const mutation = useReturnResult(resultId);
 
-  function composedReason(): string {
-    const trimmed = reason.trim();
-    if (!fields?.length || (fieldNo === '' && !particleType)) return trimmed;
-    const parts: string[] = [];
-    if (fieldNo !== '') parts.push(`Field ${fieldNo}`);
-    if (particleType) parts.push(PARTICLE_LABEL_DISPLAY[particleType] ?? particleType);
-    return parts.length ? `[${parts.join(' · ')}] ${trimmed}` : trimmed;
-  }
-
   async function handleConfirm() {
-    if (!reason.trim()) return;
+    const trimmed = reason.trim();
+    if (!trimmed) return;
     try {
-      await mutation.mutateAsync(composedReason());
+      await mutation.mutateAsync({
+        reason: trimmed,
+        field_id: fieldId || null,
+        // particle_type requires field_id server-side — drop it if the
+        // field selection was cleared.
+        particle_type: fieldId && particleType ? particleType : null,
+      });
     } catch {
       return;
     }
@@ -60,13 +58,13 @@ export function ReturnModal({ resultId, open, onClose, onSuccess, fields }: Prop
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Field</label>
               <select
-                value={fieldNo}
-                onChange={(e) => setFieldNo(e.target.value ? Number(e.target.value) : '')}
+                value={fieldId}
+                onChange={(e) => setFieldId(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
               >
                 <option value="">Not specific to one field</option>
                 {fields.map((f) => (
-                  <option key={f.field_id} value={f.field_no}>
+                  <option key={f.field_id} value={f.field_id}>
                     Field {f.field_no}
                   </option>
                 ))}
