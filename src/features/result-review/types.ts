@@ -1,5 +1,5 @@
 import type { SmartDiagnosisAttached } from '../smart-diagnosis/types';
-import type { FieldSummaryItem, ParticleAggregate } from '../field-verification/types';
+import type { FieldSummary, FieldSummaryItem } from '../field-verification/types';
 
 export interface ManualOverrideItem {
   override_id: string;
@@ -82,15 +82,19 @@ export interface FullResultDetail {
   status: string;
   is_retake_pending: boolean;
   annotations: AnnotationItem[];
-  // Multi-field additions (Module 2 Update Proposal §3.2/§10.2,
-  // urolens-backend PR #91's FullResultFieldAdditions). Optional and
-  // absent from every response today — GET /results/{result_id} hasn't
-  // been changed to send them yet (foundation-plan.md Q10: lane work).
-  // Every reader of these three fields must treat absence as "this is a
-  // legacy single-image result", not as missing/loading data.
+  // Multi-field additions, real as of urolens-backend PR #103
+  // ("Finish the web lane's review, return and reader changes") — left out
+  // of the JSON entirely while FIELD_WORKFLOW_ENABLED is off, so every
+  // reader of these fields must treat absence as "this is a legacy
+  // single-image result", not as missing/loading data.
   fields?: FieldSummaryItem[];
   field_count?: number;
-  field_summary?: Record<string, ParticleAggregate> | null;
+  field_summary?: FieldSummary | null;
+  is_legacy_single_field?: boolean;
+  // The field/particle a supervisor's latest return pointed at — present
+  // only while status is RETURNED_FOR_CORRECTION and only when named.
+  return_field_id?: string | null;
+  return_particle_type?: string | null;
 }
 
 export interface AnnotationResponse {
@@ -116,10 +120,22 @@ export interface ApproveResponse {
   approved_at: string;
 }
 
+export interface ReturnRequest {
+  reason: string;
+  // Multi-field workflow only — ignored (not stored) while the flag is
+  // off. particle_type requires field_id and must be a PARTICLE_LABELS key.
+  field_id?: string | null;
+  particle_type?: string | null;
+}
+
 export interface ReturnResponse {
   result_id: string;
   status: string;
   returned_at: string;
+  // Multi-field workflow only (left out otherwise): the field/particle this
+  // return points at.
+  field_id?: string | null;
+  particle_type?: string | null;
 }
 
 export interface EscalateResponse {

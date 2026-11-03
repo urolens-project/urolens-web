@@ -30,8 +30,10 @@ export interface PatientResultDetail {
   smart_diagnosis_unavailable: boolean;
   test_type: string;
   released_at: string | null;
-  // Multi-field addition (proposal §10.3): "Counts are labelled 'average
-  // per field' with the number of fields examined." Optional, absent
-  // today.
-  fields_examined?: number;
+  // Multi-field additions, real as of urolens-backend PR #103 — left out
+  // of the JSON entirely while FIELD_WORKFLOW_ENABLED is off.
+  field_count?: number;
+  // "average per field (N fields)", or "single image" for a result from
+  // before multi-field. Render directly rather than re-deriving client-side.
+  counts_label?: string;
 }

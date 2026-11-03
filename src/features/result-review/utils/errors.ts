@@ -27,6 +27,15 @@ const CONFIRM_MESSAGES: Record<string, string> = {
 
 const CONNECTION_ERROR = 'Could not reach the server. Please check your connection and try again.';
 
+// Retired once a result is under the multi-field workflow (urolens-backend
+// PR #103) — the server's own default message ("Update UroLens to
+// continue") is written for the mobile app's version gate and reads as
+// nonsense here, so these override it with web-appropriate wording.
+const APP_UPDATE_REQUIRED_MESSAGES: Record<string, string> = {
+  APP_UPDATE_REQUIRED:
+    'This result uses the multi-field workflow — correct individual fields in the verification workspace instead of overriding or annotating the result as a whole.',
+};
+
 // The backend's standard error envelope always carries a human-written
 // `message` for every error it raises (see main.py's exception handlers) —
 // e.g. "Cannot confirm a result while an image retake is pending.", not
@@ -65,9 +74,13 @@ export function getConfirmErrorMessage(error: ApiError): string {
 }
 
 export function getSaveAnnotationErrorMessage(error: ApiError): string {
-  return resolve(error, {}, 'Failed to save your annotation. Please try again.');
+  return resolve(
+    error,
+    APP_UPDATE_REQUIRED_MESSAGES,
+    'Failed to save your annotation. Please try again.',
+  );
 }
 
 export function getSaveOverrideErrorMessage(error: ApiError): string {
-  return resolve(error, {}, 'Failed to save. Please try again.');
+  return resolve(error, APP_UPDATE_REQUIRED_MESSAGES, 'Failed to save. Please try again.');
 }
