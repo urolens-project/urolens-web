@@ -112,6 +112,13 @@ export async function discardField(
   return data;
 }
 
+// POST /api/v1/fields/{field_id}/restore — MEDTECH only. Undoes a discard/
+// exclude (DISCARDED back to ACCEPTED) — the web verification phase only.
+export async function restoreField(fieldId: string): Promise<FieldActionResponse> {
+  const { data } = await apiClient.post<FieldActionResponse>(`/fields/${fieldId}/restore`);
+  return data;
+}
+
 // POST /api/v1/results/{id}/reopen-capture — MEDTECH only. Sends the
 // result back to CAPTURING for more fields on mobile; existing fields
 // and corrections are kept.

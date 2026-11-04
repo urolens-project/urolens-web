@@ -4,7 +4,7 @@
 // — not wired into App.tsx yet; see this feature's index.tsx.
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, Images, RotateCcw, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Images, RotateCcw, Undo2, XCircle } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Spinner } from '../../../components/ui/Spinner';
@@ -14,6 +14,7 @@ import {
   useFieldDetail,
   useVerifyField,
   useDiscardField,
+  useRestoreField,
 } from '../hooks/useFieldVerification';
 import { FieldGrid } from './FieldGrid';
 import { FieldAnnotationEditor } from './FieldAnnotationEditor';
@@ -47,6 +48,7 @@ export function MedTechVerificationPage() {
   const { data: fieldDetail } = useFieldDetail(effectiveFieldId ?? '');
   const verifyMutation = useVerifyField(resultId ?? '', effectiveFieldId ?? '');
   const discardMutation = useDiscardField(resultId ?? '', effectiveFieldId ?? '');
+  const restoreMutation = useRestoreField(resultId ?? '', effectiveFieldId ?? '');
   const reopenMutation = useReopenCapture(resultId ?? '');
 
   if (!resultId) return null;
@@ -84,6 +86,11 @@ export function MedTechVerificationPage() {
     if (!reason?.trim()) return;
     await discardMutation.mutateAsync({ reason: reason.trim() });
     setSelectedFieldId(null);
+  }
+
+  async function handleRestore() {
+    if (!effectiveFieldId) return;
+    await restoreMutation.mutateAsync();
   }
 
   return (
@@ -198,29 +205,42 @@ export function MedTechVerificationPage() {
                 </div>
                 <div className="space-y-4">
                   <FieldCountsPanel resultId={resultId} field={fieldDetail} readOnly={!editable} />
-                  {editable && fieldDetail.status !== 'DISCARDED' && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="flex-1"
-                        onClick={handleDiscard}
-                        loading={discardMutation.isPending}
-                      >
-                        <XCircle className="h-3.5 w-3.5" />
-                        Exclude Field
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => verifyMutation.mutate()}
-                        loading={verifyMutation.isPending}
-                        disabled={!!fieldDetail.verified_by}
-                      >
-                        <CheckCircle className="h-3.5 w-3.5" />
-                        {fieldDetail.verified_by ? 'Checked' : 'Mark as Checked'}
-                      </Button>
-                    </div>
+                  {editable && fieldDetail.status === 'DISCARDED' ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-full"
+                      onClick={handleRestore}
+                      loading={restoreMutation.isPending}
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                      Restore Field
+                    </Button>
+                  ) : (
+                    editable && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1"
+                          onClick={handleDiscard}
+                          loading={discardMutation.isPending}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                          Exclude Field
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => verifyMutation.mutate()}
+                          loading={verifyMutation.isPending}
+                          disabled={!!fieldDetail.verified_by}
+                        >
+                          <CheckCircle className="h-3.5 w-3.5" />
+                          {fieldDetail.verified_by ? 'Checked' : 'Mark as Checked'}
+                        </Button>
+                      </div>
+                    )
                   )}
                 </div>
               </div>
