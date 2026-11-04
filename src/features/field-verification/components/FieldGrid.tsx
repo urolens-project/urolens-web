@@ -39,13 +39,14 @@ function FieldCard({
   return (
     <button
       onClick={onSelect}
-      disabled={discarded}
-      className={`group relative flex w-44 shrink-0 flex-col overflow-hidden rounded-xl border bg-white text-left transition-all ${
+      // A discarded field is still selectable — opening it is how a MedTech
+      // reaches the Restore Field action for one they excluded by mistake.
+      className={`group relative flex w-44 shrink-0 flex-col overflow-hidden rounded-xl border bg-white text-left transition-all cursor-pointer ${
         selected
           ? 'border-blue-400 ring-2 ring-blue-100 shadow-md'
           : discarded
-            ? 'border-slate-100 opacity-50 cursor-not-allowed'
-            : 'border-slate-200 hover:border-blue-300 hover:shadow-sm cursor-pointer'
+            ? 'border-slate-100 opacity-50 hover:opacity-75'
+            : 'border-slate-200 hover:border-blue-300 hover:shadow-sm'
       }`}
     >
       <div className="relative aspect-4/3 overflow-hidden bg-slate-900">

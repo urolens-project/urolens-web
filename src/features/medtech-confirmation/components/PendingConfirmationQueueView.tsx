@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, RefreshCw, RotateCcw } from 'lucide-react';
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  RefreshCw,
+  RotateCcw,
+} from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { useMedtechPending } from '../hooks/useMedtechConfirmation';
@@ -55,7 +62,10 @@ export function PendingConfirmationQueueView() {
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               {['Patient', 'Sample ID', 'Status', 'Note'].map((h) => (
-                <th key={h} className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <th
+                  key={h}
+                  className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wide"
+                >
                   {h}
                 </th>
               ))}
@@ -72,7 +82,9 @@ export function PendingConfirmationQueueView() {
                       <CheckCircle2 className="h-7 w-7 text-emerald-400" />
                     </div>
                     <p className="font-semibold text-slate-800">All caught up!</p>
-                    <p className="text-xs text-slate-400">Nothing is waiting on your confirmation right now.</p>
+                    <p className="text-xs text-slate-400">
+                      Nothing is waiting on your confirmation right now.
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -83,9 +95,22 @@ export function PendingConfirmationQueueView() {
                   <tr
                     key={row.result_id}
                     onClick={() =>
-                      navigate(`/medtech/results/${row.result_id}`, {
-                        state: { returnReason: row.return_reason },
-                      })
+                      // A multi-field capture can't be reviewed on the legacy
+                      // single-image screen — MicroscopyImageSection shows it read-only
+                      // with no edit tools, and AIFindingsSection shows nothing
+                      // (field_summary is null pre-confirm; ai_findings stays empty for a
+                      // multi-field result). Route it to the field-verification workspace
+                      // instead, which has the real per-field annotation/count UI.
+                      //
+                      // field_count is computed for every row (legacy included) whenever
+                      // the multi-field flag is on globally, so a legacy result gets 0
+                      // here, not an absent/null field — ">" not "!= null" is what
+                      // actually distinguishes a real multi-field capture.
+                      (row.field_count ?? 0) > 0
+                        ? navigate(`/medtech/verify/${row.result_id}`)
+                        : navigate(`/medtech/results/${row.result_id}`, {
+                            state: { returnReason: row.return_reason },
+                          })
                     }
                     className="cursor-pointer group hover:bg-blue-50/50 transition-colors"
                   >
@@ -93,7 +118,9 @@ export function PendingConfirmationQueueView() {
                       <p className="font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
                         {row.patient_uid || '—'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{formatAge(row.patient_age, row.patient_sex)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {formatAge(row.patient_age, row.patient_sex)}
+                      </p>
                     </td>
                     <td className="px-5 py-4">
                       <span className="font-mono text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
@@ -126,10 +153,20 @@ export function PendingConfirmationQueueView() {
             Page {page} of {totalPages} &middot; {data.total} total
           </p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
-            <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
