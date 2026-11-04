@@ -30,6 +30,7 @@ import {
   PendingConfirmationQueueView,
   ResultConfirmationDetailView,
 } from './features/medtech-confirmation';
+import { MedTechVerificationPage } from './features/field-verification';
 
 import LoginPage from './routes/auth.routes';
 import PatientLoginPage from './features/auth/components/PatientLoginPage';
@@ -99,6 +100,7 @@ export default function App() {
               />
               <Route path="/medtech/results" element={<PendingConfirmationQueueView />} />
               <Route path="/medtech/results/:resultId" element={<ResultConfirmationDetailView />} />
+              <Route path="/medtech/verify/:resultId" element={<MedTechVerificationPage />} />
             </Route>
 
             {/* 2. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}

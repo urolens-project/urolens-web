@@ -13,6 +13,7 @@ import {
   fetchVerificationSummary,
   overrideFieldParameter,
   reopenCapture,
+  restoreField,
   revertFieldOverride,
   saveFieldAnnotations,
   verifyField,
@@ -40,6 +41,10 @@ export function useVerificationQueue(page: number, pageSize: number) {
     queryKey: fieldVerificationKeys.queue(page, pageSize),
     queryFn: () => fetchVerificationQueue(page, pageSize),
     staleTime: 30_000,
+    // Matches the other "live queue" dashboards (notifications,
+    // queue-assignment, result-releasing) — a specimen capture submitted
+    // from mobile should show up here without a manual browser refresh.
+    refetchInterval: 30_000,
   });
 }
 
@@ -49,6 +54,10 @@ export function useResultFields(resultId: string) {
     queryFn: () => fetchResultFields(resultId),
     enabled: !!resultId,
     staleTime: 30_000,
+    // Mobile can add/accept/discard fields on this same result while a
+    // reviewer is sitting on this page (most visibly right after Reopen
+    // Capture) — poll so that shows up without a manual refresh.
+    refetchInterval: 15_000,
   });
 }
 
@@ -70,6 +79,7 @@ export function useVerificationSummary(resultId: string) {
     queryFn: () => fetchVerificationSummary(resultId),
     enabled: !!resultId,
     staleTime: 10_000,
+    refetchInterval: 15_000,
   });
 }
 
@@ -122,6 +132,14 @@ export function useDiscardField(resultId: string, fieldId: string) {
   const qc = useQueryClient();
   return useMutation<FieldActionResponse, ApiError, DiscardFieldRequest>({
     mutationFn: (request) => discardField(fieldId, request),
+    onSuccess: () => invalidateFieldAndResult(qc, resultId, fieldId),
+  });
+}
+
+export function useRestoreField(resultId: string, fieldId: string) {
+  const qc = useQueryClient();
+  return useMutation<FieldActionResponse, ApiError, void>({
+    mutationFn: () => restoreField(fieldId),
     onSuccess: () => invalidateFieldAndResult(qc, resultId, fieldId),
   });
 }

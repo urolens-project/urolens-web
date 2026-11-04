@@ -12,6 +12,11 @@ export interface MedtechPendingItem {
   // the return named one.
   return_field_id?: string | null;
   return_particle_type?: string | null;
+  // Present (and non-null) only for a multi-field capture — absent entirely
+  // in the JSON, not sent as null, while the backend's multi-field workflow
+  // flag is off (see MedtechPendingResultItem). A legacy single-image
+  // result never has this.
+  field_count?: number | null;
 }
 
 export interface MedtechPendingListResponse {
