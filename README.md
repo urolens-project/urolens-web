@@ -1,3 +1,26 @@
+# UroLens Web
+
+React + TypeScript + Vite front end for UroLens. Package manager: **pnpm 11.2.2** (pinned via `packageManager`; use `corepack enable`). Do not use npm; only `pnpm-lock.yaml` is the lockfile.
+
+## Environment variables
+
+Vite inlines these at **build time** (see `.env.example`). Changing them requires a rebuild.
+
+| Variable | Meaning |
+|---|---|
+| `VITE_API_BASE_URL` | Backend **origin only**, e.g. `https://api.example.com`. No trailing slash and no `/api/v1` (the client appends `/api/v1`). The app refuses to start with an unset or malformed value. |
+| `VITE_APP_ENV` | Environment label. |
+| `VITE_SESSION_TIMEOUT_MINUTES` | Patient idle-timeout minutes (default 30). |
+
+## Azure Static Web Apps
+
+- Build: `pnpm install --frozen-lockfile && pnpm build`; app location `/`, output location `dist`.
+- Set `VITE_API_BASE_URL` in the build environment (it is not read at runtime).
+- `public/staticwebapp.config.json` is copied into `dist` and rewrites deep links (BrowserRouter) to `/index.html`.
+- The backend CORS allow-list must include the SWA origin (credentials are not used).
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
