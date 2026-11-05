@@ -12,8 +12,35 @@ export function setOnUnauthorized(handler: () => void) {
   onUnauthorized = handler;
 }
 
+/**
+ * VITE_API_BASE_URL is the backend ORIGIN only (e.g. https://api.example.com).
+ * The `/api/v1` prefix is appended here. Fails fast on a misconfigured value
+ * rather than silently sending requests to `undefined/api/v1` or `/api/v1/api/v1`.
+ */
+export function resolveApiBaseUrl(raw: string | undefined): string {
+  const value = raw?.trim();
+  if (!value) {
+    throw new Error(
+      'VITE_API_BASE_URL is not set. Set it to the backend origin (e.g. https://api.example.com) at build time.',
+    );
+  }
+  if (!/^https?:\/\/[^/\s]+/i.test(value)) {
+    throw new Error('VITE_API_BASE_URL must be an absolute http(s) origin (e.g. https://api.example.com).');
+  }
+  if (value.endsWith('/')) {
+    throw new Error('VITE_API_BASE_URL must not end with a trailing slash.');
+  }
+  if (/\/api\/v1/i.test(value)) {
+    throw new Error('VITE_API_BASE_URL must be the origin only; "/api/v1" is appended by the client.');
+  }
+  if (/^https?:\/\/[^/]+\/./i.test(value)) {
+    throw new Error('VITE_API_BASE_URL must be the origin only (no path).');
+  }
+  return `${value}/api/v1`;
+}
+
 const apiClient = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/v1`,
+  baseURL: resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL),
   headers: { 'Content-Type': 'application/json' },
 });
 
