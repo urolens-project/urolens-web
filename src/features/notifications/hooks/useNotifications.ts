@@ -1,3 +1,4 @@
+import { pollInterval } from '../../../lib/polling';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import {
@@ -41,7 +42,7 @@ export function useNotifications() {
     queryKey: notificationKeys.preview(token),
     queryFn: () => fetchNotifications({ limit: PREVIEW_LIMIT }),
     enabled: token !== null,
-    refetchInterval: 30_000,
+    refetchInterval: pollInterval(30_000),
     refetchOnWindowFocus: true,
   });
 }
@@ -56,7 +57,7 @@ export function useUnreadCount() {
     queryKey: notificationKeys.unreadCount(token),
     queryFn: fetchUnreadCount,
     enabled: token !== null,
-    refetchInterval: 30_000,
+    refetchInterval: pollInterval(30_000),
     refetchOnWindowFocus: true,
     select: (data) => data.unread_count,
   });

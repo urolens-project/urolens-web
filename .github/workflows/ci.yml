@@ -1,38 +1,91 @@
 name: CI
 
 on:
-  push:
-    branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+  push:
+    branches: [v1.0.0, main, develop]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+  HUSKY: 0
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
 
+      # No version input: reads "packageManager" from package.json.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: pnpm type-check
+        run: pnpm exec tsc -b
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm exec eslint .
 
       - name: Unit tests
-        run: pnpm test
+        run: pnpm exec vitest run --maxWorkers=2
 
       - name: Build
-        run: pnpm build
+        run: pnpm exec vite build
+        env:
+          # Origin only (no path); must pass the startup fail-fast validation.
+          VITE_API_BASE_URL: https://api.example.invalid
+
+  commit-messages:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject Co-authored-by trailers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          fail=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            if git log -1 --format=%B "$sha" | grep -qiE '^[[:space:]]*co-authored-by:'; then
+              echo "::error::Commit $sha has a Co-authored-by trailer"
+              fail=1
+            fi
+          done
+          exit $fail
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level=high

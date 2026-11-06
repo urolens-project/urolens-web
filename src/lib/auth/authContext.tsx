@@ -1,4 +1,12 @@
-import { createContext, useState, useCallback, useMemo, useEffect, type ReactNode } from 'react';
+import {
+  createContext,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  type ReactNode,
+} from 'react';
 import type { UserRole } from '../../types/enums';
 import { setTokenGetter, setOnUnauthorized } from '../apiClient';
 import { queryClient } from '../queryClient';
@@ -35,6 +43,11 @@ export interface AuthState {
   // to expire.
   updateToken: (token: string) => void;
   logout: () => void;
+  // Why the last session ended without the user asking (set by the global
+  // 401 handler); RequireRole forwards it as /login?reason=expired.
+  sessionEndReason: 'expired' | null;
+  // Global 401 handler: logout + remember that the session expired.
+  expireSession: () => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -45,6 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [session, setSession] = useState<SessionMeta>(EMPTY_SESSION);
+  const [sessionEndReason, setSessionEndReason] = useState<'expired' | null>(null);
+  const tokenRef = useRef<string | null>(null);
 
   const login = useCallback(
     (newToken: string, newRole: string, newUserId?: string, sessionMeta?: Partial<SessionMeta>) => {
@@ -53,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(normalized);
       setUserId(newUserId ?? null);
       setSession({ ...EMPTY_SESSION, ...sessionMeta });
+      setSessionEndReason(null);
     },
     [],
   );
@@ -70,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
     setUserId(null);
     setSession(EMPTY_SESSION);
+    setSessionEndReason(null);
     // Every cached query (notifications especially — see notificationKeys)
     // is scoped to whoever was logged in. Without this, the next person to
     // log in on the same tab (a shared front-desk machine, say) can see the
@@ -78,10 +95,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }, []);
 
+  // Called by the global 401 handler. No-op when nobody is signed in, so a
+  // late 401 from an in-flight request after a deliberate logout can't flag
+  // the next login screen as "expired".
+  const expireSession = useCallback(() => {
+    if (tokenRef.current === null) return;
+    logout();
+    setSessionEndReason('expired');
+  }, [logout]);
+
   useEffect(() => {
+    tokenRef.current = token;
     setTokenGetter(() => token);
-    setOnUnauthorized(logout);
-  }, [token, logout]);
+    setOnUnauthorized(expireSession);
+  }, [token, expireSession]);
 
   const value = useMemo<AuthState>(
     () => ({
@@ -94,8 +121,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateSession,
       updateToken,
       logout,
+      sessionEndReason,
+      expireSession,
     }),
-    [token, role, userId, session, login, updateSession, updateToken, logout],
+    [
+      token,
+      role,
+      userId,
+      session,
+      login,
+      updateSession,
+      updateToken,
+      logout,
+      sessionEndReason,
+      expireSession,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
