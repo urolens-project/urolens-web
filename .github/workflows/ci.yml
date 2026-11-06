@@ -50,12 +50,33 @@ jobs:
           # Origin only (no path); must pass the startup fail-fast validation.
           VITE_API_BASE_URL: https://api.example.invalid
 
+  commit-messages:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject Co-authored-by trailers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          fail=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            if git log -1 --format=%B "$sha" | grep -qiE '^[[:space:]]*co-authored-by:'; then
+              echo "::error::Commit $sha has a Co-authored-by trailer"
+              fail=1
+            fi
+          done
+          exit $fail
+
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # TODO: flip to blocking (remove continue-on-error) after the
-    # axios / vite / react-router bumps land.
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
