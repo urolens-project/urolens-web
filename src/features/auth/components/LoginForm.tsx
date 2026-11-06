@@ -11,19 +11,13 @@ import {
   Zap,
 } from 'lucide-react';
 import { useLogin } from '../hooks/useAuth';
-import type { AxiosError } from 'axios';
-import type { ApiError } from '../types';
+import { getLoginErrorMessage } from '../../../lib/apiErrors';
 
 const errorMessages: Record<string, string> = {
   INVALID_CREDENTIALS: 'Invalid username or password. Please try again.',
   ACCOUNT_LOCKED: 'Your account has been locked. Please contact the administrator.',
   ACCOUNT_INACTIVE: 'Your account is inactive. Please contact the administrator.',
 };
-
-function getErrorMessage(code: string | undefined): string {
-  if (code && errorMessages[code]) return errorMessages[code];
-  return 'Something went wrong. Please try again.';
-}
 
 const features = [
   { icon: Zap, text: 'AI-assisted urinalysis and particle classification' },
@@ -65,9 +59,8 @@ export default function LoginForm() {
     loginMutation.mutate(
       { username: username.trim(), password, keep_signed_in: keepSignedIn },
       {
-        onError: (error: AxiosError<ApiError>) => {
-          const code = error.response?.data?.error?.code;
-          setServerError(getErrorMessage(code));
+        onError: (error: unknown) => {
+          setServerError(getLoginErrorMessage(error, errorMessages));
         },
       },
     );

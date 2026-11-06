@@ -9,6 +9,7 @@ import { ROLE_SHELL_CONFIG } from './lib/roleShellConfig';
 
 import NotificationsShell from './components/layout/NotificationsShell';
 import RoleShell from './components/layout/RoleShell';
+import ServiceStatusBanner from './components/feedback/ServiceStatusBanner';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
@@ -53,6 +54,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Toaster position="top-right" richColors />
+        <ServiceStatusBanner />
         <BrowserRouter>
           <Routes>
             {/* Global Unauthenticated Public Core Routing Nodes */}

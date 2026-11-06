@@ -1,21 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { AxiosError } from 'axios';
 import { usePatientLogin } from '../hooks/usePatientLogin';
-import type { ApiError } from '../types';
+import SessionReasonBanner from '../../../components/feedback/SessionReasonBanner';
+import { getLoginErrorMessage } from '../../../lib/apiErrors';
 
 const errorMessages: Record<string, string> = {
   INVALID_CREDENTIALS: 'Patient ID or password is incorrect. Please try again.',
   ACCOUNT_LOCKED: 'Your account has been locked. Please contact the laboratory.',
   ACCOUNT_INACTIVE: 'Your account is inactive. Please contact the laboratory.',
 };
-
-function getErrorMessage(code: string | undefined): string {
-  if (code && errorMessages[code]) {
-    return errorMessages[code];
-  }
-  return 'Something went wrong. Please try again.';
-}
 
 export default function PatientLoginPage() {
   const [patientUid, setPatientUid] = useState('');
@@ -25,7 +18,6 @@ export default function PatientLoginPage() {
   const [serverError, setServerError] = useState('');
   const [searchParams] = useSearchParams();
   const reason = searchParams.get('reason');
-  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const loginMutation = usePatientLogin();
 
@@ -54,9 +46,8 @@ export default function PatientLoginPage() {
     loginMutation.mutate(
       { patient_uid: patientUid.trim(), password },
       {
-        onError: (error: AxiosError<ApiError>) => {
-          const code = error.response?.data?.error?.code;
-          setServerError(getErrorMessage(code));
+        onError: (error: unknown) => {
+          setServerError(getLoginErrorMessage(error, errorMessages));
         },
       },
     );
@@ -66,19 +57,7 @@ export default function PatientLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      {reason === 'timeout' && !bannerDismissed && (
-        <div className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between gap-4 border-b border-amber-200 bg-amber-50/95 backdrop-blur-sm px-6 py-2.5">
-          <p className="text-xs font-medium text-amber-800">
-            You were signed out due to inactivity. Please sign in again to continue.
-          </p>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="shrink-0 text-xs font-semibold text-amber-600 hover:text-amber-800 transition-colors cursor-pointer"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
+      <SessionReasonBanner reason={reason} />
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           <div className="text-center mb-8">

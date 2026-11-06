@@ -1,5 +1,18 @@
 import axios from 'axios';
 import { keysToCamel, keysToSnake } from './caseConvert';
+import { resolveApiBaseUrl } from './apiBaseUrl';
+import { classifyError, isServiceUnavailableKind } from './apiErrors';
+import { reportServiceUnavailable } from './readiness';
+
+export { resolveApiBaseUrl };
+
+export const API_TIMEOUT_MS = 30_000;
+
+// Requests under /auth/* (login, patient-login, refresh, logout) must never
+// trigger the global 401 handler: a failed login is not an expired session.
+export function isAuthRequestUrl(url: string | undefined): boolean {
+  return /^\/?auth\//.test(url ?? '');
+}
 
 let tokenGetter: (() => string | null) | null = null;
 let onUnauthorized: (() => void) | null = null;
@@ -12,36 +25,10 @@ export function setOnUnauthorized(handler: () => void) {
   onUnauthorized = handler;
 }
 
-/**
- * VITE_API_BASE_URL is the backend ORIGIN only (e.g. https://api.example.com).
- * The `/api/v1` prefix is appended here. Fails fast on a misconfigured value
- * rather than silently sending requests to `undefined/api/v1` or `/api/v1/api/v1`.
- */
-export function resolveApiBaseUrl(raw: string | undefined): string {
-  const value = raw?.trim();
-  if (!value) {
-    throw new Error(
-      'VITE_API_BASE_URL is not set. Set it to the backend origin (e.g. https://api.example.com) at build time.',
-    );
-  }
-  if (!/^https?:\/\/[^/\s]+/i.test(value)) {
-    throw new Error('VITE_API_BASE_URL must be an absolute http(s) origin (e.g. https://api.example.com).');
-  }
-  if (value.endsWith('/')) {
-    throw new Error('VITE_API_BASE_URL must not end with a trailing slash.');
-  }
-  if (/\/api\/v1/i.test(value)) {
-    throw new Error('VITE_API_BASE_URL must be the origin only; "/api/v1" is appended by the client.');
-  }
-  if (/^https?:\/\/[^/]+\/./i.test(value)) {
-    throw new Error('VITE_API_BASE_URL must be the origin only (no path).');
-  }
-  return `${value}/api/v1`;
-}
-
 const apiClient = axios.create({
   baseURL: resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL),
   headers: { 'Content-Type': 'application/json' },
+  timeout: API_TIMEOUT_MS,
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -52,7 +39,10 @@ apiClient.interceptors.request.use((config) => {
   // The frontend is written in snake_case; the backend expects camelCase.
   // Translate outbound bodies and query params at the edge. Binary payloads
   // (FormData / Blob) are left untouched by keysToCamel.
-  if (config.data !== undefined && !(typeof FormData !== 'undefined' && config.data instanceof FormData)) {
+  if (
+    config.data !== undefined &&
+    !(typeof FormData !== 'undefined' && config.data instanceof FormData)
+  ) {
     config.data = keysToCamel(config.data);
   }
   if (config.params !== undefined) {
@@ -70,8 +60,11 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthRequestUrl(error.config?.url)) {
       onUnauthorized?.();
+    } else if (isServiceUnavailableKind(classifyError(error))) {
+      // Timeout / network / 502-504: re-arm the readiness probe (banner if confirmed down).
+      reportServiceUnavailable();
     }
     return Promise.reject(error);
   },
