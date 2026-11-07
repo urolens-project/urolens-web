@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { InfiniteData } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { pollInterval } from '../../../lib/polling';
 import { resultReleasingApi } from '../api/resultReleasingApi';
 import type { ApprovedResultsResponse, ReleaseMethod } from '../types';
 import type { ApiError } from '../../../types/domain';
@@ -17,7 +18,7 @@ export function useApprovedResults() {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage: ApprovedResultsResponse) =>
       lastPage.pagination.has_more ? (lastPage.pagination.next_cursor ?? undefined) : undefined,
-    refetchInterval: 30_000,
+    refetchInterval: pollInterval(30_000),
   });
 }
 

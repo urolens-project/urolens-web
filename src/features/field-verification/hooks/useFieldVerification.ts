@@ -5,6 +5,7 @@
 // its stub (see api/fieldVerificationApi.ts) — the hooks are correct
 // now so wiring up later is a backend change only.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { pollInterval } from '../../../lib/polling';
 import {
   discardField,
   fetchFieldDetail,
@@ -44,7 +45,7 @@ export function useVerificationQueue(page: number, pageSize: number) {
     // Matches the other "live queue" dashboards (notifications,
     // queue-assignment, result-releasing) — a specimen capture submitted
     // from mobile should show up here without a manual browser refresh.
-    refetchInterval: 30_000,
+    refetchInterval: pollInterval(30_000),
   });
 }
 
@@ -57,7 +58,7 @@ export function useResultFields(resultId: string) {
     // Mobile can add/accept/discard fields on this same result while a
     // reviewer is sitting on this page (most visibly right after Reopen
     // Capture) — poll so that shows up without a manual refresh.
-    refetchInterval: 15_000,
+    refetchInterval: pollInterval(15_000),
   });
 }
 
@@ -79,7 +80,7 @@ export function useVerificationSummary(resultId: string) {
     queryFn: () => fetchVerificationSummary(resultId),
     enabled: !!resultId,
     staleTime: 10_000,
-    refetchInterval: 15_000,
+    refetchInterval: pollInterval(15_000),
   });
 }
 
