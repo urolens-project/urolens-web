@@ -4,20 +4,26 @@ import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle, RotateCcw, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Badge } from '../../../components/ui/Badge';
 import { Spinner } from '../../../components/ui/Spinner';
+import { useAuthContext } from '../../../lib/auth/useAuthContext';
 import { SmartDiagnosisPanel } from '../../smart-diagnosis';
 import { useFullResult, useSaveAnnotation } from '../hooks/useResultReview';
+import { reviewerRoleLabel } from '../constants';
 import type { BoundingBox } from '../types';
+import { getSaveAnnotationErrorMessage } from '../utils/errors';
+import type { ApiError } from '../../../types/domain';
 import { AIFindingsSection } from './AIFindingsSection';
 import { AnnotationInputControl } from './AnnotationInputControl';
 import { ApproveModal } from './ApproveModal';
 import { EscalateModal } from './EscalateModal';
-import { ManualOverridesSection } from './ManualOverridesSection';
 import { MedTechConfirmationSection } from './MedTechConfirmationSection';
 import { MicroscopyImageSection } from './MicroscopyImageSection';
 import { PatientInfoSection } from './PatientInfoSection';
 import { ReturnModal } from './ReturnModal';
 
-const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }> = {
+const STATUS_BADGE: Record<
+  string,
+  { variant: 'warning' | 'success' | 'danger' | 'default' | 'info'; label: string }
+> = {
   PENDING_SUPERVISOR_APPROVAL: { variant: 'warning', label: 'Pending Approval' },
   APPROVED: { variant: 'success', label: 'Approved' },
   RETURNED_FOR_CORRECTION: { variant: 'info', label: 'Returned' },
@@ -27,6 +33,7 @@ const STATUS_BADGE: Record<string, { variant: 'warning' | 'success' | 'danger' |
 export function FullResultDetailView() {
   const { resultId } = useParams<{ resultId: string }>();
   const navigate = useNavigate();
+  const { role, userId } = useAuthContext();
 
   const { data, isLoading, isError } = useFullResult(resultId ?? '');
   const saveAnnotationMutation = useSaveAnnotation(resultId ?? '');
@@ -38,13 +45,20 @@ export function FullResultDetailView() {
   const [returnOpen, setReturnOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
 
+  // Matched by reviewed_by (the reviewer's user id), not reviewer_role —
+  // two users can share a role (e.g. two MedTechs), and matching by role
+  // alone would let one's edits overwrite the other's annotation under
+  // the wrong attribution.
+  const myAnnotation = data?.annotations.find((a) => a.reviewed_by === userId);
+  const otherAnnotations = data?.annotations.filter((a) => a.reviewed_by !== userId) ?? [];
+
   async function flushBoxesIfDirty() {
     if (!data || pendingBoxesRef.current === null) return;
-    const saved = JSON.stringify(data.spatial_annotations ?? []);
+    const saved = JSON.stringify(myAnnotation?.spatial_annotations ?? []);
     const pending = JSON.stringify(pendingBoxesRef.current);
     if (saved === pending) return;
     await saveAnnotationMutation.mutateAsync({
-      notes: data.annotation_notes ?? '',
+      notes: myAnnotation?.annotation_notes ?? '',
       boxes: pendingBoxesRef.current,
     });
   }
@@ -52,16 +66,22 @@ export function FullResultDetailView() {
   async function withFlushedBoxes(openAction: () => void) {
     try {
       await flushBoxesIfDirty();
-    } catch {
-      toast.error('Failed to save your annotation changes. Please try again.');
+    } catch (err) {
+      toast.error(getSaveAnnotationErrorMessage(err as ApiError));
       return;
     }
     openAction();
   }
 
-  async function openApprove()  { await withFlushedBoxes(() => setApproveOpen(true)); }
-  async function openReturn()   { await withFlushedBoxes(() => setReturnOpen(true)); }
-  async function openEscalate() { await withFlushedBoxes(() => setEscalateOpen(true)); }
+  async function openApprove() {
+    await withFlushedBoxes(() => setApproveOpen(true));
+  }
+  async function openReturn() {
+    await withFlushedBoxes(() => setReturnOpen(true));
+  }
+  async function openEscalate() {
+    await withFlushedBoxes(() => setEscalateOpen(true));
+  }
 
   function handleActionSuccess() {
     navigate('/supervisor/results');
@@ -91,15 +111,21 @@ export function FullResultDetailView() {
   const patientMeta = [
     data.patient_age != null ? `${data.patient_age} yrs` : null,
     data.patient_sex ? data.patient_sex.charAt(0) + data.patient_sex.slice(1).toLowerCase() : null,
-  ].filter(Boolean).join(' · ');
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
-    <div className="h-full overflow-y-auto bg-[#F4F6FB] p-6">
+    // No overflow-y-auto/h-full here — RoleShell's <main> is already the
+    // real scroll container. A second nested scroll context here had an
+    // unconstrained height (never actually scrolled), which made the
+    // sticky left column below attach to the wrong ancestor and never
+    // visibly stick.
+    <div className="bg-[#F4F6FB] p-6">
       <div className="mx-auto max-w-7xl space-y-5">
-
         {/* ── Gradient Header Banner ── */}
-        <div className="rounded-2xl overflow-hidden shadow-sm border border-violet-200/60">
-          <div className="bg-linear-to-r from-violet-700 via-indigo-600 to-indigo-500 px-6 py-5">
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-emerald-200/60">
+          <div className="bg-linear-to-r from-emerald-700 via-emerald-600 to-emerald-500 px-6 py-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <button
@@ -111,11 +137,11 @@ export function FullResultDetailView() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h1 className="text-xl font-bold text-white tracking-tight">Result Review</h1>
-                    <span className="inline-flex items-center rounded-lg bg-white/15 px-2.5 py-0.5 text-[10px] font-mono text-violet-100 tracking-widest border border-white/10">
+                    <span className="inline-flex items-center rounded-lg bg-white/15 px-2.5 py-0.5 text-[10px] font-mono text-emerald-100 tracking-widest border border-white/10">
                       {data.result_id.slice(0, 8).toUpperCase()}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-violet-100 truncate">
+                  <p className="mt-1 text-sm text-emerald-100 truncate">
                     {data.patient_uid}
                     {patientMeta ? ` · ${patientMeta}` : ''}
                   </p>
@@ -126,7 +152,7 @@ export function FullResultDetailView() {
                 <Badge variant={statusInfo.variant} className="px-3 py-1 text-xs font-semibold">
                   {statusInfo.label}
                 </Badge>
-                <span className="text-[10px] text-violet-200 font-mono tracking-wider">
+                <span className="text-[10px] text-emerald-200 font-mono tracking-wider">
                   Spec: {data.specimen_id.slice(0, 8).toUpperCase()}
                 </span>
               </div>
@@ -134,14 +160,14 @@ export function FullResultDetailView() {
           </div>
 
           {/* Sub-bar: model version + supervisor label */}
-          <div className="bg-indigo-950/90 px-6 py-2 flex items-center justify-between">
+          <div className="bg-emerald-950/90 px-6 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-indigo-300" />
-              <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+              <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
                 Supervisor Review Workspace
               </span>
             </div>
-            <span className="text-[10px] text-indigo-400 font-mono">
+            <span className="text-[10px] text-emerald-400 font-mono">
               Model v{data.model_version || '—'}
             </span>
           </div>
@@ -151,15 +177,28 @@ export function FullResultDetailView() {
         <PatientInfoSection result={data} />
 
         {/* ── Main Content Grid: image-first ── */}
-        <div className="grid gap-5 lg:grid-cols-3">
-
+        {/* items-start + sticky on the left column: the image and
+            annotation controls stay in view while the right column's data
+            sections scroll past, instead of the whole page scrolling as
+            one unit and losing the image off-screen. */}
+        <div className="grid gap-5 lg:grid-cols-3 items-start">
           {/* Left col (2/3): microscopy canvas — primary review artifact */}
-          <div className="lg:col-span-2 flex flex-col gap-5">
+          <div className="lg:col-span-2 flex flex-col gap-5 lg:sticky lg:top-6">
             <MicroscopyImageSection
               result={data}
-              onBoxesChange={(boxes) => { pendingBoxesRef.current = boxes; }}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+              onBoxesChange={(boxes) => {
+                pendingBoxesRef.current = boxes;
+              }}
             />
-            <AnnotationInputControl resultId={resultId} initialNotes={data.annotation_notes} />
+            <AnnotationInputControl
+              resultId={resultId}
+              myRoleLabel={role ? reviewerRoleLabel(role) : 'Your'}
+              myAnnotation={myAnnotation}
+              otherAnnotations={otherAnnotations}
+              isRetakePending={data.is_retake_pending}
+            />
           </div>
 
           {/* Right col (1/3): data sections + actions */}
@@ -206,16 +245,34 @@ export function FullResultDetailView() {
 
             <AIFindingsSection result={data} />
             <MedTechConfirmationSection result={data} />
-            <ManualOverridesSection result={data} />
-            <SmartDiagnosisPanel data={data.smart_diagnosis} unavailable={data.smart_diagnosis_unavailable} />
+            <SmartDiagnosisPanel
+              data={data.smart_diagnosis}
+              unavailable={data.smart_diagnosis_unavailable}
+            />
           </div>
         </div>
       </div>
 
       {/* Modals */}
-      <ApproveModal resultId={resultId} open={approveOpen} onClose={() => setApproveOpen(false)} onSuccess={handleActionSuccess} />
-      <ReturnModal resultId={resultId} open={returnOpen} onClose={() => setReturnOpen(false)} onSuccess={handleActionSuccess} />
-      <EscalateModal resultId={resultId} open={escalateOpen} onClose={() => setEscalateOpen(false)} onSuccess={handleActionSuccess} />
+      <ApproveModal
+        resultId={resultId}
+        open={approveOpen}
+        onClose={() => setApproveOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
+      <ReturnModal
+        resultId={resultId}
+        open={returnOpen}
+        onClose={() => setReturnOpen(false)}
+        onSuccess={handleActionSuccess}
+        fields={data.fields}
+      />
+      <EscalateModal
+        resultId={resultId}
+        open={escalateOpen}
+        onClose={() => setEscalateOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
     </div>
   );
 }

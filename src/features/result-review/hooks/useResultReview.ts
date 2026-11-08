@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   approveResult,
   escalateResult,
@@ -10,12 +11,22 @@ import {
   saveAnnotation,
   saveOverride,
 } from '../api/resultReviewApi';
-import type { BoundingBox } from '../types';
+import type {
+  AnnotationResponse,
+  ApproveResponse,
+  BoundingBox,
+  EscalateResponse,
+  OverrideResponse,
+  ReturnRequest,
+  ReturnResponse,
+} from '../types';
+import type { ApiError } from '../../../types/domain';
 
 export const resultReviewKeys = {
   pending: (page: number, pageSize: number) => ['results', 'pending', page, pageSize] as const,
   detail: (resultId: string) => ['results', 'detail', resultId] as const,
-  approvedToday: (page: number, pageSize: number) => ['results', 'approved-today', page, pageSize] as const,
+  approvedToday: (page: number, pageSize: number) =>
+    ['results', 'approved-today', page, pageSize] as const,
   escalated: (page: number, pageSize: number) => ['results', 'escalated', page, pageSize] as const,
 };
 
@@ -54,7 +65,7 @@ export function useFullResult(resultId: string) {
 
 export function useSaveAnnotation(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<AnnotationResponse, ApiError, { notes: string; boxes?: BoundingBox[] }>({
     mutationFn: ({ notes, boxes }: { notes: string; boxes?: BoundingBox[] }) =>
       saveAnnotation(resultId, notes, boxes),
     onSuccess: () => {
@@ -65,14 +76,22 @@ export function useSaveAnnotation(resultId: string) {
 
 export function useSaveOverride(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ parameter, corrected_value, rationale, original_ai_value }: { 
-      parameter: string; 
-      corrected_value: number; 
-      rationale: string; 
-      original_ai_value: number 
-    }) =>
-      saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
+  return useMutation<
+    OverrideResponse,
+    ApiError,
+    { parameter: string; corrected_value: number; rationale: string; original_ai_value: number }
+  >({
+    mutationFn: ({
+      parameter,
+      corrected_value,
+      rationale,
+      original_ai_value,
+    }: {
+      parameter: string;
+      corrected_value: number;
+      rationale: string;
+      original_ai_value: number;
+    }) => saveOverride(resultId, parameter, corrected_value, rationale, original_ai_value),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
     },
@@ -81,34 +100,53 @@ export function useSaveOverride(resultId: string) {
 
 export function useApproveResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
+  return useMutation<ApproveResponse, ApiError, string | undefined>({
     mutationFn: (notes?: string) => approveResult(resultId, notes),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      // The result now belongs in Approved Today — without this, a
+      // Supervisor navigating straight there could see it missing for up
+      // to staleTime.
+      qc.invalidateQueries({ queryKey: ['results', 'approved-today'] });
+      toast.success('Result approved and released.');
     },
   });
 }
 
 export function useReturnResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (reason: string) => returnResult(resultId, reason),
+  return useMutation<ReturnResponse, ApiError, ReturnRequest>({
+    mutationFn: (request: ReturnRequest) => returnResult(resultId, request),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      toast.success('Result returned to the Medical Technologist.');
     },
   });
 }
 
 export function useEscalateResult(resultId: string) {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ escalationPath, escalationNote }: { escalationPath: string; escalationNote?: string }) =>
-      escalateResult(resultId, escalationPath, escalationNote),
+  return useMutation<
+    EscalateResponse,
+    ApiError,
+    { escalationPath: string; escalationNote?: string }
+  >({
+    mutationFn: ({
+      escalationPath,
+      escalationNote,
+    }: {
+      escalationPath: string;
+      escalationNote?: string;
+    }) => escalateResult(resultId, escalationPath, escalationNote),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: resultReviewKeys.detail(resultId) });
       qc.invalidateQueries({ queryKey: ['results', 'pending'] });
+      // The result now belongs in the Escalated queue — same staleness
+      // concern as the approve case above.
+      qc.invalidateQueries({ queryKey: ['results', 'escalated'] });
+      toast.success('Result escalated.');
     },
   });
 }

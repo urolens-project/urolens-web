@@ -1,6 +1,7 @@
 import { Loader2, FlaskConical, User } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import type { PendingSpecimenItem, MedTechWorkloadItem } from '../types';
+import { formatTestType } from '../utils';
 
 interface AssignmentConfirmationModalProps {
   open: boolean;
@@ -22,9 +23,7 @@ export function AssignmentConfirmationModal({
   return (
     <Modal open={open} onClose={onClose} title="Confirm Assignment" maxWidth="sm">
       <div className="space-y-4">
-        <p className="text-sm text-slate-600">
-          You are about to assign the following specimen:
-        </p>
+        <p className="text-sm text-slate-600">You are about to assign the following specimen:</p>
 
         {specimen && (
           <div className="flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-100 p-3">
@@ -33,7 +32,9 @@ export function AssignmentConfirmationModal({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">{specimen.sample_uid}</p>
-              <p className="text-xs text-slate-500 truncate">{specimen.patient_uid} · {specimen.test_type}</p>
+              <p className="text-xs text-slate-500 truncate">
+                {specimen.patient_name} · {formatTestType(specimen.test_type)}
+              </p>
             </div>
           </div>
         )}
@@ -47,7 +48,9 @@ export function AssignmentConfirmationModal({
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900">{medtech.full_name}</p>
-              <p className="text-xs text-slate-500">{medtech.active_count} active specimen{medtech.active_count !== 1 ? 's' : ''}</p>
+              <p className="text-xs text-slate-500">
+                {medtech.active_count} active specimen{medtech.active_count !== 1 ? 's' : ''}
+              </p>
             </div>
           </div>
         )}

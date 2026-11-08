@@ -9,11 +9,15 @@ import type {
   FullResultDetail,
   OverrideResponse,
   PendingResultListResponse,
+  ReturnRequest,
   ReturnResponse,
   SupervisorStats,
 } from '../types';
 
-export async function fetchPendingResults(page: number, pageSize: number): Promise<PendingResultListResponse> {
+export async function fetchPendingResults(
+  page: number,
+  pageSize: number,
+): Promise<PendingResultListResponse> {
   const { data } = await apiClient.get<PendingResultListResponse>('/results/pending', {
     params: { page, page_size: pageSize },
   });
@@ -46,7 +50,7 @@ export async function saveOverride(
   original_ai_value: number,
 ): Promise<OverrideResponse> {
   const { data } = await apiClient.post<OverrideResponse>(`/results/${resultId}/override`, {
-    parameter_name: parameter,
+    parameter,
     corrected_value,
     rationale,
     original_ai_value,
@@ -55,12 +59,17 @@ export async function saveOverride(
 }
 
 export async function approveResult(resultId: string, notes?: string): Promise<ApproveResponse> {
-  const { data } = await apiClient.post<ApproveResponse>(`/results/${resultId}/approve`, { notes: notes ?? null });
+  const { data } = await apiClient.post<ApproveResponse>(`/results/${resultId}/approve`, {
+    notes: notes ?? null,
+  });
   return data;
 }
 
-export async function returnResult(resultId: string, reason: string): Promise<ReturnResponse> {
-  const { data } = await apiClient.post<ReturnResponse>(`/results/${resultId}/return`, { reason });
+export async function returnResult(
+  resultId: string,
+  request: ReturnRequest,
+): Promise<ReturnResponse> {
+  const { data } = await apiClient.post<ReturnResponse>(`/results/${resultId}/return`, request);
   return data;
 }
 
@@ -81,14 +90,20 @@ export async function fetchSupervisorStats(): Promise<SupervisorStats> {
   return data;
 }
 
-export async function fetchApprovedToday(page: number, pageSize: number): Promise<ApprovedTodayListResponse> {
+export async function fetchApprovedToday(
+  page: number,
+  pageSize: number,
+): Promise<ApprovedTodayListResponse> {
   const { data } = await apiClient.get<ApprovedTodayListResponse>('/results/approved-today', {
     params: { page, page_size: pageSize },
   });
   return data;
 }
 
-export async function fetchEscalated(page: number, pageSize: number): Promise<EscalatedListResponse> {
+export async function fetchEscalated(
+  page: number,
+  pageSize: number,
+): Promise<EscalatedListResponse> {
   const { data } = await apiClient.get<EscalatedListResponse>('/results/escalated', {
     params: { page, page_size: pageSize },
   });

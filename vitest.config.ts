@@ -11,7 +11,7 @@ export default defineConfig({
     exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     css: true,
     env: {
-      VITE_API_BASE_URL: 'http://localhost:8000/api/v1',
+      VITE_API_BASE_URL: 'http://localhost:8000',
       VITE_APP_ENV: 'test',
       VITE_SESSION_TIMEOUT_MINUTES: '30',
     },

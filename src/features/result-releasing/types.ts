@@ -1,6 +1,8 @@
+// patient_uid, not a decrypted name — the backend dropped patientName from
+// this response (RA 10173 data minimization) as part of UROLENS-143.
 export interface ApprovedResultItem {
   result_id: string;
-  patient_uid: string;
+  patient_uid: string | null;
   sample_uid: string | null;
   test_type: string | null;
   approved_at: string;

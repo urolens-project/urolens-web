@@ -1,5 +1,6 @@
 import { FlaskConical, Clock, CheckCircle2, User, TestTube } from 'lucide-react';
 import type { PendingSpecimenItem } from '../types';
+import { formatTestType } from '../utils';
 
 interface PendingSpecimenListProps {
   specimens: PendingSpecimenItem[];
@@ -22,7 +23,9 @@ function formatDate(iso: string): string {
 const Header = () => (
   <div className="px-8 py-6 border-b border-slate-100 bg-linear-to-r from-emerald-50 to-white">
     <h2 className="text-lg font-bold text-slate-900">Pending Specimens</h2>
-    <p className="text-sm text-slate-500 mt-0.5">Labeled specimens awaiting assignment — oldest first.</p>
+    <p className="text-sm text-slate-500 mt-0.5">
+      Labeled specimens awaiting assignment — oldest first.
+    </p>
   </div>
 );
 
@@ -84,11 +87,11 @@ export function PendingSpecimenList({
                 <div className="mt-1 flex items-center gap-3 flex-wrap">
                   <span className="flex items-center gap-1 text-xs text-slate-500">
                     <User className="h-3 w-3" />
-                    {specimen.patient_uid}
+                    {specimen.patient_name}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-slate-500">
                     <TestTube className="h-3 w-3" />
-                    {specimen.test_type}
+                    {formatTestType(specimen.test_type)}
                   </span>
                 </div>
                 <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
@@ -96,9 +99,7 @@ export function PendingSpecimenList({
                   {formatDate(specimen.received_at)}
                 </p>
               </div>
-              {isSelected && (
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
-              )}
+              {isSelected && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />}
             </button>
           );
         })}

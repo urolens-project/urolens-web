@@ -43,27 +43,30 @@ describe('PatientResultList', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     const labels = screen.getAllByText('Urinalysis');
     expect(labels.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('renders status chips for each result', () => {
+  it('renders a status chip for the RELEASED result only', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByText('Released')).toBeInTheDocument();
-    expect(screen.getByText('Pending')).toBeInTheDocument();
+    // The PENDING row has no chip — just the "Not yet released" caption,
+    // so the ticket's required wording isn't duplicated/contradicted by a
+    // separate "Pending" label next to it.
+    expect(screen.queryByText('Pending')).not.toBeInTheDocument();
   });
 
   it('shows release date for RELEASED results', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByText(/Released: May 20, 2026/)).toBeInTheDocument();
   });
@@ -72,7 +75,7 @@ describe('PatientResultList', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByText('Not yet released')).toBeInTheDocument();
   });
@@ -81,7 +84,7 @@ describe('PatientResultList', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={[]} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByText('You have no lab results yet.')).toBeInTheDocument();
   });
@@ -90,7 +93,7 @@ describe('PatientResultList', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     const viewDetailsButtons = screen.getAllByText('View Details');
     expect(viewDetailsButtons).toHaveLength(1);
@@ -101,19 +104,17 @@ describe('PatientResultList', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     await user.click(screen.getByText('View Details'));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      '/dashboard/patient/results/abc12345-6789'
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('/dashboard/patient/results/abc12345-6789');
   });
 
   it('does not navigate when a PENDING result card is clicked', () => {
     render(
       <MemoryRouter>
         <PatientResultList results={mockResults} />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     // PENDING card has no role="button"
     const buttons = screen.getAllByRole('button');

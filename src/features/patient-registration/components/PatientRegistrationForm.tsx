@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ConsentCapture } from './ConsentCapture';
 import { useCreatePatient } from '../hooks/usePatientRegistration';
-import type { PatientCreateRequest, ConsentData, PatientSex } from '../types';
+import type { PatientCreateRequest, PatientResponse, ConsentData, PatientSex } from '../types';
 import type { ApiError } from '../../../types/domain';
 
 const INITIAL_CONSENT: ConsentData = {
@@ -33,12 +34,23 @@ const INITIAL_FORM: FormFields = {
   is_walkin: false,
 };
 
+function toLocalIsoDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+// Latest selectable birth date: yesterday, in the clinic's local time. ISO
+// dates compare correctly as plain strings, which avoids UTC/local drift.
+function latestBirthDate(): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return toLocalIsoDate(yesterday);
+}
+
 function isDateInPast(dateString: string): boolean {
   if (!dateString) return true;
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return date <= today;
+  return dateString <= latestBirthDate();
 }
 
 function areAllConsentsChecked(consent: ConsentData): boolean {
@@ -46,13 +58,17 @@ function areAllConsentsChecked(consent: ConsentData): boolean {
 }
 
 export function PatientRegistrationForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormFields>({ ...INITIAL_FORM });
   const [consent, setConsent] = useState<ConsentData>({ ...INITIAL_CONSENT });
   const [showConsentErrors, setShowConsentErrors] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
   const [genericError, setGenericError] = useState<string | null>(null);
-  const [successPatientUid, setSuccessPatientUid] = useState<string | null>(null);
+  const [registeredPatient, setRegisteredPatient] = useState<Pick<
+    PatientResponse,
+    'patient_id' | 'patient_uid' | 'portal_username' | 'portal_password'
+  > | null>(null);
 
   const createPatient = useCreatePatient();
 
@@ -114,7 +130,12 @@ export function PatientRegistrationForm() {
 
     createPatient.mutate(payload, {
       onSuccess: (data) => {
-        setSuccessPatientUid(data.patient_uid);
+        setRegisteredPatient({
+          patient_id: data.patient_id,
+          patient_uid: data.patient_uid,
+          portal_username: data.portal_username,
+          portal_password: data.portal_password,
+        });
         setFormData({ ...INITIAL_FORM });
         setConsent({ ...INITIAL_CONSENT });
         setFieldErrors({});
@@ -136,14 +157,9 @@ export function PatientRegistrationForm() {
     });
   };
 
-  const isSubmitDisabled =
-    !formData.first_name.trim() ||
-    !formData.last_name.trim() ||
-    !formData.date_of_birth ||
-    !formData.sex ||
-    createPatient.isPending;
+  const maxBirthDate = latestBirthDate();
 
-  if (successPatientUid) {
+  if (registeredPatient) {
     return (
       <div className="bg-white border border-emerald-200 rounded-3xl shadow-sm overflow-hidden">
         <div className="px-8 py-10 flex flex-col items-center text-center gap-4">
@@ -153,24 +169,63 @@ export function PatientRegistrationForm() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Patient Registered Successfully</h2>
             <p className="mt-3 text-2xl font-black text-emerald-700 tracking-tight">
-              Patient UID: {successPatientUid}
+              Patient UID: {registeredPatient.patient_uid}
             </p>
-            <p className="mt-2 text-sm text-slate-500">Please note this UID for the patient record.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              Note this ID — it's how staff will look this patient up everywhere else in the system,
+              including to submit their lab request next.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setSuccessPatientUid(null)}
-            className="mt-2 h-11 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all shadow-sm"
-          >
-            Register Another Patient
-          </button>
+
+          {registeredPatient.portal_username && registeredPatient.portal_password && (
+            <div className="w-full max-w-sm rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-left">
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-700">
+                Patient Portal Login — give this to the patient now
+              </p>
+              <p className="mt-1 text-xs text-amber-700">
+                This password cannot be shown again after you leave this screen.
+              </p>
+              <div className="mt-3 space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Username</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {registeredPatient.portal_username}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Password</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {registeredPatient.portal_password}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-2 flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+            <button
+              type="button"
+              onClick={() => setRegisteredPatient(null)}
+              className="flex-1 h-11 px-6 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all"
+            >
+              Register Another Patient
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/intake/request', { state: { patient: registeredPatient } })}
+              className="flex-1 h-11 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
+            >
+              Next: Create Lab Request
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} noValidate className="space-y-8">
       <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
         <div className="px-8 py-6 border-b border-slate-100 bg-linear-to-r from-emerald-50 to-white">
           <div className="flex items-center gap-3">
@@ -187,7 +242,6 @@ export function PatientRegistrationForm() {
         </div>
 
         <div className="p-8 space-y-6">
-
           {/* NAME ROW */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
@@ -256,6 +310,7 @@ export function PatientRegistrationForm() {
                 id="date_of_birth"
                 type="date"
                 name="date_of_birth"
+                max={maxBirthDate}
                 value={formData.date_of_birth}
                 onChange={handleInputChange}
                 className={`w-full h-12 rounded-2xl border bg-slate-50 px-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 ${
@@ -327,7 +382,9 @@ export function PatientRegistrationForm() {
           <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50">
             <div>
               <p className="text-sm font-semibold text-slate-700">Walk-in Patient</p>
-              <p className="text-xs text-slate-400 mt-0.5">Enable if the patient arrived without a prior appointment.</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Enable if the patient arrived without a prior appointment.
+              </p>
             </div>
             <button
               type="button"
@@ -365,7 +422,7 @@ export function PatientRegistrationForm() {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isSubmitDisabled}
+          disabled={createPatient.isPending}
           className="h-12 px-7 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
         >
           {createPatient.isPending ? 'Registering Patient...' : 'Register Patient'}

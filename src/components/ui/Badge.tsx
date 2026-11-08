@@ -4,6 +4,10 @@ type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
 interface BadgeProps {
   variant?: BadgeVariant;
+  /** Shows a small solid dot in the variant's color before the label —
+   * for statuses that read better as "live state" than a plain label
+   * (e.g. a row in a queue, an active count). */
+  dot?: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -16,11 +20,20 @@ const variantClasses: Record<BadgeVariant, string> = {
   info: 'bg-blue-50 text-blue-700 border-blue-200',
 };
 
-export function Badge({ variant = 'default', children, className = '' }: BadgeProps) {
+const dotClasses: Record<BadgeVariant, string> = {
+  default: 'bg-slate-400',
+  success: 'bg-emerald-500',
+  warning: 'bg-amber-500',
+  danger: 'bg-red-500',
+  info: 'bg-blue-500',
+};
+
+export function Badge({ variant = 'default', dot = false, children, className = '' }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${variantClasses[variant]} ${className}`}
     >
+      {dot && <span className={`h-1.5 w-1.5 rounded-full ${dotClasses[variant]}`} />}
       {children}
     </span>
   );

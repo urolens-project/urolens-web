@@ -5,27 +5,36 @@ import { queryClient } from './lib/queryClient';
 import { AuthProvider } from './lib/auth/authContext';
 import { RequireRole } from './lib/rbac';
 import { UserRole } from './types/enums';
+import { ROLE_SHELL_CONFIG } from './lib/roleShellConfig';
 
-import AppShell from './components/layout/AppShell';
-import DashboardShell from './components/layout/DashboardShell';
-import SupervisorShell from './components/layout/SupervisorShell';
-import PhysicianShell from './components/layout/PhysicianShell';
+import NotificationsShell from './components/layout/NotificationsShell';
+import RoleShell from './components/layout/RoleShell';
+import ServiceStatusBanner from './components/feedback/ServiceStatusBanner';
 
 import PatientRegistrationPage from './features/patient-registration';
 import LabRequestForm from './features/lab-request';
 import SpecimenReceivingForm from './features/specimen-receiving';
 import SampleLabelingScreen from './features/sample-labeling';
 import QueueAssignmentPage from './features/queue-assignment';
-import ResultReleasePage from './features/result-release';
 import PatientPortalPage, { PatientResultDetailPage } from './features/patient-portal';
 import { ApprovedResultsQueue } from './features/result-releasing/components/ApprovedResultsQueue';
+import { NotificationsPage } from './features/notifications';
 
-import { PendingApprovalQueueView, FullResultDetailView, ApprovedTodayQueueView, EscalatedQueueView } from './features/result-review';
+import {
+  PendingApprovalQueueView,
+  FullResultDetailView,
+  ApprovedTodayQueueView,
+  EscalatedQueueView,
+} from './features/result-review';
 import { NewLabRequestForm, MyResultsList, PhysicianResultDetailView } from './features/physician';
+import {
+  PendingConfirmationQueueView,
+  ResultConfirmationDetailView,
+} from './features/medtech-confirmation';
+import { MedTechVerificationPage } from './features/field-verification';
 
 import LoginPage from './routes/auth.routes';
 import PatientLoginPage from './features/auth/components/PatientLoginPage';
-import MedTechDashboard from './routes/medtech.routes';
 import SupervisorDashboard from './routes/supervisor.routes';
 import PhysicianDashboard from './routes/physician.routes';
 import PatientDashboard from './routes/patient.routes';
@@ -43,8 +52,9 @@ const Unauthorized = () => (
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+      <AuthProvider>
         <Toaster position="top-right" richColors />
+        <ServiceStatusBanner />
         <BrowserRouter>
           <Routes>
             {/* Global Unauthenticated Public Core Routing Nodes */}
@@ -56,33 +66,55 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.RECEPTIONIST]}>
-                  <DashboardShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
+                    navSectionLabel="Main Operations"
+                    workspaceLabel="Intake Workspace"
+                    title="Reception Management Node"
+                  />
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/receptionist" element={<Navigate to="/intake/register" replace />} />
+              <Route
+                path="/dashboard/receptionist"
+                element={<Navigate to="/intake/register" replace />}
+              />
               <Route path="/dashboard/receptionist/queue" element={<QueueAssignmentPage />} />
-              <Route path="/dashboard/receptionist/release" element={<ResultReleasePage />} />
               <Route path="/receptionist/results/approved" element={<ApprovedResultsQueue />} />
             </Route>
-            
 
             {/* 2. MEDICAL TECHNOLOGIST PROTECTED BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.MEDTECH]}>
-                  <AppShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.MEDTECH]}
+                    navSectionLabel="MedTech Workspace"
+                    workspaceLabel="Processing Workspace"
+                    title="Specimen Processing Console"
+                  />
                 </RequireRole>
               }
             >
-              <Route path="/dashboard/medtech" element={<MedTechDashboard />} />
+              <Route
+                path="/dashboard/medtech"
+                element={<Navigate to="/medtech/results" replace />}
+              />
+              <Route path="/medtech/results" element={<PendingConfirmationQueueView />} />
+              <Route path="/medtech/results/:resultId" element={<ResultConfirmationDetailView />} />
+              <Route path="/medtech/verify/:resultId" element={<MedTechVerificationPage />} />
             </Route>
 
             {/* 2. LABORATORY WORKFLOW SUPERVISOR PROTECTED BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.SUPERVISOR]}>
-                  <SupervisorShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.SUPERVISOR]}
+                    navSectionLabel="Supervisor Workspace"
+                    workspaceLabel="Supervisor Workspace"
+                    title="Laboratory Review Console"
+                  />
                 </RequireRole>
               }
             >
@@ -97,7 +129,12 @@ export default function App() {
             <Route
               element={
                 <RequireRole roles={[UserRole.PHYSICIAN]}>
-                  <PhysicianShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.PHYSICIAN]}
+                    navSectionLabel="Physician Workspace"
+                    workspaceLabel="Physician Workspace"
+                    title="Clinical Request Portal"
+                  />
                 </RequireRole>
               }
             >
@@ -110,32 +147,65 @@ export default function App() {
             {/* 6. HEALTHCARE RECIPIENT / PATIENT ENVELOPE BOUNDARIES */}
             <Route
               element={
-                <RequireRole roles={[UserRole.PATIENT]} loginPath="/patient/login">
-                  <AppShell />
+                <RequireRole roles={[UserRole.PATIENT]}>
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.PATIENT]}
+                    navSectionLabel="Patient Workspace"
+                    workspaceLabel="Patient Workspace"
+                    title="My Results Portal"
+                  />
                 </RequireRole>
               }
             >
-            <Route path="/dashboard/patient" element={<PatientDashboard />} />
+              <Route path="/dashboard/patient" element={<PatientDashboard />} />
               <Route path="/dashboard/patient/results" element={<PatientPortalPage />} />
-              <Route path="/dashboard/patient/results/:resultId" element={<PatientResultDetailPage />} />
-          </Route>
+              <Route
+                path="/dashboard/patient/results/:resultId"
+                element={<PatientResultDetailPage />}
+              />
+            </Route>
 
             {/* 7. SYSTEM SECURITY ROOT / ADMINISTRATOR BOUNDARIES */}
             <Route
               element={
                 <RequireRole roles={[UserRole.ADMINISTRATOR]}>
-                  <AppShell />
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.ADMINISTRATOR]}
+                    navSectionLabel="Admin Workspace"
+                    workspaceLabel="Admin Workspace"
+                    title="System Administration"
+                  />
                 </RequireRole>
               }
             >
               <Route path="/dashboard/administrator" element={<AdminDashboard />} />
             </Route>
 
+            {/* 7.5 NOTIFICATIONS — shared by every role, one route rather than
+                repeated per-role (see NotificationsShell for why: React
+                Router breaks same-path ties by registration order, so a
+                literal "/notifications" path duplicated inside each of the
+                blocks above would only ever honor the first one's guard). */}
+            <Route
+              element={
+                <RequireRole roles={Object.values(UserRole)}>
+                  <NotificationsShell />
+                </RequireRole>
+              }
+            >
+              <Route path="/notifications" element={<NotificationsPage />} />
+            </Route>
+
             {/* 8. COMPREHENSIVE PATIENT INTAKE STREAM CORE ROUTER WRAPPER */}
             <Route
               element={
-                <RequireRole roles={[UserRole.RECEPTIONIST, UserRole.SUPERVISOR, UserRole.ADMINISTRATOR]}>
-                  <DashboardShell />
+                <RequireRole roles={[UserRole.RECEPTIONIST]}>
+                  <RoleShell
+                    navItems={ROLE_SHELL_CONFIG[UserRole.RECEPTIONIST]}
+                    navSectionLabel="Main Operations"
+                    workspaceLabel="Intake Workspace"
+                    title="Reception Management Node"
+                  />
                 </RequireRole>
               }
               path="/intake"

@@ -1,4 +1,5 @@
 import type { SmartDiagnosisAttached } from '../smart-diagnosis/types';
+import type { FieldSummary, FieldSummaryItem } from '../field-verification/types';
 
 export interface ManualOverrideItem {
   override_id: string;
@@ -12,12 +13,18 @@ export interface ManualOverrideItem {
 export interface PendingResultItem {
   result_id: string;
   specimen_id: string;
+  // null if the specimen has none yet (visual check not passed) or wasn't found.
+  sample_uid: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
   medtech_name: string;
   confirmed_at: string | null;
   status: string;
+  // Same optional, lane-pending pattern as FullResultDetail.fields —
+  // GET /results/supervisor/pending doesn't send these yet.
+  field_count?: number;
+  verified_field_count?: number;
 }
 
 export interface PendingResultListResponse {
@@ -29,11 +36,29 @@ export interface PendingResultListResponse {
 
 export interface BoundingBox {
   id: string;
-  label: string;
+  particle_type: string;
   x: number;
   y: number;
   w: number;
   h: number;
+}
+
+// One AI-detected particle box, before any reviewer has drawn their own
+// annotation. Read-only data from the AI pipeline, not a reviewer's saved
+// work — see MicroscopyImageSection for how this seeds the canvas.
+export interface AiDetectionBox extends BoundingBox {
+  confidence: number | null;
+}
+
+// One reviewer's annotation on a result. A MedTech's and a Supervisor's
+// annotations are independent — this is one entry in FullResultDetail's
+// `annotations` list, not the whole thing.
+export interface AnnotationItem {
+  reviewed_by: string;
+  reviewer_role: string;
+  annotation_notes: string | null;
+  spatial_annotations: BoundingBox[] | null;
+  updated_at: string;
 }
 
 export interface FullResultDetail {
@@ -46,6 +71,7 @@ export interface FullResultDetail {
   confirmed_at: string | null;
   confirmation_notes: string | null;
   ai_findings: Record<string, unknown>;
+  ai_detections: AiDetectionBox[];
   flagged_anomalies: Record<string, unknown>;
   particle_classes: Record<string, unknown>;
   model_version: string;
@@ -54,8 +80,21 @@ export interface FullResultDetail {
   smart_diagnosis: SmartDiagnosisAttached | null;
   smart_diagnosis_unavailable: boolean;
   status: string;
-  annotation_notes: string | null;
-  spatial_annotations: BoundingBox[] | null;
+  is_retake_pending: boolean;
+  annotations: AnnotationItem[];
+  // Multi-field additions, real as of urolens-backend PR #103
+  // ("Finish the web lane's review, return and reader changes") — left out
+  // of the JSON entirely while FIELD_WORKFLOW_ENABLED is off, so every
+  // reader of these fields must treat absence as "this is a legacy
+  // single-image result", not as missing/loading data.
+  fields?: FieldSummaryItem[];
+  field_count?: number;
+  field_summary?: FieldSummary | null;
+  is_legacy_single_field?: boolean;
+  // The field/particle a supervisor's latest return pointed at — present
+  // only while status is RETURNED_FOR_CORRECTION and only when named.
+  return_field_id?: string | null;
+  return_particle_type?: string | null;
 }
 
 export interface AnnotationResponse {
@@ -81,10 +120,22 @@ export interface ApproveResponse {
   approved_at: string;
 }
 
+export interface ReturnRequest {
+  reason: string;
+  // Multi-field workflow only — ignored (not stored) while the flag is
+  // off. particle_type requires field_id and must be a PARTICLE_LABELS key.
+  field_id?: string | null;
+  particle_type?: string | null;
+}
+
 export interface ReturnResponse {
   result_id: string;
   status: string;
   returned_at: string;
+  // Multi-field workflow only (left out otherwise): the field/particle this
+  // return points at.
+  field_id?: string | null;
+  particle_type?: string | null;
 }
 
 export interface EscalateResponse {
@@ -95,14 +146,16 @@ export interface EscalateResponse {
 }
 
 export interface SupervisorStats {
-  pendingCount: number;
-  approvedToday: number;
-  escalatedCount: number;
+  pending_count: number;
+  approved_today: number;
+  escalated_count: number;
 }
 
 export interface ApprovedResultItem {
   result_id: string;
-  specimen_id: string;
+  // null if the underlying result row wasn't found.
+  specimen_id: string | null;
+  sample_uid: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;
@@ -121,6 +174,7 @@ export interface ApprovedTodayListResponse {
 export interface EscalatedResultItem {
   result_id: string;
   specimen_id: string;
+  sample_uid: string | null;
   patient_uid: string;
   patient_age: number | null;
   patient_sex: string | null;

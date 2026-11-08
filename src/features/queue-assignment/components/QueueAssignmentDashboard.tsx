@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { MedTechWorkloadPanel } from './MedTechWorkloadPanel';
 import { PendingSpecimenList } from './PendingSpecimenList';
@@ -6,8 +7,17 @@ import { AssignmentConfirmationModal } from './AssignmentConfirmationModal';
 import { usePendingSpecimens, useMedTechWorkloads } from '../hooks/useQueueWorkloads';
 import { useAssignSpecimen } from '../hooks/useAssignSpecimen';
 
-export function QueueAssignmentDashboard() {
-  const [selectedSpecimenId, setSelectedSpecimenId] = useState<string | null>(null);
+interface QueueAssignmentDashboardProps {
+  // Specimen just labeled; selected once it shows up in the pending list.
+  preselectedSpecimenId?: string | null;
+}
+
+export function QueueAssignmentDashboard({
+  preselectedSpecimenId = null,
+}: QueueAssignmentDashboardProps) {
+  const [selectedSpecimenId, setSelectedSpecimenId] = useState<string | null>(
+    preselectedSpecimenId,
+  );
   const [selectedMedTechId, setSelectedMedTechId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -32,7 +42,8 @@ export function QueueAssignmentDashboard() {
   const selectedSpecimen = specimens?.find((s) => s.specimen_id === selectedSpecimenId) ?? null;
   const selectedMedTech = workloads?.find((m) => m.user_id === selectedMedTechId) ?? null;
 
-  const canAssign = selectedSpecimenId !== null && selectedMedTechId !== null;
+  // Based on what is actually in the lists, so a specimen assigned elsewhere can't be submitted.
+  const canAssign = selectedSpecimen !== null && selectedMedTech !== null;
   const isRefreshing = specimensFetching || workloadsFetching;
 
   function handleReload() {
@@ -46,23 +57,28 @@ export function QueueAssignmentDashboard() {
   };
 
   const handleConfirm = () => {
-    if (!selectedSpecimenId || !selectedMedTechId) return;
+    if (!selectedSpecimen || !selectedMedTech) return;
     assignMutation.mutate(
-      { specimen_id: selectedSpecimenId, medtech_id: selectedMedTechId },
+      { specimen_id: selectedSpecimen.specimen_id, medtech_id: selectedMedTech.user_id },
       {
         onSuccess: () => {
+          toast.success(
+            `${selectedSpecimen.sample_uid} assigned to ${selectedMedTech.full_name}.`,
+          );
           setModalOpen(false);
           setSelectedSpecimenId(null);
           setSelectedMedTechId(null);
         },
         onError: () => {
           setModalOpen(false);
+          handleReload();
         },
       },
     );
   };
 
-  if (workloadsError || specimensError) {
+  // Only replace the screen when there is nothing to show; a failed background refresh keeps the data.
+  if ((workloadsError && !workloads) || (specimensError && !specimens)) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-3xl p-8 text-center">
         <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-3" />
@@ -128,7 +144,7 @@ export function QueueAssignmentDashboard() {
       </div>
 
       <AssignmentConfirmationModal
-        open={modalOpen}
+        open={modalOpen && canAssign}
         onClose={() => setModalOpen(false)}
         onConfirm={handleConfirm}
         isPending={assignMutation.isPending}

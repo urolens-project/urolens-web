@@ -17,7 +17,7 @@ export interface PatientRegistrationPayload {
  */
 export interface PatientRegistrationResponse {
   success: boolean;
-  patient_id: string; 
+  patient_id: string;
   message: string;
   timestamp: string;
 }
@@ -28,20 +28,31 @@ export interface PatientRegistrationResponse {
  */
 export interface LabRequestPayload {
   patient_id: string;
-  physician_id?: string;   // Added to capture clean relational user_id UUIDs from the database
+  physician_id?: string; // Added to capture clean relational user_id UUIDs from the database
   physician_name?: string; // Used as the fallback name string when manual override is toggled active
   test_type: string;
   clinical_notes?: string;
+  special_instructions?: string;
 }
 
 /**
- * Server response contract following successful lab request encoding
+ * Server response contract following successful lab request encoding.
+ * Previously didn't match what the backend actually returns at all (no
+ * `success`/`message`/`timestamp` fields exist on LabRequestCreateResponse)
+ * — the confirmation screen's tracking-reference display always fell back
+ * to its placeholder text instead of the real generated request UID.
  */
 export interface LabRequestResponse {
-  success: boolean;
-  request_id: string; // Returns dynamic tracking reference sequence format: REQ-2026-XXXXX
-  message: string;
-  timestamp: string;
+  lab_request_id: string;
+  request_uid: string; // Tracking reference, format: REQ-YYYYMMDD-XXXXX
+  patient_id: string;
+  physician_id: string | null;
+  physician_name: string | null;
+  test_type: string;
+  clinical_notes: string | null;
+  special_instructions: string | null;
+  status: string;
+  created_at: string;
 }
 
 export interface SpecimenReceivePayload {
@@ -57,25 +68,37 @@ export interface SpecimenReceiveResponse {
   sample_uid: string | null;
   status: 'RECEIVED' | 'REJECTED';
   message: string;
+  // The parent lab request's patient UID, so Sample Labeling doesn't need a second lookup.
+  patient_uid: string | null;
 }
 
 export interface LabelPreviewData {
   patient_name: string;
-  patient_uid: string;
-  sample_uid: string;
-  test_type: string;
+  patient_uid: string | null;
+  sample_uid: string | null;
+  test_type: string | null;
   date: string;
 }
 
 export interface PrintLabelResponse {
   success: boolean;
   label_id: string;
-  print_job_id: string;
+  // Generating a label no longer also creates a print job — always null now.
+  print_job_id: string | null;
+  label_count: number;
   preview: LabelPreviewData;
+}
+
+export interface PrintJobResponse {
+  success: boolean;
+  print_job_id: string;
+  label_id: string;
+  status: string;
 }
 
 export interface ConfirmAffixedResponse {
   success: boolean;
   message: string;
   updated_status: string;
+  offline_override_used: boolean;
 }

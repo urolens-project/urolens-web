@@ -3,21 +3,43 @@ import { RotateCcw } from 'lucide-react';
 import { Modal } from '../../../components/ui/Modal';
 import { Button } from '../../../components/ui/Button';
 import { useReturnResult } from '../hooks/useResultReview';
+import { getReturnErrorMessage } from '../utils/errors';
+import { PARTICLE_LABEL_DISPLAY, PARTICLE_LABELS } from '../constants';
+import type { FieldSummaryItem } from '../../field-verification/types';
 
 interface Props {
   resultId: string;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  // Proposal §4 "Effects on Modules 3 and 4": "Return for Correction is
+  // now the only way a supervisor changes a value, so the return reason
+  // should name the field and particle concerned." Omit for a legacy
+  // single-image result — the picker only makes sense once there's more
+  // than one field to point at.
+  fields?: FieldSummaryItem[];
 }
 
-export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
+export function ReturnModal({ resultId, open, onClose, onSuccess, fields }: Props) {
   const [reason, setReason] = useState('');
+  const [fieldId, setFieldId] = useState('');
+  const [particleType, setParticleType] = useState('');
   const mutation = useReturnResult(resultId);
 
   async function handleConfirm() {
-    if (!reason.trim()) return;
-    await mutation.mutateAsync(reason.trim());
+    const trimmed = reason.trim();
+    if (!trimmed) return;
+    try {
+      await mutation.mutateAsync({
+        reason: trimmed,
+        field_id: fieldId || null,
+        // particle_type requires field_id server-side — drop it if the
+        // field selection was cleared.
+        particle_type: fieldId && particleType ? particleType : null,
+      });
+    } catch {
+      return;
+    }
     onSuccess();
     onClose();
   }
@@ -31,6 +53,40 @@ export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
             This result will be <strong>returned to the MedTech</strong> for correction.
           </p>
         </div>
+        {!!fields?.length && (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Field</label>
+              <select
+                value={fieldId}
+                onChange={(e) => setFieldId(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              >
+                <option value="">Not specific to one field</option>
+                {fields.map((f) => (
+                  <option key={f.field_id} value={f.field_id}>
+                    Field {f.field_no}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Particle</label>
+              <select
+                value={particleType}
+                onChange={(e) => setParticleType(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              >
+                <option value="">Not specific to one particle</option>
+                {PARTICLE_LABELS.map((key) => (
+                  <option key={key} value={key}>
+                    {PARTICLE_LABEL_DISPLAY[key]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1.5">
             Reason for return <span className="text-red-500">*</span>
@@ -44,7 +100,7 @@ export function ReturnModal({ resultId, open, onClose, onSuccess }: Props) {
           />
         </div>
         {mutation.isError && (
-          <p className="text-xs text-red-600">Failed to return result. Please try again.</p>
+          <p className="text-xs text-red-600">{getReturnErrorMessage(mutation.error)}</p>
         )}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="secondary" size="sm" onClick={onClose} disabled={mutation.isPending}>

@@ -12,11 +12,17 @@ export function RequireRole({
   children: ReactNode;
   loginPath?: string;
 }) {
-  const { isAuthenticated, role } = useAuthContext();
+  const { isAuthenticated, role, sessionEndReason } = useAuthContext();
   const location = useLocation();
 
   if (!isAuthenticated) {
-    return <Navigate to={loginPath} state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to={sessionEndReason ? `${loginPath}?reason=${sessionEndReason}` : loginPath}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   if (!role || !roles.includes(role)) {

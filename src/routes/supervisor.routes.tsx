@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList, Clock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { fetchSupervisorStats } from '../features/result-review/api/resultReviewApi';
+import { nextPollDelay, isDocumentHidden, isServiceReadyForPolling } from '../lib/polling';
+import { classifyError, getUserMessage } from '../lib/apiErrors';
 import type { SupervisorStats } from '../features/result-review/types';
 
 type LabStats = SupervisorStats;
@@ -24,32 +26,69 @@ export default function SupervisorDashboard() {
   // 3. Dynamic Data Fetching Hook
   useEffect(() => {
     let isMounted = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let errorCount = 0;
+    let authorized = true;
+
+    // Poll every 30s, but: pause while the tab is hidden (resumes on
+    // visibilitychange), stop on 401, wait while the backend readiness probe
+    // is failing, and back off exponentially after errors.
+    function schedule() {
+      if (!isMounted) return;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (!authorized || isDocumentHidden()) return;
+      const delay = nextPollDelay({
+        baseMs: 30000,
+        errorCount,
+        hidden: false,
+        authorized,
+        serviceReady: isServiceReadyForPolling(),
+      });
+      // Not ready: re-check the local readiness flag shortly (no network call).
+      timer = setTimeout(
+        delay === false ? schedule : fetchLiveDashboardStats,
+        delay === false ? 5000 : delay,
+      );
+    }
 
     async function fetchLiveDashboardStats() {
       try {
         setIsLoading(true);
-        
+
         const data = await fetchSupervisorStats();
 
         if (isMounted) {
           setStats(data);
           setError(null);
+          errorCount = 0;
         }
-      } catch {
-        if (isMounted) setError('Failed to refresh system metrics.');
+      } catch (err) {
+        errorCount += 1;
+        authorized = classifyError(err) !== 'unauthorized';
+        if (isMounted) setError(getUserMessage(err, 'Failed to refresh system metrics.'));
       } finally {
         if (isMounted) setIsLoading(false);
+        schedule();
       }
     }
 
-    fetchLiveDashboardStats();
+    function onVisibilityChange() {
+      if (isDocumentHidden()) {
+        if (timer) clearTimeout(timer);
+        timer = null;
+      } else if (authorized) {
+        void fetchLiveDashboardStats();
+      }
+    }
 
-    // Optional: Set up a polling interval to auto-refresh data every 30 seconds
-    const interval = setInterval(fetchLiveDashboardStats, 30000);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    void fetchLiveDashboardStats();
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (timer) clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, []);
 
@@ -57,7 +96,7 @@ export default function SupervisorDashboard() {
   const statCards = [
     {
       label: 'Pending Approval',
-      value: stats?.pendingCount ?? 0,
+      value: stats?.pending_count ?? 0,
       icon: Clock,
       color: 'text-amber-600',
       bg: 'bg-amber-50/60',
@@ -67,7 +106,7 @@ export default function SupervisorDashboard() {
     },
     {
       label: 'Approved Today',
-      value: stats?.approvedToday ?? 0,
+      value: stats?.approved_today ?? 0,
       icon: CheckCircle2,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50/60',
@@ -77,7 +116,7 @@ export default function SupervisorDashboard() {
     },
     {
       label: 'Escalated Cases',
-      value: stats?.escalatedCount ?? 0,
+      value: stats?.escalated_count ?? 0,
       icon: AlertTriangle,
       color: 'text-rose-600',
       bg: 'bg-rose-50/60',
@@ -92,11 +131,17 @@ export default function SupervisorDashboard() {
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200/60 pb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{greeting}, Supervisor</h2>
-          <p className="mt-1 text-sm text-slate-500">Real-time status monitor for the laboratory validation queue.</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {greeting}, Supervisor
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Real-time status monitor for the laboratory validation queue.
+          </p>
         </div>
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-lg w-fit">
-          <span className={`h-2 w-2 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500'} ${isLoading ? 'animate-pulse' : ''}`} />
+          <span
+            className={`h-2 w-2 rounded-full ${isLoading ? 'bg-amber-400' : 'bg-emerald-500'} ${isLoading ? 'animate-pulse' : ''}`}
+          />
           {isLoading ? 'Syncing...' : 'Live Console Connection'}
         </div>
       </div>
@@ -121,7 +166,7 @@ export default function SupervisorDashboard() {
               className={`group relative overflow-hidden rounded-2xl border ${card.border} ${card.bg} p-6 flex items-center gap-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer`}
             >
               <div className={`absolute top-0 left-0 right-0 h-[0.75px] ${card.accent}`} />
-              
+
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-100 shadow-xs">
                 <Icon className={`h-5 w-5 ${card.color}`} />
               </div>
@@ -146,7 +191,9 @@ export default function SupervisorDashboard() {
 
       {/* Action panel */}
       <div className="space-y-4">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Prioritized Workspaces</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+          Prioritized Workspaces
+        </p>
         <button
           onClick={() => navigate('/supervisor/results')}
           className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 text-left hover:border-emerald-500 hover:shadow-lg transition-all duration-300 cursor-pointer w-full"
@@ -160,7 +207,8 @@ export default function SupervisorDashboard() {
                 Open Result Approvals Queue
               </p>
               <p className="text-xs text-slate-500 mt-1 max-w-xl">
-                Review verified technical inputs, sign off clinical assays, or trigger re-testing pipelines for pending diagnostics.
+                Review verified technical inputs, sign off clinical assays, or trigger re-testing
+                pipelines for pending diagnostics.
               </p>
             </div>
           </div>
