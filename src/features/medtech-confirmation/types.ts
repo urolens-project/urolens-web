@@ -1,6 +1,9 @@
 export interface MedtechPendingItem {
   result_id: string;
   specimen_id: string;
+  // The specimen's human-facing sample ID (e.g. SMP-20261109-47580); null
+  // while the specimen has none yet.
+  sample_uid?: string | null;
   patient_uid: string;
   patient_name: string;
   patient_age: number | null;
