@@ -72,4 +72,29 @@ describe('PhysicianResultDetailView', () => {
 
     expect(screen.getAllByText(DISCLAIMER_TEXT)).toHaveLength(1);
   });
+
+  it('shows the sample ID when the API sends one', () => {
+    vi.mocked(useResultDetail).mockReturnValue({
+      data: makeResult({ sample_uid: 'SMP-20261109-47580' }),
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useResultDetail>);
+
+    renderAt('r-1');
+
+    expect(screen.getByText('SMP-20261109-47580')).toBeInTheDocument();
+    expect(screen.queryByText('SPECIMEN')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the short specimen ID without a sample ID', () => {
+    vi.mocked(useResultDetail).mockReturnValue({
+      data: makeResult(),
+      isLoading: false,
+      isError: false,
+    } as unknown as ReturnType<typeof useResultDetail>);
+
+    renderAt('r-1');
+
+    expect(screen.getByText('SPECIMEN')).toBeInTheDocument();
+  });
 });

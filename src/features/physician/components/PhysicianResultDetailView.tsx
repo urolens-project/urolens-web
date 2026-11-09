@@ -161,7 +161,10 @@ export function PhysicianResultDetailView() {
       {/* Meta row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Sample ID', value: data.specimen_id.slice(0, 8).toUpperCase() },
+          {
+            label: 'Sample ID',
+            value: data.sample_uid ?? data.specimen_id.slice(0, 8).toUpperCase(),
+          },
           { label: 'Processed by', value: data.medtech_name ?? '—' },
           {
             label: 'Confirmed At',

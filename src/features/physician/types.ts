@@ -29,6 +29,9 @@ export interface LabRequestCreateResponse {
 export interface PhysicianResultSummary {
   result_id: string;
   specimen_id: string;
+  // The specimen's human-facing sample ID (e.g. SMP-20261109-47580); absent until
+  // the API sends it, so screens fall back to the short specimen ID.
+  sample_uid?: string | null;
   patient_name: string;
   patient_uid: string;
   patient_age: number | null;
@@ -48,6 +51,9 @@ export interface PhysicianResultListResponse {
 export interface PhysicianResultDetail {
   result_id: string;
   specimen_id: string;
+  // The specimen's human-facing sample ID (e.g. SMP-20261109-47580); absent until
+  // the API sends it, so screens fall back to the short specimen ID.
+  sample_uid?: string | null;
   patient_name: string;
   patient_uid: string;
   patient_age: number | null;
